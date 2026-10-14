@@ -1,0 +1,61 @@
+name: Validar y distribuir PDF
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: python -B -m unittest discover -s tests -p test_launcher.py
+      - run: python scripts/package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PDF-distributions
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+  release:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: PDF-distributions
+          path: artifacts
+      - name: Publicar versión si todavía no existe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG=$(node -p "require('./release.json').tag")
+          VERSION=$(node -p "require('./package.json').version")
+          test "$TAG" = "v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "La versión $TAG ya existe; no se sustituye."
+            exit 0
+          fi
+          FLAGS=()
+          if [ "$(node -p "require('./release.json').prerelease")" = "true" ]; then
+            FLAGS+=(--prerelease)
+          fi
+          gh release create "$TAG" artifacts/* --target "$GITHUB_SHA" --title "PDF $VERSION" --notes-file "docs/releases/$TAG.md" "${FLAGS[@]}"

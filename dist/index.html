@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Herramientas gratuitas para abrir, organizar y convertir PDF. Los documentos se procesan en tu navegador.">
+  <meta name="theme-color" content="#c92b32">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>PDF · Herramientas de documentos</title>
+  <meta name="application-name" content="PDF">
+  <meta name="apple-mobile-web-app-title" content="PDF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/pdf-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/pdf-32.png">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./vendor/jszip.min.js" defer></script>
+  <script src="./app.js" type="module"></script>
+  <script src="./mobile.js" type="module"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+  <aside class="sidebar">
+    <a class="brand" href="./" aria-label="PDF, inicio"><img class="brand-mark" src="./icon.svg" width="40" height="40" alt=""><span>Herramientas PDF</span></a>
+    <div class="workspace-label">HERRAMIENTAS</div>
+    <nav class="side-nav" aria-label="Categorías">
+      <button class="nav-item active" data-filter="all"><span data-icon="grid"></span> Todas las herramientas <span class="nav-count">28</span></button>
+      <button class="nav-item" data-filter="organize"><span data-icon="pages"></span> Organizar</button>
+      <button class="nav-item" data-filter="convert"><span data-icon="arrows"></span> Convertir</button>
+      <button class="nav-item" data-filter="edit"><span data-icon="pen"></span> Editar y optimizar</button><button class="nav-item" data-filter="security"><span data-icon="shield"></span> Seguridad y firma</button><button class="nav-item" data-filter="analyze"><span data-icon="search"></span> Leer y analizar</button>
+    </nav>
+    <div class="side-bottom">
+      <div class="privacy-box"><span data-icon="shield"></span><strong>Documentos locales</strong><p>El trabajo ocurre en tu navegador. Los documentos no se suben a un servidor.</p></div>
+      <button class="help-button" id="help-open"><span data-icon="help"></span> Cómo funciona <span>↗</span></button>
+      <div class="profile"><span class="avatar">P</span><div><strong>PDF</strong><small>Aplicación local</small></div><span class="online" title="Procesamiento local"></span></div>
+    </div>
+  </aside>
+  <main id="main">
+    <header class="topbar"><div>PDF <span>/</span> <strong>Documentos</strong></div><div class="topbar-actions"><span class="local-badge"><i></i> Procesamiento local</span><button id="install-app" class="install-button" type="button">Instalar PDF</button></div></header>
+    <section class="intro compact-intro"><div><h1>Herramientas PDF</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.2 beta · Uso local</span></section>
+    <section class="tools-section" aria-labelledby="tools-title">
+      <div class="section-heading"><div><h2 id="tools-title">Todas las herramientas</h2><p>28 funciones · Los documentos se procesan en tu equipo.</p></div><label class="search"><span data-icon="search"></span><input id="search" type="search" placeholder="Buscar herramienta" aria-label="Buscar herramienta"><kbd>/</kbd></label></div>
+      <div class="filters" aria-label="Filtrar herramientas"><button class="filter active" data-filter="all">Todas <span>28</span></button><button class="filter" data-filter="organize">Organizar</button><button class="filter" data-filter="convert">Convertir</button><button class="filter" data-filter="edit">Editar</button><button class="filter" data-filter="security">Seguridad y firma</button><button class="filter" data-filter="analyze">Leer y analizar</button></div>
+      <div class="tool-grid" id="tool-grid"></div>
+      <div class="empty-search" id="empty-search" hidden>No hay herramientas con ese nombre. Prueba con «unir», «imagen» o «texto».</div>
+    </section>
+    <section class="how-strip"><span class="how-icon" data-icon="shield"></span><div><h3>Procesamiento local</h3><p>Seleccionas tus archivos, trabajas con ellos y descargas el resultado. Sin guardar copias en la aplicación.</p></div><button id="privacy-open">Ver cómo funciona <span>↗</span></button></section>
+    <footer><span>PDF <span class="footer-dot">·</span> Herramientas de documentos</span><span>v2.2 β <span class="footer-dot">·</span> 28 herramientas</span></footer>
+  </main>
+
+  <dialog id="work-dialog" class="work-dialog" aria-labelledby="work-title">
+    <header class="dialog-header"><div class="dialog-heading"><span id="work-icon" class="tool-icon"></span><div><span class="eyebrow dialog-eyebrow">HERRAMIENTA PDF</span><h2 id="work-title"></h2></div></div><button class="icon-button" id="work-close" aria-label="Cerrar herramienta">✕</button></header>
+    <div class="dialog-content">
+      <p id="work-description" class="work-description"></p>
+      <div id="editor-area">
+        <div class="dropzone" id="dropzone"><span data-icon="upload"></span><strong id="drop-title">Arrastra tus PDF aquí</strong><span id="drop-note">o selecciónalos desde tu dispositivo</span><button class="primary" id="choose-files">Seleccionar archivos <span>＋</span></button><small id="file-limits">Hasta 100 MB en total · 500 páginas</small></div>
+        <input type="file" id="file-input" hidden>
+        <div id="file-area" hidden><div class="files-heading"><h3>Archivos <span id="files-count"></span></h3><button class="text-button" id="add-files">Añadir archivos ＋</button></div><ol class="file-list" id="file-list"></ol><div class="file-actions"><button class="text-button" id="clear-files">Vaciar selección</button><span id="total-size"></span></div></div>
+        <div class="tool-options" id="tool-options"></div>
+        <p class="document-note" id="document-note"><span data-icon="info"></span> Editar un PDF firmado puede invalidar su firma. Aplana los formularios antes de modificar sus páginas.</p>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite" hidden><div><span class="spinner"></span><strong id="status-text">Preparando archivos…</strong></div><progress id="progress" max="100" value="0"></progress></div>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section id="result" class="result" aria-labelledby="result-title" hidden><span class="success-mark">✓</span><h3 id="result-title">Archivo preparado</h3><p id="result-summary"></p><p id="result-note"></p><pre id="result-preview" hidden></pre><a class="primary download" id="download">Descargar resultado <span>↓</span></a><div class="download-alternatives"><button type="button" class="text-button" id="share-result" hidden>Compartir archivo…</button><button type="button" class="text-button" id="save-as">Guardar como…</button><a class="text-button" id="open-result" target="_blank" rel="noopener">Abrir resultado</a></div><p class="download-help">Pulsa Descargar. En iPhone, usa Compartir archivo y Guardar en Archivos. También puedes abrir el resultado y guardarlo desde el lector del navegador.</p><div id="individual-downloads"></div><div id="result-viewer"></div><button id="start-again" class="text-button">Trabajar con otros archivos</button></section>
+    </div>
+    <footer class="dialog-footer"><span><span data-icon="lock"></span> Procesado en tu navegador</span><button class="primary" id="process" disabled>Procesar <span>→</span></button></footer>
+  </dialog>
+
+  <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title"><button class="icon-button help-close" id="help-close" aria-label="Cerrar ayuda">✕</button><div class="eyebrow">AYUDA</div><h2 id="help-title">Tu espacio de documentos</h2><ol class="help-steps"><li><b>01</b><div><strong>Elige qué necesitas hacer</strong><p>Abre una de las 28 herramientas.</p></div></li><li><b>02</b><div><strong>Selecciona y ajusta</strong><p>Añade los archivos y elige el orden, las páginas o la calidad.</p></div></li><li><b>03</b><div><strong>Descarga el resultado</strong><p>Guarda tu nueva copia. Los originales permanecen intactos.</p></div></li></ol><div class="help-detail"><h3>¿Dónde están mis archivos?</h3><p>Se procesan en la memoria de esta pestaña. La aplicación no los envía ni conserva un historial. Al vaciar o cerrar la herramienta se liberan sus referencias. Las copias que descargues quedan en tu dispositivo.</p><h3>Qué admite esta versión</h3><p>PDF e imágenes JPG y PNG. Para un PDF protegido, introduce su contraseña en el Visor o en Desbloquear PDF. Hasta 100 MB por tarea y 500 páginas; las conversiones a imagen admiten 150 páginas. Incluye OCR, formularios AcroForm, visor y firma criptográfica RSA con certificado P12/PFX.</p><h3>Al comprimir</h3><p>El modo sin pérdida conserva el contenido y puede reducir poco el tamaño. El modo ligero convierte las páginas a imágenes: pierde texto seleccionable, enlaces y campos. Revisa la calidad antes de compartir.</p><h3>Funciones y límites</h3><p>El resumen rápido selecciona frases del PDF: no usa IA generativa y puede omitir contexto. PDF a Word exporta texto, sin reconstruir el diseño. No incluye conversiones Office a PDF, PDF/A validado, traducción ni edición del texto original.</p><h3>Firma y seguridad</h3><p>La firma dibujada es una imagen. La firma digital usa un certificado RSA P12/PFX y se calcula localmente; no incorpora DNIe, tarjetas, sellado de tiempo, validación de revocación ni conservación de firmas previas. La confianza en el certificado depende del verificador.</p></div><button class="primary" id="help-done">Entendido <span>→</span></button></dialog>
+  <dialog id="install-dialog" class="help-dialog install-dialog" aria-labelledby="install-title">
+    <button id="install-close" class="icon-button help-close" aria-label="Cerrar">✕</button>
+    <img class="install-logo" src="./icons/pdf-192.png" width="72" height="72" alt="">
+    <h2 id="install-title">PDF, a mano</h2>
+    <p>Deja el icono en la pantalla de inicio de tu móvil o abre PDF en el ordenador.</p>
+    <h3>iPhone y iPad</h3><ol><li>Abre esta página en <strong>Safari</strong>.</li><li>Pulsa <strong>Compartir</strong> (puede estar dentro del menú) y <strong>Añadir a pantalla de inicio</strong>.</li><li>Si aparece <strong>Abrir como app web</strong>, actívalo y pulsa <strong>Añadir</strong>.</li></ol><h3>Android</h3>
+    <ol><li>Abre esta página en <strong>Chrome</strong>.</li><li>Pulsa el menú <strong>⋮</strong> y elige <strong>Instalar y crear acceso directo</strong> o <strong>Añadir a pantalla de inicio</strong>, según tu versión.</li><li>Confirma <strong>Instalar</strong> o <strong>Añadir</strong>.</li></ol>
+    <h3>Windows y Mac</h3><p>Utiliza esta web o descarga el paquete local de tu sistema en <a href="https://github.com/joinsnipe/PDF/releases" target="_blank" rel="noopener">GitHub</a>. Los paquetes locales incluyen los motores y pueden usarse sin conexión.</p>
+    <p class="hint">Necesitas conexión para abrir la aplicación. Tus documentos se procesan en este dispositivo. El icono no guarda un historial de archivos.</p>
+    <button id="install-done" class="primary">Entendido</button>
+  </dialog>
+  <noscript>Activa JavaScript para utilizar las herramientas locales de PDF.</noscript>
+</body>
+</html>

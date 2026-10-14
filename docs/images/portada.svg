@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<rect width="1280" height="640" fill="#f8f7f5"/><path d="M0 0h1280v12H0z" fill="#c92b32"/>
+<g transform="translate(80 74) scale(.17)">
+  <rect width="512" height="512" rx="112" fill="#c92b32"/>
+  <path d="M168 96h124l76 76v220a24 24 0 0 1-24 24H168a24 24 0 0 1-24-24V120a24 24 0 0 1 24-24Z" fill="#fff"/>
+  <path d="M292 96v56a20 20 0 0 0 20 20h56Z" fill="#f2b9bc"/>
+  <g fill="#c92b32" fill-rule="evenodd">
+    <path d="M174 316v-66h25c15 0 24 9 24 23s-9 23-24 23h-11v20Zm14-53v20h10c7 0 11-4 11-10s-4-10-11-10Z"/>
+    <path d="M234 316v-66h22c21 0 32 13 32 33s-11 33-32 33Zm14-53v40h7c13 0 19-7 19-20s-6-20-19-20Z"/>
+    <path d="M300 316v-66h44v13h-30v15h27v13h-27v25Z"/>
+  </g>
+</g>
+<text x="194" y="130" fill="#242424" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="44">PDF</text>
+<text x="80" y="264" fill="#202020" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="64">Tus documentos,</text>
+<text x="80" y="340" fill="#c92b32" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="64">en tu dispositivo.</text>
+<text x="83" y="399" fill="#62605d" font-family="Arial,Helvetica,sans-serif" font-size="25">28 herramientas · En español · Código abierto</text>
+<path d="M80 465h1120" stroke="#dad7d2"/>
+<text x="80" y="522" fill="#292929" font-family="Arial,Helvetica,sans-serif" font-size="24">Windows</text>
+<text x="285" y="522" fill="#292929" font-family="Arial,Helvetica,sans-serif" font-size="24">Mac</text>
+<text x="440" y="522" fill="#292929" font-family="Arial,Helvetica,sans-serif" font-size="24">Android</text>
+<text x="637" y="522" fill="#292929" font-family="Arial,Helvetica,sans-serif" font-size="24">iPhone / iPad</text>
+<text x="80" y="580" fill="#77736f" font-family="Arial,Helvetica,sans-serif" font-size="18">UNIR · CONVERTIR · LEER · FIRMAR · OCR</text>
+<g transform="translate(974 166) rotate(8)"><rect width="160" height="218" rx="10" fill="#e9e5e0"/><rect x="-20" y="-18" width="160" height="218" rx="10" fill="white" stroke="#dedbd6"/><path d="M10 52h94M10 76h94M10 100h70" stroke="#d9d5cf" stroke-width="7"/><rect x="10" y="135" width="66" height="35" rx="5" fill="#c92b32"/><text x="22" y="159" fill="white" font-family="Arial,Helvetica,sans-serif" font-size="21" font-weight="700">PDF</text></g>
+</svg>

@@ -1,0 +1,53 @@
+PDF 2.0 - Windows de 64 bits
+
+1. Pulsa con el boton derecho en PDF_Windows.zip y elige Extraer todo.
+2. Abre la carpeta extraida y haz doble clic en PDF.cmd.
+3. Se abrira PDF en tu navegador. Manten abierta la ventana de PDF.
+4. Elige una herramienta, selecciona tus archivos y guarda el resultado.
+
+No necesitas instalar Python ni Node. El motor local va incluido.
+Usa Edge, Chrome o Firefox actualizado en Windows 10/11 de 64 bits.
+No abras index.html directamente ni ejecutes PDF.cmd dentro del ZIP.
+Para cerrar la aplicacion, cierra su ventana de consola.
+
+DESCARGAS
+Pulsa Descargar tras preparar el archivo. Tambien tienes Guardar como
+(si el navegador lo admite) y Abrir resultado para guardarlo desde el lector.
+Se han verificado los bytes PDF/ZIP y el flujo de enlaces en pruebas de DOM.
+El guardado real en Windows y navegadores no se ha probado en este entorno.
+
+PDF CON CONTRASENA
+Abre Visor de PDF o Desbloquear PDF, selecciona el documento e introduce
+su contrasena una vez. Podras verlo y descargar una copia sin contrasena.
+Si la contrasena es de una web de la administracion, primero descarga
+el archivo desde esa web: PDF trabaja con el documento ya descargado.
+La aplicacion no guarda contrasenas ni certificados.
+Conserva el original si contiene firmas digitales.
+
+FUNCIONES
+28 herramientas: unir, dividir, comprimir, organizar, imagenes a PDF,
+PDF a imagenes, girar, marca de agua, numerar, extraer texto, visor,
+firma con certificado, OCR, proteger, desbloquear, formularios,
+aplanar, firma dibujada, anadir texto, recortar, cambiar tamano,
+ocultar una zona, quitar metadatos, reparar, comparar texto,
+resumen extractivo, PDF a Word (texto) y escala de grises.
+
+OCR: espanol e ingles incluidos; hasta 30 paginas por tarea.
+Resumen: selecciona frases del original con referencia de pagina.
+No usa IA generativa. Aplica OCR primero si el PDF es un escaneado.
+Firma digital: certificado RSA P12/PFX, sin DNIe, cofirma o sello de tiempo.
+Comprueba la confianza del certificado y la firma en tu lector PDF.
+Word: exporta texto editable; no reconstruye diseno, imagenes o tablas.
+No incluye Office a PDF, PDF/A validado ni traduccion.
+
+Los documentos se procesan en tu navegador y no se suben a servicios.
+El servidor local solo sirve los archivos de la aplicacion en 127.0.0.1.
+Las descargas quedan donde indique tu navegador. El programa no guarda
+un historial. Esto no garantiza el borrado fisico de la memoria.
+
+Limites: 100 MB / 100 archivos por tarea; 500 paginas por documento.
+Conversiones a imagen: 150 paginas. Imagen individual: 16 megapixeles.
+Documentos complejos pueden tardar o superar la memoria disponible.
+
+El codigo de la app esta en app/. Las licencias estan en app/vendor/
+y runtime/LICENSE.txt. Mas detalles en README.md y VALIDACION.md.

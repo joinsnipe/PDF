@@ -1,0 +1,10 @@
+node_modules/
+test-output/
+tmp/
+.DS_Store
+release-build/
+release-cache/
+artifacts/
+__pycache__/
+dist/vendor/
+.openai/
