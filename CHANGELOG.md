@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 2.4.0-beta.2
+
+Configuración de IA independiente, conexión con modelo automático, guía para conseguir API y alternativa local visible. La clave permanece solo en memoria de la pestaña y se puede olvidar. Icono de Windows con siete tamaños, rutas entrecomilladas y aviso de actualización de accesos directos. [Detalle](docs/releases/v2.4.0-beta.2.md).
+
 ## 2.4.0-beta.1
 
 IA opcional con clave propia de Gemini, OpenAI, Claude, Grok y Mistral, revisión previa del texto y citas por página. Word editable con tablas sencillas o modo visual. Office a PDF con LibreOffice en escritorio. «Añadir firma a mano» pasa a «Firma y seguridad». [Detalle y límites](docs/releases/v2.4.0-beta.1.md).

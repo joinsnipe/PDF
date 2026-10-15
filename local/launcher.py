@@ -66,7 +66,9 @@ class PDFServer(http.server.ThreadingHTTPServer):
 class PDFHandler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map,
                       '.mjs': 'text/javascript', '.js': 'text/javascript',
-                      '.wasm': 'application/wasm', '.gz': 'application/gzip'}
+                      '.wasm': 'application/wasm', '.gz': 'application/gzip',
+                      '.ico': 'image/vnd.microsoft.icon', '.webmanifest': 'application/manifest+json',
+                      '.png': 'image/png', '.svg': 'image/svg+xml'}
 
     def __init__(self, *args, token, directory, **kwargs):
         self.token = token

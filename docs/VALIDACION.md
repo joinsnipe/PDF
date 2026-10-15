@@ -98,3 +98,10 @@ El propietario autorizó expresamente el acceso público; Sites devolvió access
 - Word editable: DOCX con tabla real y texto, abierto con LibreOffice. Modo visual: imágenes por página y conversión de vuelta a PDF sin páginas vacías extra. Revisión visual del PDF renderizado. No cubre toda la diversidad de PDFs de usuarios.
 - DOCX, XLSX y PPTX ficticios convertidos realmente con LibreOffice en Linux por ambos adaptadores (Python y Node). Se comprueban número de páginas y contenido. Rechazo de macros, contenido externo y límites antes de ejecutar.
 - Pendiente: API real de cada proveedor con clave del usuario, permisos/cuotas/modelos; Word en Microsoft Word; LibreOffice nativo Windows/Mac, documentos representativos y navegación móvil.
+
+## Revisión 2.4 beta 2: conexión de IA e icono de Windows
+
+- JSDOM recorre configuración sin archivo, catálogo automático, selección de PDF, revisión y consentimiento, informe con citas, nueva selección conservando conexión y desconexión que invalida el consentimiento.
+- Respuestas tardías al cambiar proveedor o cerrar se descartan; una clave rechazada permite reintentar. Selección automática probada para los cinco proveedores y filtrado de modelos de imagen/audio/embeddings.
+- El ICO se decodifica con Pillow en sus siete tamaños, con canal alfa y contenido visible. El instalador conserva el icono en la carpeta de la aplicación, entrecomilla su ruta y solicita actualizar los accesos cuando Windows permite la llamada. No se borra la caché del sistema.
+- Se mantienen las pruebas de motores y seguridad. La IA usa respuestas simuladas, sin claves reales ni consumo. Este entorno Linux no confirma el aspecto de accesos directos de Windows, el diálogo nativo de instalación ni la maquetación final en navegadores reales.

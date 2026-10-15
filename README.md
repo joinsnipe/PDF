@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.1 · Office e IA opcional.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok o Mistral. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
+> **PDF Contigo 2.4.0-beta.2 · Office e IA opcional.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok o Mistral. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -10,7 +10,7 @@
 
 Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opcional requiere una cuenta de API externa y puede generar consumo. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo.
 
-> **Web actualizada a 2.4 beta 1.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
+> **Web actualizada a 2.4 beta 2.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 
@@ -23,6 +23,14 @@ Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opc
 | iPhone / iPad | Web en Safari → **Compartir → Añadir a pantalla de inicio** | Necesita conexión para abrir |
 
 Mac: macOS 13.5 o posterior y navegador actualizado. Los paquetes de escritorio abren una aplicación web local e incluyen su runtime. No necesitas instalar Python o Node. Android e iOS utilizan la app web: no se distribuye APK, IPA ni aplicación de tienda. [Pasos y solución de problemas](docs/INSTALACION.md).
+
+## Configura la IA sin complicaciones
+
+Pulsa **Configurar IA** en la parte superior, elige proveedor, pega tu clave y pulsa **Conectar**. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después elige **Resumir con IA** o **Explicar documento**. Revisa y autoriza el texto de cada consulta.
+
+**¿No tienes API?** La configuración incluye enlaces y pasos para obtenerla. Gemini ofrece cuota gratuita para ciertos modelos y cuentas; comprueba tu plan en Google AI Studio. No se garantiza uso gratuito con cualquier clave o modelo. También puedes elegir **Resumen gratuito sin API**, que selecciona frases localmente y no utiliza IA.
+
+La clave se conserva solo en la memoria de la pestaña hasta desconectar, recargar o salir de ella. No se guarda para próximas visitas. [Guía y condiciones](docs/IA-Y-OFFICE.md).
 
 ## Trabaja viendo tus páginas
 

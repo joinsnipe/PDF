@@ -80,7 +80,20 @@ $ErrorActionPreference = 'Stop'
 $root = $env:PDF_INSTALL_ROOT
 $base = Join-Path $env:LOCALAPPDATA 'PDF-Herramientas\versions\'
 if (-not $root.StartsWith($base, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid install root' }
+$icon = Join-Path $root 'app\icons\pdf.ico'
+if (-not (Test-Path -LiteralPath $icon -PathType Leaf)) { throw 'Application icon missing' }
 $shell = New-Object -ComObject WScript.Shell
+try {
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class PDFShellRefresh {
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern void SHChangeNotify(uint eventId, uint flags, string item1, IntPtr item2);
+}
+'@
+$refreshIcon = $true
+} catch { $refreshIcon = $false }
 $desktop = [Environment]::GetFolderPath('DesktopDirectory')
 $programs = [Environment]::GetFolderPath('Programs')
 if (-not $desktop -or -not $programs) { throw 'User folders unavailable' }
@@ -102,9 +115,10 @@ foreach ($location in $locations) {
     $link.Arguments = '-I -B "' + (Join-Path $root 'launcher.py') + '"'
     if ($location -eq $removeLink) { $link.Arguments = '-I -B "' + (Join-Path $root 'install.py') + '" --unregister' }
     $link.WorkingDirectory = $root
-    $link.IconLocation = (Join-Path $root 'app\icons\pdf.ico') + ',0'
+    $link.IconLocation = '"' + (Join-Path $root 'app\icons\pdf.ico') + '",0'
     $link.Description = 'PDF Contigo - Herramientas de documentos'
     $link.Save()
+    if ($refreshIcon) { [PDFShellRefresh]::SHChangeNotify(0x2000, 0x1005, $location, [IntPtr]::Zero) }
 }
 '''
 

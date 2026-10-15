@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import MagicMock
+from PIL import Image
 
 spec = importlib.util.spec_from_file_location('install', Path(__file__).parents[1]/'local/install.py')
 install = importlib.util.module_from_spec(spec)
@@ -31,6 +32,16 @@ class InstallTests(unittest.TestCase):
             install.unregister_reader(r'C:\old', registry)
         registry.DeleteValue.assert_not_called()
         registry.DeleteKey.assert_not_called()
+
+    def test_windows_icon_decodes_at_desktop_and_high_dpi_sizes(self):
+        icon = Path(__file__).parents[1] / 'dist/icons/pdf.ico'
+        with Image.open(icon) as image:
+            self.assertEqual(image.ico.sizes(), {(n, n) for n in [16, 24, 32, 48, 64, 128, 256]})
+            for size in image.ico.sizes():
+                rendered = image.ico.getimage(size).convert('RGBA')
+                self.assertEqual(rendered.size, size)
+                self.assertEqual(rendered.getextrema()[3], (0, 255))
+                self.assertGreater(len(rendered.getcolors(size[0] * size[1])), 2)
 
     def fixture(self, root):
         files = {'app/index.html': b'PDF', 'app/desktop.js': b'JS', 'runtime/pythonw.exe': b'FAKE TEST RUNTIME', 'launcher.py': b'TEST', 'app/icons/pdf.ico': b'TEST ICON'}

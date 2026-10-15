@@ -14,17 +14,25 @@
 
 Proveedores incluidos: **Gemini, OpenAI, Claude, Grok y Mistral**. No hay clave compartida en el código ni suscripción a PDF Contigo. Cada proveedor puede cobrar consumo; sus cuotas gratuitas dependen de la cuenta, modelo, región y condiciones vigentes. Una suscripción de chat no implica crédito de API.
 
-1. Selecciona el PDF y las páginas que quieres analizar.
-2. Elige «Resumen o explicación con IA» y tu proveedor.
-3. Pega tu clave. En Claude, si tu clave no está limitada a un workspace, introduce también su ID `wrkspc_…`, disponible en la consola del proveedor.
-4. Pulsa «Cargar mis modelos» y elige uno, o escribe su identificador. El catálogo puede incluir modelos no compatibles; utiliza uno de texto que admita la API correspondiente.
-5. Pulsa «Revisar el texto que se enviará». Este paso lee el PDF localmente y muestra las páginas exactas. Hasta 100 páginas y 60.000 caracteres; el texto no se recorta silenciosamente.
-6. Lee las condiciones de datos y posibles costes del proveedor. Autoriza el envío y pulsa «Crear resumen».
+1. Pulsa **Configurar IA** en la barra superior, el menú lateral o la sección **Leer, analizar e IA**. No necesitas seleccionar un PDF primero.
+2. Elige proveedor y pega tu clave. Pulsa **Conectar**: la app consulta los modelos y selecciona uno de texto automáticamente, sin enviar documentos. Este paso no comprueba saldo, cuota, precio ni permiso de generación.
+3. Si lo necesitas, **Opciones avanzadas** permite indicar un modelo concreto y el workspace de Claude `wrkspc_…`. La configuración manual se comprueba en la primera consulta, sin validar previamente la clave o el modelo.
+4. Elige **Resumir con IA** o **Explicar documento** y selecciona el PDF. Puedes cambiar archivos sin volver a introducir la clave.
+5. Elige páginas y pulsa **Revisar el texto que se enviará**. Se lee localmente y muestra las páginas exactas. Hasta 100 páginas y 60.000 caracteres, sin recorte silencioso.
+6. Lee las condiciones de datos y posibles costes. Autoriza el envío y pulsa **Resumir con IA** o **Explicar con IA**.
 7. Contrasta el informe con el original desde el visor y los botones de página; descarga el TXT si lo necesitas.
 
-Cambiar páginas, proveedor, modelo, clave o tipo de informe invalida la revisión anterior. La clave se borra del campo después del intento de procesamiento o al cerrar. No se guarda para próximas visitas. No se cambia de proveedor ni se reintenta automáticamente. Si hay un error o una cancelación, revisa el consumo en tu proveedor antes de repetir.
+Cambiar páginas, conexión o tipo de informe invalida la revisión anterior. La clave se conserva **solo en la memoria de esta pestaña**, para no repetirla en cada documento; no se escribe en localStorage, sessionStorage, cookies ni archivos. Se olvida al pulsar **Desconectar y olvidar clave**, recargar o salir de la pestaña. Al cerrar la configuración se vacía su campo, pero la conexión sigue disponible en memoria. No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
 
-El texto y la clave pasan por HTTPS por el servidor de PDF Contigo hacia el proveedor elegido. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus propias condiciones. «Cargar modelos» envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
+El texto y la clave pasan por HTTPS por el servidor de PDF Contigo hacia el proveedor elegido. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus condiciones. **Conectar** en modo automático envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
+
+### Sin API o con cuota gratuita
+
+**Resumen gratuito sin API** funciona sin cuenta ni enviar datos: extrae frases literales, no genera un resumen con IA. En **Configurar IA → No tengo API** hay enlaces al proveedor y tres pasos para crear una clave.
+
+Gemini ofrece un plan gratuito para ciertos modelos y cuentas. [Crea tu clave en Google AI Studio](https://aistudio.google.com/apikey) y comprueba que el proyecto figure en el plan gratuito. Consulta [cuotas y facturación](https://ai.google.dev/gemini-api/docs/billing) y [precios por modelo](https://ai.google.dev/gemini-api/docs/pricing). La selección automática no garantiza gratuidad: la app no conoce la facturación ni el saldo de tu cuenta. No activa facturación ni cambia de proveedor por su cuenta.
+
+No se incluye una clave pública compartida ni se promete IA anónima gratuita. La revisión de proveedores del 15 de octubre de 2026 no encontró una opción sin credenciales que se incorporase como servicio estable: incluso [Pollinations requiere clave para generar](https://gen.pollinations.ai/docs). Las condiciones de servicios externos pueden cambiar.
 
 El servidor exige una cita literal y página para cada punto y comprueba que esa cita exista en el texto extraído. Una cita correcta **no demuestra que la interpretación de la IA sea correcta**. Revisa cifras, nombres, obligaciones y fechas en el original. No calcula plazos administrativos ni realiza gestiones. Los escaneados necesitan OCR; sus errores pueden trasladarse al informe. No es una revisión profesional ni sustituye el documento.
 

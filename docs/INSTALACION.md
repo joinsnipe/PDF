@@ -4,9 +4,9 @@ La forma más rápida es [abrir la web](https://snipe-pdf.snipex.chatgpt.site). 
 
 ## Windows
 
-**Desde 2.3.0-beta.1:** descarga el paquete Windows de esa versión. Las versiones anteriores conservan su funcionamiento original.
+**Versión actual: 2.4.0-beta.2.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
 
-1. Descarga `PDF-2.3.0-beta.1-windows-x64.zip`.
+1. Descarga `PDF-2.4.0-beta.2-windows-x64.zip`.
 2. Botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
 3. Abre la carpeta `PDF` y haz doble clic en **Instalar_PDF.cmd**, una sola vez.
 4. Abre **PDF** desde el icono del escritorio o desde **Inicio → PDF Herramientas → PDF**.
@@ -20,6 +20,12 @@ Para usarla sin instalar, abre **PDF.cmd** desde la carpeta extraída. También 
 Abrir el mismo icono varias veces reutiliza el proceso de esa versión; puede abrir otra pestaña. Cerrar una pestaña no detiene el proceso local. Para cerrarlo, guarda tus resultados y pulsa **Salir de PDF**, al pie de la pantalla principal. Las otras pestañas de esa versión dejarán de funcionar; para volver a abrirla usa el icono PDF. También se detiene al cerrar la sesión de Windows. Un acceso web antiguo creado desde Chrome/Edge no sustituye este icono: su dirección local cambia al reiniciar la app.
 
 Windows 10/11 de 64 bits y navegador actualizado. Instalación para el usuario actual, sin solicitar permisos de administrador. No necesitas Python/Node instalado; incluye Python 3.14.8 embebido. No se ha probado Windows ARM ni 32 bits. La creación real de accesos directos, el menú «Abrir con» y el arranque con `pythonw.exe` requieren todavía comprobación en Windows: las pruebas de este entorno son de lógica y archivos en Linux.
+
+### Si el acceso directo aparece sin imagen
+
+La revisión 2.4 beta 2 incluye el icono blanco y rojo en siete tamaños (16–256 px), con formatos compatibles con el lector de iconos de Windows. El instalador vuelve a asignarlo desde la carpeta instalada y notifica a Windows que actualice los accesos directos. No depende de la carpeta de Descargas.
+
+Guarda tus documentos, usa **Salir de PDF**, extrae el ZIP actualizado y ejecuta **Instalar_PDF.cmd**. Usa el acceso **PDF** que crea el instalador; un acceso web antiguo del navegador es independiente. Si todavía aparece en blanco, cierra y vuelve a iniciar tu sesión de Windows. No hace falta borrar la caché del sistema ni tocar tus PDF. El resultado visual necesita comprobarse en Windows real.
 
 ## Mac
 

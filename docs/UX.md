@@ -1,6 +1,6 @@
 # Experiencia visual de PDF Contigo
 
-Revisión de las 29 herramientas en **2.4.0-beta.1**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
+Revisión de las 29 herramientas en **2.4.0-beta.2**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
 
 ## Antes y después
 
@@ -31,7 +31,7 @@ Revisión de las 29 herramientas en **2.4.0-beta.1**. La selección del archivo 
 | Quitar metadatos | Páginas del original y alcance de la limpieza | PDF resultante; el aspecto puede ser idéntico |
 | Reparar estructura | Miniaturas si el original es legible | Visor del documento recuperado, si se pudo reparar |
 | Comparar texto | Miniaturas de ambos originales, A y B | Frases añadidas/eliminadas y TXT |
-| Resumir y entender | Modo local o IA, proveedor/modelo, texto revisado y consentimiento | Informe descargable, citas y visor del original |
+| Resumir y entender | Modo local o IA, conexión independiente, texto revisado y consentimiento | Informe descargable, citas y visor del original |
 | PDF a Word | Selección de páginas y modo editable/visual | Texto extraído o visor del original, identificado como tal; DOCX descargable |
 | Office a PDF | Archivo Office y comprobación de LibreOffice en escritorio | PDF generado en el visor |
 | Escala de grises | Miniaturas en gris de forma orientativa | PDF rasterizado en el visor |
@@ -51,3 +51,7 @@ Las miniaturas muestran el **original** salvo los efectos orientativos indicados
 Pruebas de selección y descargas con JSDOM; miniaturas reales con PDF.js y Canvas, incluyendo render, giro, paginación y cierre durante carga. Los motores PDF se ejercitan con documentos ficticios y las firmas con OpenSSL. Está pendiente la revisión visual en navegadores y dispositivos reales. Véase [Validación](VALIDACION.md).
 
 «Añadir firma a mano» pertenece a «Firma y seguridad». Su aviso explica que es una imagen y no equivale a una firma con certificado digital ni verifica la identidad del firmante.
+
+## Configuración de IA en 2.4 beta 2
+
+«Configurar IA» está visible en la barra superior (también en móvil), menú lateral y sección «Leer, analizar e IA». La conexión es proveedor → clave → Conectar. El modelo se elige automáticamente y la selección manual queda en opciones avanzadas. «No tengo API» explica cómo conseguirla, la posibilidad de cuota gratuita de Gemini y la alternativa local sin IA. La conexión se conserva solo en memoria de la pestaña entre documentos y se puede olvidar explícitamente. Cambiarla invalida el texto autorizado; cerrar o cambiar proveedor descarta respuestas de conexión tardías.

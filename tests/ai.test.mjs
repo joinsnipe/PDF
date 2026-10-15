@@ -34,3 +34,11 @@ test('Claude permite elegir workspace y rechaza cabeceras manipuladas',async()=>
  const key={...input('anthropic'),workspace:'wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ'};await callAI(key,async(url,init)=>{assert.equal(init.headers['anthropic-workspace-id'],key.workspace);return Response.json(providerReply('anthropic'));});
  await assert.rejects(()=>callAI({...key,workspace:'wrkspc_unsafe\r\nX-Test: bad'},()=>{throw new Error('No debe enviarse');}),{code:'AI_WORKSPACE'});
 });
+
+test('selección automática usa texto estable y no elige audio, imagen o embeddings',async()=>{
+ const {chooseAIModel}=await import('../dist/ai-settings.js');
+ const cases={gemini:['gemini-3-flash-preview','gemini-2.5-flash-image','gemini-2.5-flash'],openai:['gpt-4o-audio','gpt-4.1','gpt-4.1-mini'],anthropic:['claude-sonnet-4','claude-haiku-4'],xai:['grok-imagine-image','grok-4','grok-4-fast'],mistral:['mistral-embed','mistral-large-latest','mistral-small-latest']};
+ for(const [provider,ids] of Object.entries(cases))assert.equal(chooseAIModel(provider,ids.map(id=>({id}))),ids.at(-1));
+ assert.equal(chooseAIModel('gemini',[{id:'gemini-2.5-flash-tts'},{id:'<script>'}]),'');
+ assert.equal(chooseAIModel('openai',null),'');
+});
