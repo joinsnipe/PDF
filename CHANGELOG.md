@@ -1,5 +1,12 @@
 # Cambios
 
+## 2.3.0-beta.3
+
+- Corregido un falso `AF_COMPONENT_BLOCKED`: scripts ajenos bloqueados o políticas informativas ya no invalidan un conector disponible.
+- Errores específicos para archivo oficial bloqueado, marco bloqueado, origen inaccesible e inicialización.
+- Los bloqueos reales continúan deteniendo la operación; se conserva la CSP restringida y el cliente oficial sin modificar.
+- Cinco regresiones nuevas. Firma nativa pendiente de validación en Windows/Mac.
+
 ## 2.3.0-beta.2
 
 - Conector AutoFirma precargado, disponibilidad explícita y errores de carga separados.

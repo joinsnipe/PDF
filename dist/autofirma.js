@@ -58,11 +58,14 @@ export async function decodeSignedPDF(encoded,original){
 }
 
 let pending=false;
-const sessions=new WeakMap(),BRIDGE_VERSION=2;
+const sessions=new WeakMap(),BRIDGE_VERSION=3;
 const componentError=code=>fault(code,{
  AF_COMPONENT_TIMEOUT:'El conector de PDF no ha terminado de cargar. Comprueba la conexión y vuelve a pulsar Firmar. AutoFirma todavía no se ha abierto.',
  AF_COMPONENT_ASSET:'No se ha cargado un archivo del conector de PDF. Recarga esta página y vuelve a intentarlo. Este error ocurre antes de acceder al certificado.',
- AF_COMPONENT_BLOCKED:'El navegador ha bloqueado la carga del conector de PDF. Abre esta página directamente en Chrome, Edge, Firefox o Safari y vuelve a intentarlo.',
+ AF_COMPONENT_SCRIPT:'La política de seguridad ha bloqueado el archivo oficial de AutoFirma (autoscript.js). El conector no ha llegado a abrir AutoFirma ni a consultar tu certificado.',
+ AF_COMPONENT_FRAME:'La política de seguridad ha bloqueado la página del conector de PDF. Abre PDF directamente desde su enlace web; si persiste, comunica este código para revisar la aplicación.',
+ AF_COMPONENT_ORIGIN:'La página del conector no está accesible desde PDF. Puede haber una redirección o una restricción al abrir la web dentro de otra aplicación. Abre PDF desde su enlace web y comunica este código si persiste.',
+ AF_COMPONENT_INIT:'El conector ha fallado al prepararse. Recarga la web y comunica este código si persiste. El certificado todavía no se ha solicitado.',
  AF_COMPONENT_VERSION:'Se han mezclado archivos de dos versiones de PDF. Cierra esta pestaña y vuelve a abrir la aplicación.',
 }[code]||'No se ha podido preparar el conector de PDF. Recarga esta página.');
 
@@ -91,14 +94,17 @@ function getSession(env={}){
     settled=true;removeListeners();session.bridge=bridge;resolve(session);
    }else if(bridge?.error)fail(bridge.error);
    else if(bridge?.ready)fail('AF_COMPONENT_VERSION');
-  }catch{fail('AF_COMPONENT_BLOCKED');}
+  }catch(error){fail(error?.name==='SecurityError'?'AF_COMPONENT_ORIGIN':'AF_COMPONENT_INIT');}
  };
  const message=event=>{
   if(event.source!==frame.contentWindow||event.origin!==url.origin||event.data?.type!=='pdf-autofirma-bridge')return;
   if(event.data.version!==BRIDGE_VERSION){fail('AF_COMPONENT_VERSION');return;}
-  if(event.data.error)fail(['AF_COMPONENT_ASSET','AF_COMPONENT_BLOCKED'].includes(event.data.error)?event.data.error:'AF_COMPONENT_ASSET');else check();
+  if(event.data.error)fail(['AF_COMPONENT_ASSET','AF_COMPONENT_SCRIPT'].includes(event.data.error)?event.data.error:'AF_COMPONENT_INIT');else check();
  };
- const blocked=event=>{if(event.violatedDirective?.startsWith('frame-src')&&event.blockedURI?.startsWith(url.origin+url.pathname))fail('AF_COMPONENT_BLOCKED');};
+ const blocked=event=>{
+  if(event.disposition==='report'||!(event.effectiveDirective||event.violatedDirective||'').startsWith('frame-src'))return;
+  try{const target=new URL(event.blockedURI);if(target.origin===url.origin&&target.pathname.replace(/\.html$/,'')===url.pathname.replace(/\.html$/,''))fail('AF_COMPONENT_FRAME');}catch{}
+ };
  session={frame,ready,dispose,bridge:null};sessions.set(doc,session);
  win.addEventListener('message',message);doc.addEventListener('securitypolicyviolation',blocked);
  timer=setTimeout(()=>fail('AF_COMPONENT_TIMEOUT'),env.loadTimeoutMs||30000);
@@ -144,7 +150,9 @@ export async function signWithAutoFirma(file,opts={},progress=()=>{},env={}){
    // A frame created after a click does not inherit that click's activation.
    // If loading/encoding consumed the activation, obtain a fresh, explicit click
    // while the ready frame already exists. Invoke sign synchronously in it.
-   const activation=session.frame.contentWindow?.navigator?.userActivation;
+   let activation;
+   try{activation=session.frame.contentWindow?.navigator?.userActivation;}
+   catch{finish(null,componentError('AF_COMPONENT_ORIGIN'));return;}
    if(activation&&activation.isActive===false){
     prompt=doc.createElement('dialog');prompt.className='help-dialog';prompt.setAttribute('aria-labelledby','autofirma-open-title');
     prompt.innerHTML='<h2 id="autofirma-open-title">Abrir AutoFirma</h2><p>El documento está preparado. Pulsa para abrir AutoFirma y elegir tu certificado.</p><p class="hint">Acepta la apertura y el acceso a la red local si el navegador los solicita.</p><button type="button" class="primary" data-af-open>Abrir AutoFirma</button> <button type="button" class="text-button" data-af-cancel>Cancelar</button>';

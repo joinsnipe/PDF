@@ -20,7 +20,10 @@ Desmarcar la marca visible mantiene la firma criptográfica: no significa firmar
 | El navegador pregunta si puede abrir AutoFirma | Acepta la apertura; una pestaña puede perder el foco mientras aparece el diálogo nativo |
 | `AF_COMPONENT_TIMEOUT` | El conector web no terminó de cargar en 30 segundos. Comprueba la conexión y vuelve a pulsar Firmar; el certificado todavía no se ha solicitado |
 | `AF_COMPONENT_ASSET` o `AF_COMPONENT_VERSION` | Falta un archivo web o se han mezclado versiones. Cierra la pestaña y abre la web actualizada |
-| `AF_COMPONENT_BLOCKED` | La carga del conector está bloqueada. Abre la web directamente en un navegador actualizado; no hace falta cambiar el certificado |
+| `AF_COMPONENT_SCRIPT` | La política de seguridad ha bloqueado específicamente AutoScript. Comunica el código para revisar el conector; no cambies el certificado |
+| `AF_COMPONENT_FRAME` o `AF_COMPONENT_ORIGIN` | Marco bloqueado o página inaccesible desde PDF. Abre la web directamente desde su enlace; si persiste, comunica el código |
+| `AF_COMPONENT_INIT` | Fallo al inicializar el conector. Recarga y comunica el código si persiste |
+| `AF_COMPONENT_BLOCKED` | Mensaje de la beta 2: no distinguía un fallo real de un script ajeno bloqueado. Recarga hasta ver beta 3 |
 | `AF_LOCAL_BLOCKED` o permiso de red local | Revisa el permiso del sitio para comunicarse con AutoFirma en el propio equipo. No desactives TLS ni las protecciones del navegador |
 | No aparece AutoFirma | Comprueba que esté instalada, cierra la operación anterior y vuelve a intentar; si persiste, consulta su manual oficial o repara/reinstala AutoFirma siguiendo sus instrucciones |
 | AutoFirma abre sola, pero la web no conecta | La comunicación navegador–AutoFirma necesita su certificado local instalado correctamente. Reinicia el navegador tras la instalación. No desactives la validación TLS ni la protección del equipo |
@@ -46,7 +49,7 @@ El usuario confirmó el 15/10/2026 que puede firmar directamente en AutoFirma co
 
 ## Verificación de esta entrega
 
-**Construcción completa; 102 pruebas JavaScript y 19 Python aprobadas en Linux.**
+**Construcción completa; 107 pruebas JavaScript y 19 Python aprobadas en Linux.**
 
 Pruebas automáticas del cliente oficial con WebSocket simulado: invocación nativa, destino exclusivamente local, solicitud PAdES, certificado Windows y respuesta. Pruebas del adaptador: consentimiento, cancelación, timeout/reintento, exclusión móvil, escape del motivo, respuesta inválida y conservación de bytes. La interfaz se prueba desde selección hasta descarga sin leer un P12; un PDF firmado con certificado ficticio conserva un CMS que OpenSSL verifica tras pasar por el adaptador.
 
@@ -63,3 +66,11 @@ El usuario confirmó que la web mostraba 2.3, pero recibió `AF_COMPONENT` antes
 La implementación anterior esperaba el evento `load` del marco durante diez segundos y creaba ese marco después del clic. Ese mensaje no permitía distinguir una carga lenta o bloqueada, y un marco creado después del clic no recibe la activación previa. La beta 2 corrige ambas debilidades. Sin una traza del navegador del usuario no se atribuye la incidencia original a una causa de red concreta ni se da por comprobada la firma nativa completa.
 
 Referencias del navegador: [activación del usuario](https://html.spec.whatwg.org/multipage/interaction.html#tracking-user-activation), [acceso local en Chrome 147](https://developer.chrome.com/release-notes/147).
+
+### Revisión del aviso AF_COMPONENT_BLOCKED (beta 3)
+
+Se reprodujo un defecto del detector: una violación CSP de un script ajeno, emitida entre el arranque del bootstrap y la disponibilidad de AutoScript, anulaba el conector. La prueba falla con beta 2 y pasa con beta 3. Ahora se comprueba el recurso concreto, se ignoran las políticas que solo informan y se separan los fallos de marco, origen e inicialización. La misma restricción se aplica a los errores de scripts y a las conexiones locales. No se han ampliado los permisos CSP ni modificado AutoScript.
+
+La descarga HTTP del conector publicado, también con cabeceras de navegación de un marco, devolvió los archivos esperados. Los registros del alojamiento no mostraron errores. Estas comprobaciones no identifican cuál de las ramas disparó el aviso en el navegador del usuario; si persiste, el nuevo código permite distinguirlas. No se atribuye automáticamente a su navegador ni al certificado.
+
+Cinco regresiones adicionales comprueban scripts ajenos, bloqueo del cliente requerido, políticas informativas, restricciones del marco/origen y bloqueo de WebSocket local. Son eventos simulados con el HTML y cliente oficiales; no sustituyen la prueba nativa.

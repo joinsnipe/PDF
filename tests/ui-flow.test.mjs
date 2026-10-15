@@ -141,7 +141,7 @@ test('AutoFirma principal en Windows: certificado nativo, colocación nativa, ca
  assert.ok(nativeFixture);const append=document.body.append;let request,mode='cancel';
  Object.defineProperty(window.navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 Windows NT 10.0 Chrome/155.0.0.0'});
  document.body.append=function(node){append.call(this,node);if(node.tagName==='IFRAME'){
-  node.contentWindow.PDFNativeBridge={version:2,ready:true,sign:(data,ok,fail)=>{request=data;mode==='cancel'?fail('AOCancelledOperationException','Cancelado'):ok(Buffer.from(nativeFixture.signed).toString('base64'));}};
+  node.contentWindow.PDFNativeBridge={version:3,ready:true,sign:(data,ok,fail)=>{request=data;mode==='cancel'?fail('AOCancelledOperationException','Cancelado'):ok(Buffer.from(nativeFixture.signed).toString('base64'));}};
   queueMicrotask(()=>node.onload?.());
  }};
  try{

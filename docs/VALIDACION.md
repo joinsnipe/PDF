@@ -1,6 +1,6 @@
 # Validación de PDF 2.2.0-beta.1
 
-**Entrega actual: PDF 2.3.0-beta.2.** Construcción completa y **102 pruebas JavaScript + 19 pruebas Python aprobadas** en Linux. Incluye protocolo AutoScript oficial con WebSocket simulado, firma ficticia verificada con OpenSSL e interfaz hasta descarga. [Alcance y prueba nativa pendiente](AUTOFIRMA.md). Las secciones siguientes son históricas: no acreditan una ejecución de AutoFirma en Windows/Mac.
+**Entrega actual: PDF 2.3.0-beta.3.** Construcción completa y **107 pruebas JavaScript + 19 pruebas Python aprobadas** en Linux. Incluye protocolo AutoScript oficial con WebSocket simulado, firma ficticia verificada con OpenSSL e interfaz hasta descarga. [Alcance y prueba nativa pendiente](AUTOFIRMA.md). Las secciones siguientes son históricas: no acreditan una ejecución de AutoFirma en Windows/Mac.
 
 **36 pruebas JavaScript y 2 pruebas Python aprobadas en Linux**, tras instalar dependencias en una copia limpia y construir los motores desde el lockfile. Se verificaron operaciones PDF reales, OCR local, firma CMS con OpenSSL, contraseñas con qpdf, bytes de descarga y flujos de UI simulados. No se ha ejecutado un navegador gráfico ni instalado en los cuatro sistemas de destino.
 

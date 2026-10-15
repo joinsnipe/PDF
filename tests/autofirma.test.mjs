@@ -25,8 +25,8 @@ const encoded=Buffer.from(signed).toString('base64'),file={name:'Prueba.pdf',byt
 function environment(action,{autoReady=true,activation}={}){
  let removed=0,appended=0;
  const win=Object.assign(new EventTarget(),{navigator:nav,WebSocket:function(){}}),document=new EventTarget();
- const frame={contentWindow:{navigator:{userActivation:activation},PDFNativeBridge:{version:2,ready:true,sign:action}},remove(){removed++;}};
- const signal=(data={type:'pdf-autofirma-bridge',version:2,ready:true},overrides={})=>{const event=new Event('message');Object.assign(event,{data,source:frame.contentWindow,origin:new URL(frame.src).origin,...overrides});win.dispatchEvent(event);};
+ const frame={contentWindow:{navigator:{userActivation:activation},PDFNativeBridge:{version:3,ready:true,sign:action}},remove(){removed++;}};
+ const signal=(data={type:'pdf-autofirma-bridge',version:3,ready:true},overrides={})=>{const event=new Event('message');Object.assign(event,{data,source:frame.contentWindow,origin:new URL(frame.src).origin,...overrides});win.dispatchEvent(event);};
  document.createElement=()=>frame;document.body={append(){appended++;if(autoReady)queueMicrotask(()=>signal());}};
  return {window:win,document,timeoutMs:25,loadTimeoutMs:25,stats:()=>({removed,appended}),frame,signal};
 }
@@ -97,11 +97,11 @@ test('precarga sin PDF ni apertura nativa; señal ready autenticada funciona sin
  assert.equal(calls,1);assert.equal(env.stats().removed,1);
 });
 test('carga lenta, archivo ausente, bloqueo y versión mezclada tienen errores propios y permiten reintentar',async()=>{
- for(const code of ['AF_COMPONENT_TIMEOUT','AF_COMPONENT_ASSET','AF_COMPONENT_BLOCKED','AF_COMPONENT_VERSION']){
+ for(const code of ['AF_COMPONENT_TIMEOUT','AF_COMPONENT_ASSET','AF_COMPONENT_SCRIPT','AF_COMPONENT_VERSION']){
   const env=environment(()=>assert.fail('must not launch'),{autoReady:false});env.loadTimeoutMs=5;
   const operation=signWithAutoFirma(file,{consent:true},()=>{},env);
   if(code==='AF_COMPONENT_VERSION')env.signal({type:'pdf-autofirma-bridge',version:1,ready:true});
-  else if(code!=='AF_COMPONENT_TIMEOUT')env.signal({type:'pdf-autofirma-bridge',version:2,error:code});
+  else if(code!=='AF_COMPONENT_TIMEOUT')env.signal({type:'pdf-autofirma-bridge',version:3,error:code});
   await assert.rejects(()=>operation,{code});assert.equal(env.stats().removed,1);
  }
  const retry=environment((_data,ok)=>ok(encoded));assert.deepEqual(await signWithAutoFirma(file,{consent:true},()=>{},retry),signed);
@@ -121,7 +121,7 @@ test('si la activación caduca pide un clic nuevo; cancelar no abre AutoFirma y 
   let calls=0,inClick=false;const append=document.body.append.bind(document.body);
   document.body.append=node=>{append(node);if(node.tagName==='IFRAME'){
    Object.defineProperty(node.contentWindow.navigator,'userActivation',{value:{isActive:false}});
-   node.contentWindow.PDFNativeBridge={version:2,ready:true,sign:(_data,ok)=>{assert.equal(inClick,true);calls++;ok(encoded);}};
+   node.contentWindow.PDFNativeBridge={version:3,ready:true,sign:(_data,ok)=>{assert.equal(inClick,true);calls++;ok(encoded);}};
    queueMicrotask(()=>node.onload?.());
   }};
   try{
@@ -134,24 +134,30 @@ test('si la activación caduca pide un clic nuevo; cancelar no abre AutoFirma y 
   }finally{dom.window.close();}
  }
 });
-async function loadActualBridge({missingAsset=false}={}){
+async function loadActualBridge({missingAsset=false,violation,scriptError}={}){
  const {JSDOM,requestInterceptor,VirtualConsole}=require(deps?deps+'/jsdom':'jsdom');
  const html=await readFile(new URL('../dist/autofirma-bridge.html',import.meta.url),'utf8');
- const paths=[];let ready;const signal=new Promise(resolve=>{ready=resolve;});
+ const paths=[];let ready,bridgeWindow;const signal=new Promise(resolve=>{ready=resolve;});
  const intercept=requestInterceptor(async request=>{
   const path=new URL(request.url).pathname;paths.push(path);
+  if(path.endsWith('/autoscript.js')){
+   for(let i=0;i<100&&!bridgeWindow.PDFNativeBridge;i++)await new Promise(resolve=>setTimeout(resolve,1));
+   assert.ok(bridgeWindow.PDFNativeBridge,'bootstrap must run before the synthetic browser event');
+   if(violation){const event=new bridgeWindow.Event('securitypolicyviolation');Object.assign(event,violation);bridgeWindow.dispatchEvent(event);}
+   if(scriptError){const script=bridgeWindow.document.createElement('script');script.type='application/x-pdf-test';script.src=scriptError;bridgeWindow.document.head.append(script);script.dispatchEvent(new bridgeWindow.Event('error'));script.remove();}
+  }
   if(missingAsset&&path.endsWith('/autoscript.js'))return new Response('Synthetic missing asset',{status:404});
   if(!['/autofirma-bridge.js','/vendor/autofirma/autoscript.js'].includes(path))throw new Error('Unexpected resource '+path);
   return new Response(await readFile(new URL('../dist'+path,import.meta.url)),{headers:{'Content-Type':'text/javascript'}});
  });
- const dom=new JSDOM(html,{url:'https://pdf.example/autofirma-bridge?v=2',runScripts:'dangerously',resources:{interceptors:[intercept]},virtualConsole:new VirtualConsole(),beforeParse(win){win.addEventListener('message',e=>{if(e.data?.type==='pdf-autofirma-bridge')ready(e.data);});}});
+ const dom=new JSDOM(html,{url:'https://pdf.example/autofirma-bridge?v=3',runScripts:'dangerously',resources:{interceptors:[intercept]},virtualConsole:new VirtualConsole(),beforeParse(win){bridgeWindow=win;win.addEventListener('message',e=>{if(e.data?.type==='pdf-autofirma-bridge')ready(e.data);});}});
  let timer;
  try{const result=await Promise.race([signal,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Bridge did not announce readiness')),2000);})]);return {dom,paths,result};}
  catch(error){dom.window.close();throw error;}finally{clearTimeout(timer);}
 }
 test('HTML real servido sin extensión carga el bootstrap y AutoScript oficial y anuncia disponibilidad',async()=>{
  const {dom,paths,result}=await loadActualBridge();
- try{assert.equal(result.ready,true);assert.equal(result.version,2);assert.equal(dom.window.PDFNativeBridge.ready,true);assert.equal(dom.window.AutoScript.VERSION,'1.9.0');assert.deepEqual(paths,['/autofirma-bridge.js','/vendor/autofirma/autoscript.js']);}
+ try{assert.equal(result.ready,true);assert.equal(result.version,3);assert.equal(dom.window.PDFNativeBridge.ready,true);assert.equal(dom.window.AutoScript.VERSION,'1.9.0');assert.deepEqual(paths,['/autofirma-bridge.js','/vendor/autofirma/autoscript.js']);}
  finally{dom.window.close();}
 });
 test('HTML real con AutoScript ausente comunica el fallo de archivo antes de firmar',async()=>{
@@ -159,13 +165,60 @@ test('HTML real con AutoScript ausente comunica el fallo de archivo antes de fir
  try{assert.equal(result.error,'AF_COMPONENT_ASSET');assert.equal(dom.window.PDFNativeBridge.ready,false);}
  finally{dom.window.close();}
 });
+test('un script ajeno bloqueado por CSP no invalida el cliente oficial durante su carga',async()=>{
+ for(const blockedURI of ['inline','eval','https://extension.invalid/injected.js']){
+  const {dom,result}=await loadActualBridge({violation:{effectiveDirective:'script-src-elem',blockedURI,disposition:'enforce'}});
+  try{assert.equal(result.ready,true);assert.equal(dom.window.PDFNativeBridge.ready,true);assert.equal(dom.window.AutoScript.VERSION,'1.9.0');}
+  finally{dom.window.close();}
+ }
+});
+test('solo el bloqueo efectivo del cliente requerido falla; una política informativa no lo bloquea',async()=>{
+ for(const disposition of ['enforce','report']){
+  const {dom,result}=await loadActualBridge({violation:{effectiveDirective:'script-src-elem',blockedURI:'https://pdf.example/vendor/autofirma/autoscript.js',disposition}});
+  try{if(disposition==='enforce')assert.equal(result.error,'AF_COMPONENT_SCRIPT');else assert.equal(result.ready,true);}
+  finally{dom.window.close();}
+ }
+});
+test('un error de otro script no aborta el conector, pero el del cliente oficial sí',async()=>{
+ for(const [scriptError,expected] of [['https://extension.invalid/injected.js',undefined],['https://pdf.example/vendor/autofirma/autoscript.js','AF_COMPONENT_ASSET']]){
+  const {dom,result}=await loadActualBridge({scriptError});
+  try{assert.equal(result.error,expected);if(!expected)assert.equal(result.ready,true);}
+  finally{dom.window.close();}
+ }
+});
+test('distingue restricciones del marco, origen inaccesible y fallo de inicialización',async()=>{
+ for(const name of ['SecurityError','TypeError']){
+  const env=environment(()=>assert.fail('must not sign'),{autoReady:false});
+  Object.defineProperty(env.frame.contentWindow,'PDFNativeBridge',{get(){throw Object.assign(new Error('private browser detail'),{name});}});
+  const operation=prepareAutoFirma(env);env.frame.onload();
+  await assert.rejects(()=>operation,error=>{assert.equal(error.code,name==='SecurityError'?'AF_COMPONENT_ORIGIN':'AF_COMPONENT_INIT');assert.doesNotMatch(error.message,/private browser detail/);return true;});
+  assert.equal(env.stats().removed,1);
+ }
+ const env=environment(()=>assert.fail('must not sign'),{autoReady:false});env.loadTimeoutMs=1000;
+ const operation=prepareAutoFirma(env);
+ const emit=(blockedURI,disposition)=>{const e=new Event('securitypolicyviolation');Object.assign(e,{effectiveDirective:'frame-src',blockedURI,disposition});env.document.dispatchEvent(e);};
+ emit(env.frame.src,'report');emit('https://unrelated.invalid/frame','enforce');assert.equal(env.stats().removed,0);
+ emit(env.frame.src.replace('.html',''),'enforce');
+ await assert.rejects(()=>operation,{code:'AF_COMPONENT_FRAME'});assert.equal(env.stats().removed,1);
+});
+test('solo una restricción efectiva del WebSocket local interrumpe la firma',async()=>{
+ const listeners={},failures=[];
+ const api={sign(){},cargarAppAfirma(){},setForceWSMode(){},setStickySignatory(){},setAppName(){},setMinimumClientVersion(){}};
+ const context={URL,document:{readyState:'complete'},location:{href:'https://pdf.example/autofirma-bridge',origin:'https://pdf.example'},AutoScript:api,WebSocket:function(){},parent:{postMessage(){}},addEventListener:(name,callback)=>{listeners[name]=callback;}};context.window=context;
+ vm.createContext(context);vm.runInContext(await readFile(new URL('../dist/autofirma-bridge.js',import.meta.url),'utf8'),context);
+ context.PDFNativeBridge.sign({data:'test',properties:'',keystore:'WINDOWS'},()=>{},type=>failures.push(type));
+ for(const [blockedURI,disposition] of [['https://unrelated.invalid/','enforce'],['wss://127.0.0.1:54321','report']])listeners.securitypolicyviolation({effectiveDirective:'connect-src',blockedURI,disposition});
+ assert.equal(failures.length,0);
+ listeners.securitypolicyviolation({effectiveDirective:'connect-src',blockedURI:'wss://127.0.0.1:54321',disposition:'enforce'});
+ assert.deepEqual(failures,['PDF_LOCAL_BLOCKED']);
+});
 test('cliente oficial sin modificar: invocación, WebSocket local, solicitud PAdES y retorno',async()=>{
  const source=await readFile(new URL('../dist/vendor/autofirma/autoscript.js',import.meta.url),'utf8');
  assert.equal(createHash('sha256').update(source).digest('hex'),'567998128f1cd8017c304a8c187f6912a0c56b0feebb02fffa2aa33732e40439');
  const timers=[],sockets=[],launches=[];
  class Socket{constructor(url){assert.match(url,/^wss:\/\/127\.0\.0\.1:\d+$/);this.sent=[];this.readyState=1;sockets.push(this);}send(data){this.sent.push(data);}}
  const document={all:false,readyState:'complete'};Object.defineProperty(document,'location',{set:url=>launches.push(url)});
- const context={document,navigator:nav,location:{origin:'http://127.0.0.1:12345',hostname:'127.0.0.1'},WebSocket:Socket,
+ const context={document,navigator:nav,URL,location:{origin:'http://127.0.0.1:12345',hostname:'127.0.0.1',href:'http://127.0.0.1:12345/autofirma-bridge.html'},WebSocket:Socket,
   setTimeout:(fn,_delay,...args)=>{timers.push(()=>fn(...args));return timers.length;},clearTimeout(){},addEventListener(){},parent:{postMessage(){}},crypto:webcrypto,console:{log(){},warn(){},error(){}},Uint8Array,Uint32Array,atob,btoa};context.window=context;
  vm.createContext(context);vm.runInContext(source,context);vm.runInContext(await readFile(new URL('../dist/autofirma-bridge.js',import.meta.url),'utf8'),context);
  let received,error;
