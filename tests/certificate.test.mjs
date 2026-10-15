@@ -8,6 +8,8 @@ import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {PDFDocument,PDFName,PDFDict,degrees} from '../dist/vendor/pdf-lib.js';
 import {openRenderedPdf,pageCanvas} from '../dist/render.js';
+import {signatureInfo,assertCanSign,assertCanEdit} from '../dist/signature-policy.js';
+import {decodeSignedPDF} from '../dist/autofirma.js';
 const require=createRequire(import.meta.url),deps=process.env.PDF_BUILD_DEPS;
 const forge=require(deps?deps+'/node-forge':'node-forge');
 const canvas=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/@napi-rs/canvas':'@napi-rs/canvas');
@@ -138,4 +140,35 @@ test('rechaza una posición ilegible, página inexistente y PDF ya firmado',asyn
  await assert.rejects(()=>signDocument(source,bundle,'prueba','',{visible:true,page:3}),/página/);
  await assert.rejects(()=>signDocument(source,bundle,'prueba','',{visible:true,page:2,x:10,y:10,w:5,h:5}),/Amplía/);
  const signed=await signDocument(source,bundle,'prueba');await assert.rejects(()=>signDocument(signed.bytes,bundle,'prueba'),/firma/);
+});
+test('certificación sin cambios: DocMDP enlazado a la firma, CMS válido y bloqueo de nuevas operaciones',async()=>{
+ const source=await pdf(),result=await signDocument(source,p12(),'prueba','Cerrar documento',{visible:false,policy:'final'});
+ await verify(result.bytes);
+ const doc=await PDFDocument.load(result.bytes),info=signatureInfo(doc);
+ assert.equal(info.count,1);assert.equal(info.certification,1);assert.equal(info.locked,true);
+ const signature=doc.getForm().getSignature('Signature1').acroField.dict.get(PDFName.of('V'));
+ assert.equal(doc.catalog.lookup(PDFName.of('Perms'),PDFDict).get(PDFName.of('DocMDP')).toString(),signature.toString());
+ assert.throws(()=>assertCanSign(info,'approval'),{code:'PDF_SIGNATURE_LOCKED'});
+ assert.throws(()=>assertCanEdit(info),{code:'PDF_SIGNED_DOCUMENT'});
+ assert.deepEqual(await decodeSignedPDF(Buffer.from(result.bytes).toString('base64'),source,{policy:'final'}),result.bytes);
+ const independent=spawnSync('python3',['-c',"import io,sys;from pypdf import PdfReader;r=PdfReader(io.BytesIO(sys.stdin.buffer.read()));s=r.trailer['/Root']['/Perms']['/DocMDP'];assert s['/Reference'][0]['/TransformParams']['/P']==1;assert s['/ByteRange'][2]+s['/ByteRange'][3]==len(r.stream.getvalue())"],{input:result.bytes});assert.equal(independent.status,0,independent.stderr.toString());
+ // The certification permission is inside the cryptographically signed bytes.
+ const changed=Buffer.from(result.bytes);const at=changed.indexOf(Buffer.from('/P 1'));assert.ok(at>0);changed[at+3]=50;
+ await assert.rejects(()=>verify(changed));
+});
+test('aprobación admite cofirma pero no certificación posterior ni edición silenciosa',async()=>{
+ const source=await pdf(),result=await signDocument(source,p12(),'prueba','',{visible:false});
+ const info=signatureInfo(await PDFDocument.load(result.bytes));assert.equal(info.certification,0);assert.equal(info.count,1);
+ assert.doesNotThrow(()=>assertCanSign(info,'approval'));
+ assert.throws(()=>assertCanSign(info,'final'),{code:'PDF_CERTIFY_FIRST'});
+ assert.throws(()=>assertCanEdit(info),{code:'PDF_SIGNED_DOCUMENT'});
+ await assert.rejects(()=>decodeSignedPDF(Buffer.from(result.bytes).toString('base64'),source,{policy:'final'}),{code:'AF_CERTIFICATION'});
+ await assert.rejects(()=>decodeSignedPDF(Buffer.from(result.bytes).toString('base64'),source,{previous:{signed:true,count:1}}),{code:'AF_PREVIOUS_SIGNATURE'});
+});
+test('apariencia compacta: nombre largo a tamaño mínimo legible, sin truncar datos por añadir el motivo',async()=>{
+ const long=certificate();long.setSubject([{name:'commonName',value:'Ana María Muñoz Fernández Representante de Empresa Ficticia Canarias',valueTagClass:forge.asn1.Type.UTF8}]);long.sign(keys.privateKey,forge.md.sha256.create());
+ const result=await signDocument(await pdf(),p12({certificate:long}),'prueba','Motivo extenso '.repeat(20),{visible:true,page:1,x:10,y:60,w:45,h:12});
+ await verify(result.bytes);
+ const doc=await PDFDocument.load(result.bytes);assert.equal(doc.getForm().getSignature('Signature1').acroField.dict.lookup(PDFName.of('V'),PDFDict).lookup(PDFName.of('Name')).decodeText(),'Ana María Muñoz Fernández Representante de Empresa Ficticia Canarias');
+ const rendered=await openRenderedPdf(result.bytes,{standardFontDataUrl:fileURLToPath(new URL('../dist/vendor/standard_fonts/',import.meta.url))});try{const {canvas:c}=await pageCanvas(rendered,0,1.5);await mkdir(new URL('../test-output/',import.meta.url),{recursive:true});await writeFile(new URL('../test-output/firma-compacta.png',import.meta.url),c.toBuffer('image/png'));}finally{await rendered.destroy();}
 });

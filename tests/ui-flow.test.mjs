@@ -89,9 +89,9 @@ test('firma con certificado: comprueba empresa y envía página y posición eleg
  assert.equal($('#opt-x').value,'12.00');assert.equal($('#opt-y').value,'73.00');
  assert.equal($('#opt-reason').tagName,'SELECT');assert.match($('#reason-help').textContent,/antes de firmar/);
  $('#opt-reason').value='Aceptación del presupuesto';$('#preview-page').value='2';$('#opt-consent').checked=true;await output();
- assert.deepEqual(messages[1].appearance,{visible:true,page:2,x:'12.00',y:'73.00',w:'65.00',h:'20.00'});
+ assert.deepEqual(messages[1].appearance,{policy:'approval',visible:true,page:2,x:'12.00',y:'73.00',w:'65.00',h:'20.00'});
  assert.equal(messages[1].reason,'Aceptación del presupuesto');
- assert.equal($('#opt-password').value,'');assert.match($('#result-note').textContent,/página 2/);$('#work-close').click();delete globalThis.Worker;
+ assert.equal($('#opt-password'),null);assert.match($('#result-note').textContent,/página 2/);$('#work-close').click();delete globalThis.Worker;
 });
 test('motivo personalizado y sin motivo llegan a la firma sin recuperar el texto por defecto',async()=>{
  const source=await sample(),messages=[];
@@ -127,8 +127,8 @@ test('P12 antiguo: interfaz -> lectura real -> firma -> descarga con CMS verific
   Object.defineProperty($('#certificate-input'),'files',{configurable:true,value:[file({name:'ficticio.p12',bytes:bundle})]});
   $('#opt-password').value='incorrecta';await $('#check-certificate').onclick();assert.match($('#certificate-status').textContent,/CERT_INTEGRITY/);
   $('#opt-password').value=password;$('#opt-password').dispatchEvent(new dom.window.Event('input'));await $('#check-certificate').onclick();assert.match($('#certificate-status').textContent,/PDF FICTITIOUS UI TEST/);
-  $('#opt-visible').checked=false;$('#opt-consent').checked=true;
-  const bytes=Buffer.from(await output());assert.equal($('#download').download,'prueba-firmado.pdf');assert.equal($('#opt-password').value,'');
+  $('#opt-visible').checked=true;$('#opt-consent').checked=true;
+  const bytes=Buffer.from(await output());assert.equal($('#download').download,'prueba-firmado.pdf');assert.equal($('#opt-password'),null);
   assert.equal((await PDFDocument.load(bytes)).getPageCount(),1);
   const [a,b,c,d]=bytes.toString('latin1').match(/\/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]/).slice(1).map(Number);assert.equal(a,0);assert.equal(c+d,bytes.length);
   const cms=Buffer.from(bytes.subarray(b+1,c-1).toString(),'hex'),n=cms[1],size=n&128?cms.readUIntBE(2,n&127):n,header=n&128?2+(n&127):2;
@@ -174,4 +174,29 @@ test('seguridad: interfaz -> motor real -> descarga -> desbloquear -> visor',asy
   $('[data-tool="viewer"]').click();await add([{name:'sin-password.pdf',bytes:new Uint8Array(await readFile(new URL('./fixtures/security/aes256-empty.pdf',import.meta.url)))}]);
   assert.equal($('#opt-password').value,'');const noPassword=await output();assert.equal((await PDFDocument.load(noPassword)).getPageCount(),1);assert.ok($('#result-viewer #view-canvas'));$('#work-close').click();
  }finally{delete globalThis.Worker;await rm(dir,{recursive:true,force:true});}
+});
+test('girar: miniaturas seleccionan páginas y el resultado mantiene ese giro',async()=>{
+ const doc=await PDFDocument.create();for(let i=0;i<3;i++)doc.addPage([300,400]);
+ $('[data-tool="rotate"]').click();await add([{name:'tres.pdf',bytes:await doc.save()}]);
+ assert.equal(document.querySelectorAll('#document-preview .preview-tile').length,3);
+ document.querySelectorAll('#document-preview .preview-tile')[1].click();assert.equal($('#opt-range').value,'1, 3');$('#opt-angle').value='270';
+ const bytes=await output(),result=await PDFDocument.load(bytes);assert.deepEqual(result.getPages().map(p=>p.getRotation().angle),[270,0,270]);assert.ok($('#result-viewer #view-canvas'));assert.equal($('#view-zoom').value,'fit');$('#work-close').click();
+});
+test('cambiar orden y quitar archivos actualiza también las miniaturas',async()=>{
+ const c=canvasModule.createCanvas(10,10),bytes=new Uint8Array(c.toBuffer('image/png'));
+ $('[data-tool="images"]').click();await add([{name:'A.png',bytes},{name:'B.png',bytes}]);
+ $('[data-file-action="down"][data-index="0"]').click();assert.match($('#document-preview .thumbnail-label').textContent,/B.png/);
+ $('[data-file-action="remove"][data-index="0"]').click();assert.equal(document.querySelectorAll('#document-preview .preview-tile').length,1);
+ $('[data-file-action="remove"][data-index="0"]').click();assert.equal($('#document-preview').hidden,true);assert.equal($('#process').disabled,true);$('#work-close').click();
+});
+test('PDF firmado: aviso, edición bloqueada, certificación deshabilitada y lectura intacta',async()=>{
+ assert.ok(nativeFixture);const signed={name:'firmado.pdf',bytes:nativeFixture.signed};
+ for(const tool of ['rotate','watermark','protect','unlock','repair','metadata']){
+  $('[data-tool="'+tool+'"]').click();await add([signed]);assert.equal($('#signature-notice').hidden,false);await $('#process').onclick();assert.match($('#error').textContent,/PDF_SIGNED_DOCUMENT/);assert.equal($('#result').hidden,true);assert.equal($('#download').hasAttribute('href'),false);$('#work-close').click();
+ }
+ $('[data-tool="digitalsign"]').click();await add([signed]);assert.equal($('#opt-policy option[value="final"]').disabled,true);$('#work-close').click();
+ $('[data-tool="viewer"]').click();await add([signed]);assert.deepEqual(await output(),nativeFixture.signed);$('#work-close').click();
+});
+test('cambiar protección requiere confirmar de nuevo la firma',async()=>{
+ $('[data-tool="digitalsign"]').click();await add([await sample()]);$('#opt-consent').checked=true;$('#opt-policy').value='final';$('#opt-policy').onchange();assert.equal($('#opt-consent').checked,false);assert.match($('#sign-policy-help').textContent,/ni nuevas firmas/);$('#work-close').click();
 });

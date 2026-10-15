@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "PDF",
-  "short_name": "PDF",
+  "name": "PDF Contigo",
+  "short_name": "PDF Contigo",
   "lang": "es",
   "description": "Abre, organiza y convierte documentos PDF en tu dispositivo.",
   "start_url": "./?origen=inicio",
@@ -11,8 +11,23 @@
   "theme_color": "#c92b32",
   "prefer_related_applications": false,
   "icons": [
-    {"src": "./icons/pdf-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "./icons/pdf-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "./icons/pdf-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "./icons/pdf-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/pdf-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/pdf-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

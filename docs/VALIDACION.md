@@ -1,6 +1,20 @@
 # Validación de PDF 2.2.0-beta.1
 
-**Entrega actual: PDF 2.3.0-beta.3.** Construcción completa y **107 pruebas JavaScript + 19 pruebas Python aprobadas** en Linux. Incluye protocolo AutoScript oficial con WebSocket simulado, firma ficticia verificada con OpenSSL e interfaz hasta descarga. [Alcance y prueba nativa pendiente](AUTOFIRMA.md). Las secciones siguientes son históricas: no acreditan una ejecución de AutoFirma en Windows/Mac.
+**Entrega actual: PDF Contigo 2.3.0-beta.4.** Construcción completa y **122 pruebas JavaScript + 19 pruebas Python aprobadas** en Linux. Incluye protocolo AutoScript oficial con WebSocket simulado, firma ficticia verificada con OpenSSL, DocMDP leído también con pypdf, miniaturas reales con PDF.js/Canvas e interfaz hasta descarga. [Alcance de AutoFirma](AUTOFIRMA.md) y [revisión de las 28 herramientas](UX.md).
+
+El usuario confirmó que beta 3 ya firma mediante la web y AutoFirma en su Windows. La certificación sin cambios y la nueva apariencia de beta 4 no se han probado con AutoFirma nativa. La revisión visual completa en navegadores reales también sigue pendiente.
+
+## Cambios comprobados en 2.3 beta 4
+
+- Firma de certificación ficticia con DocMDP P=1, enlace desde el catálogo, lectura independiente con pypdf y CMS validado por OpenSSL. Alterar el permiso invalida la firma.
+- Bloqueo de edición, distinción entre campo vacío y firma, certificaciones P=1/2/3 y restricciones de campos. La interfaz no ofrece una descarga de edición sobre un PDF firmado y desactiva una certificación posterior.
+- Respuesta de AutoFirma rechazada si no declara la certificación pedida, no preserva una firma previa o la marca solicitada no cumple el tamaño mínimo. Se comprueba estructura, no confianza ni revocación.
+- Apariencia P12 renderizada con CropBox y giros 0/90/180/270; nombre largo, motivo extenso y zonas demasiado pequeñas. Imagen de la marca compacta inspeccionada; no representa el diálogo nativo de AutoFirma.
+- Miniaturas reales con contenido del PDF, selección por clic e intervalo, giro 90/270, carga de doce páginas seguida de las restantes y cierre mientras se está abriendo el documento.
+- Flujo de giro hasta descarga con las rotaciones de las páginas elegidas; orden de miniaturas tras mover/quitar imágenes; lectura del PDF firmado con bytes intactos.
+- Portada SVG actualizada e inspeccionada. No se ha ejecutado un navegador gráfico, por la limitación del entorno documentada más abajo.
+
+Las secciones siguientes son históricas: no acreditan una ejecución nativa adicional.
 
 **36 pruebas JavaScript y 2 pruebas Python aprobadas en Linux**, tras instalar dependencias en una copia limpia y construir los motores desde el lockfile. Se verificaron operaciones PDF reales, OCR local, firma CMS con OpenSSL, contraseñas con qpdf, bytes de descarga y flujos de UI simulados. No se ha ejecutado un navegador gráfico ni instalado en los cuatro sistemas de destino.
 

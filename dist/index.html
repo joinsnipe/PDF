@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#c92b32">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self'; frame-src 'self' afirma:; object-src 'none'; base-uri 'self'; form-action 'none'">
-  <title>PDF · Herramientas de documentos</title>
-  <meta name="application-name" content="PDF">
-  <meta name="apple-mobile-web-app-title" content="PDF">
+  <title>PDF Contigo · Herramientas gratuitas para tus documentos</title>
+  <meta name="application-name" content="PDF Contigo">
+  <meta name="apple-mobile-web-app-title" content="PDF Contigo">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icons/pdf-192.png">
@@ -24,7 +24,7 @@
 <body>
   <a class="skip" href="#main">Saltar al contenido</a>
   <aside class="sidebar">
-    <a class="brand" href="./" aria-label="PDF, inicio"><img class="brand-mark" src="./icon.svg" width="40" height="40" alt=""><span>Herramientas PDF</span></a>
+    <a class="brand" href="./" aria-label="PDF Contigo, inicio"><img class="brand-mark" src="./icon.svg" width="40" height="40" alt=""><span>PDF Contigo</span></a>
     <div class="workspace-label">HERRAMIENTAS</div>
     <nav class="side-nav" aria-label="Categorías">
       <button class="nav-item active" data-filter="all"><span data-icon="grid"></span> Todas las herramientas <span class="nav-count">28</span></button>
@@ -35,12 +35,12 @@
     <div class="side-bottom">
       <div class="privacy-box"><span data-icon="shield"></span><strong>Documentos locales</strong><p>El trabajo ocurre en tu navegador. Los documentos no se suben a un servidor.</p></div>
       <button class="help-button" id="help-open"><span data-icon="help"></span> Cómo funciona <span>↗</span></button>
-      <div class="profile"><span class="avatar">P</span><div><strong>PDF</strong><small>Aplicación local</small></div><span class="online" title="Procesamiento local"></span></div>
+      <div class="profile"><span class="avatar">P</span><div><strong>PDF Contigo</strong><small>Aplicación local</small></div><span class="online" title="Procesamiento local"></span></div>
     </div>
   </aside>
   <main id="main">
-    <header class="topbar"><div>PDF <span>/</span> <strong>Documentos</strong></div><div class="topbar-actions"><span class="local-badge"><i></i> Procesamiento local</span><button id="install-app" class="install-button" type="button">Instalar PDF</button></div></header>
-    <section class="intro compact-intro"><div><h1>Herramientas PDF</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.3 beta 3 · AutoFirma</span></section>
+    <header class="topbar"><div>PDF Contigo <span>/</span> <strong>Documentos</strong></div><div class="topbar-actions"><span class="local-badge"><i></i> Procesamiento local</span><button id="install-app" class="install-button" type="button">Instalar PDF Contigo</button></div></header>
+    <section class="intro compact-intro"><div><h1>Tus PDF, más fáciles.</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.3 beta 4 · AutoFirma</span></section>
     <section class="tools-section" aria-labelledby="tools-title">
       <div class="section-heading"><div><h2 id="tools-title">Todas las herramientas</h2><p>28 funciones · Los documentos se procesan en tu equipo.</p></div><label class="search"><span data-icon="search"></span><input id="search" type="search" placeholder="Buscar herramienta" aria-label="Buscar herramienta"><kbd>/</kbd></label></div>
       <div class="filters" aria-label="Filtrar herramientas"><button class="filter active" data-filter="all">Todas <span>28</span></button><button class="filter" data-filter="organize">Organizar</button><button class="filter" data-filter="convert">Convertir</button><button class="filter" data-filter="edit">Editar</button><button class="filter" data-filter="security">Seguridad y firma</button><button class="filter" data-filter="analyze">Leer y analizar</button></div>
@@ -48,7 +48,7 @@
       <div class="empty-search" id="empty-search" hidden>No hay herramientas con ese nombre. Prueba con «unir», «imagen» o «texto».</div>
     </section>
     <section class="how-strip"><span class="how-icon" data-icon="shield"></span><div><h3>Procesamiento local</h3><p>Seleccionas tus archivos, trabajas con ellos y descargas el resultado. Sin guardar copias en la aplicación.</p></div><button id="privacy-open">Ver cómo funciona <span>↗</span></button></section>
-    <footer><span>PDF <span class="footer-dot">·</span> Herramientas de documentos</span><button id="desktop-exit" type="button" class="text-button" hidden>Salir de PDF</button><span>Revisión local <span class="footer-dot">·</span> 28 herramientas</span></footer>
+    <footer><span>PDF Contigo <span class="footer-dot">·</span> Herramientas de documentos</span><button id="desktop-exit" type="button" class="text-button" hidden>Salir de PDF</button><span>Revisión local <span class="footer-dot">·</span> 28 herramientas</span></footer>
   </main>
 
   <dialog id="work-dialog" class="work-dialog" aria-labelledby="work-title">
@@ -59,8 +59,10 @@
         <div class="dropzone" id="dropzone"><span data-icon="upload"></span><strong id="drop-title">Arrastra tus PDF aquí</strong><span id="drop-note">o selecciónalos desde tu dispositivo</span><button class="primary" id="choose-files">Seleccionar archivos <span>＋</span></button><small id="file-limits">Hasta 100 MB en total · 500 páginas</small></div>
         <input type="file" id="file-input" hidden>
         <div id="file-area" hidden><div class="files-heading"><h3>Archivos <span id="files-count"></span></h3><button class="text-button" id="add-files">Añadir archivos ＋</button></div><ol class="file-list" id="file-list"></ol><div class="file-actions"><button class="text-button" id="clear-files">Vaciar selección</button><span id="total-size"></span></div></div>
+        <p id="signature-notice" class="signature-notice" role="status" hidden></p>
+        <section id="document-preview" class="document-preview" aria-label="Vista previa de las páginas" hidden></section>
         <div class="tool-options" id="tool-options"></div>
-        <p class="document-note" id="document-note"><span data-icon="info"></span> Editar un PDF firmado puede invalidar su firma. Aplana los formularios antes de modificar sus páginas.</p>
+        <p class="document-note" id="document-note"><span data-icon="info"></span> Trabajamos sobre una copia. Si detectamos firmas digitales, protegemos el original y bloqueamos los cambios de contenido.</p>
       </div>
       <div class="status" id="status" role="status" aria-live="polite" hidden><div><span class="spinner"></span><strong id="status-text">Preparando archivos…</strong></div><progress id="progress" max="100" value="0"></progress></div>
       <div id="error" class="error" role="alert" hidden></div>

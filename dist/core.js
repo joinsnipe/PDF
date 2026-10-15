@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, degrees, rgb } from './vendor/pdf-lib.js';
+import {signatureInfo,assertCanEdit} from './signature-policy.js';
 
 export const LIMITS = { bytes: 100 * 1024 * 1024, pages: 500, rendered: 150, pixels: 16000000 };
 export const niceSize = n => n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`;
@@ -37,7 +38,7 @@ const pdfResult = async (doc, name, note = '') => ({ bytes: await doc.save(), na
 export async function processPdf(tool, files, opts = {}, progress = () => {}) {
   if (!files.length) throw new Error('Selecciona un archivo.');
   const docs = [];
-  for (const file of files) { const d = await readPdf(file.bytes); ensureFlat(d); docs.push(d); }
+  for (const file of files) { const d = await readPdf(file.bytes); assertCanEdit(signatureInfo(d)); ensureFlat(d); docs.push(d); }
   const doc = docs[0], count = doc.getPageCount(), base = stem(files[0].name);
   if (tool === 'merge') {
     if (docs.length < 2) throw new Error('Añade al menos dos PDF para unirlos.');

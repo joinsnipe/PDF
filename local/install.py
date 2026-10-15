@@ -21,10 +21,10 @@ def association_entries(destination):
         (prog, '', 'Documento PDF'),
         (prog + r'\DefaultIcon', '', icon),
         (prog + r'\shell\open\command', '', command),
-        (prog + r'\Application', 'ApplicationName', 'PDF'),
+        (prog + r'\Application', 'ApplicationName', 'PDF Contigo'),
         (prog + r'\Application', 'ApplicationDescription', 'Lector y herramientas PDF locales'),
         (prog + r'\Application', 'ApplicationIcon', icon),
-        (CAPABILITIES, 'ApplicationName', 'PDF Herramientas'),
+        (CAPABILITIES, 'ApplicationName', 'PDF Contigo'),
         (CAPABILITIES, 'ApplicationDescription', 'Leer y trabajar con documentos PDF en este equipo'),
         (CAPABILITIES, 'ApplicationIcon', icon),
         (CAPABILITIES + r'\FileAssociations', '.pdf', PROGID),
@@ -103,7 +103,7 @@ foreach ($location in $locations) {
     if ($location -eq $removeLink) { $link.Arguments = '-I -B "' + (Join-Path $root 'install.py') + '" --unregister' }
     $link.WorkingDirectory = $root
     $link.IconLocation = (Join-Path $root 'app\icons\pdf.ico') + ',0'
-    $link.Description = 'PDF - Herramientas de documentos'
+    $link.Description = 'PDF Contigo - Herramientas de documentos'
     $link.Save()
 }
 '''

@@ -19,7 +19,7 @@ const keys=forge.pki.rsa.generateKeyPair(2048),cert=forge.pki.createCertificate(
 cert.publicKey=keys.publicKey;cert.serialNumber='01';cert.validity.notBefore=new Date(Date.now()-86400000);cert.validity.notAfter=new Date(Date.now()+86400000);
 cert.setSubject([{name:'commonName',value:'PDF FICTITIOUS AUTOFIRMA TEST'}]);cert.setIssuer(cert.subject.attributes);cert.setExtensions([{name:'keyUsage',digitalSignature:true}]);cert.sign(keys.privateKey,forge.md.sha256.create());
 const p12=new Uint8Array(Buffer.from(forge.asn1.toDer(forge.pkcs12.toPkcs12Asn1(keys.privateKey,[cert],'test',{algorithm:'3des'})).getBytes(),'binary'));
-const signed=(await signDocument(original,p12,'test','Prueba',{visible:false})).bytes;
+const signed=(await signDocument(original,p12,'test','Prueba',{visible:true,page:1,x:10,y:72,w:65,h:20})).bytes;
 const encoded=Buffer.from(signed).toString('base64'),file={name:'Prueba.pdf',bytes:original};
 
 function environment(action,{autoReady=true,activation}={}){
@@ -42,6 +42,14 @@ test('motivo Unicode escapado no permite inyectar servidores y visible solicita 
  assert.match(autofirmaProperties({reason:'',visible:false}),/visibleSignature=none/);
  assert.doesNotMatch(autofirmaProperties({reason:''}),/signReason/);
  assert.throws(()=>autofirmaProperties({reason:'ok\ntsaURL=https://example.invalid'}),{code:'AF_REASON'});
+ assert.match(props,/certificationLevel=0/);assert.match(props,/layer2FontSize=0/);assert.match(props,/visibleAppearance=default/);
+ assert.match(autofirmaProperties({policy:'final'}),/certificationLevel=1/);
+ assert.throws(()=>autofirmaProperties({policy:'unknown'}),{code:'PDF_SIGN_POLICY'});
+});
+test('una marca invisible no se presenta como la firma visible solicitada',async()=>{
+ const invisible=(await signDocument(original,p12,'test','',{visible:false})).bytes;
+ await assert.rejects(()=>decodeSignedPDF(Buffer.from(invisible).toString('base64'),original,{visible:true}),{code:'AF_APPEARANCE'});
+ assert.deepEqual(await decodeSignedPDF(encoded,original,{visible:true}),signed);
 });
 test('cancelación, comunicación y aviso nativo se distinguen sin culpar a la contraseña',()=>{
  assert.equal(autofirmaError('AOCancelledOperationException').code,'AF_CANCELLED');
@@ -100,6 +108,7 @@ test('carga lenta, archivo ausente, bloqueo y versión mezclada tienen errores p
  for(const code of ['AF_COMPONENT_TIMEOUT','AF_COMPONENT_ASSET','AF_COMPONENT_SCRIPT','AF_COMPONENT_VERSION']){
   const env=environment(()=>assert.fail('must not launch'),{autoReady:false});env.loadTimeoutMs=5;
   const operation=signWithAutoFirma(file,{consent:true},()=>{},env);
+  await new Promise(resolve=>setTimeout(resolve,0));
   if(code==='AF_COMPONENT_VERSION')env.signal({type:'pdf-autofirma-bridge',version:1,ready:true});
   else if(code!=='AF_COMPONENT_TIMEOUT')env.signal({type:'pdf-autofirma-bridge',version:3,error:code});
   await assert.rejects(()=>operation,{code});assert.equal(env.stats().removed,1);

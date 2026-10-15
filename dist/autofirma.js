@@ -1,4 +1,5 @@
 import {PDFDocument,PDFDict,PDFName,PDFArray,PDFNumber} from './vendor/pdf-lib.js';
+import {signatureInfo,inspectSignatures,assertCanSign} from './signature-policy.js';
 
 const MAX_INPUT=100*1024*1024,MAX_OUTPUT=110*1024*1024;
 const fault=(code,message)=>Object.assign(new Error(message),{code});
@@ -12,12 +13,14 @@ export function autofirmaPlatform(nav=globalThis.navigator){
 }
 
 // Java Properties are ASCII escaped: a custom reason cannot inject extra options.
-export function autofirmaProperties({reason='',visible=true}={}){
+export function autofirmaProperties({reason='',visible=true,policy='approval'}={}){
+ if(!['approval','final'].includes(policy))throw fault('PDF_SIGN_POLICY','Selecciona una modalidad de firma válida.');
  reason=String(reason);
  if(reason.length>120||/[\r\n\0]/.test(reason))throw fault('AF_REASON','Escribe un motivo de una sola línea, de hasta 120 caracteres.');
  const escaped=reason.replace(/[^a-zA-Z0-9 .,:;()_-]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));
- return ['mode=implicit','signatureSubFilter=ETSI.CAdES.detached',
-  'visibleSignature='+(visible?'want':'none'),...(reason?['signReason='+escaped]:[])].join('\n');
+ return ['mode=implicit','signatureSubFilter=ETSI.CAdES.detached','certificationLevel='+(policy==='final'?'1':'0'),
+  'visibleSignature='+(visible?'want':'none'),...(reason?['signReason='+escaped]:[]),
+  ...(visible?['visibleAppearance=default','layer2Text=FIRMADO DIGITALMENTE\\n$$SUBJECTCN$$\\n$$SIGNDATE=dd/MM/yyyy HH:mm z$$','layer2FontFamily=1','layer2FontSize=0','layer2FontStyle=0','layer2FontColor=black']:[])].join('\n');
 }
 
 export function autofirmaError(type='',message=''){
@@ -34,7 +37,7 @@ function toBase64(bytes){
  return btoa(chunks.join(''));
 }
 
-export async function decodeSignedPDF(encoded,original){
+export async function decodeSignedPDF(encoded,original,opts={}){
  if(typeof encoded!=='string'||!encoded.length||encoded.length>Math.ceil(MAX_OUTPUT/3)*4+4||!/^[A-Za-z0-9+/_-]+={0,2}$/.test(encoded))throw fault('AF_RESPONSE','AutoFirma ha devuelto una respuesta que no es un PDF reconocible.');
  let bytes;
  try{bytes=Uint8Array.from(atob(encoded.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));}
@@ -42,9 +45,9 @@ export async function decodeSignedPDF(encoded,original){
  if(bytes.length>MAX_OUTPUT||!new TextDecoder().decode(bytes.subarray(0,1024)).includes('%PDF-'))throw fault('AF_RESPONSE','AutoFirma no ha devuelto un archivo PDF.');
  if(original&&bytes.length===original.length&&bytes.every((b,i)=>b===original[i]))throw fault('AF_RESPONSE','AutoFirma ha devuelto el documento sin cambios. No se ofrece como firmado.');
  // Structural sanity check, NOT cryptographic verification or certificate trust.
- let hasSignature=false;
+ let hasSignature=false,doc;
  try{
-  const doc=await PDFDocument.load(bytes,{updateMetadata:false});
+  doc=await PDFDocument.load(bytes,{updateMetadata:false});
   for(const [,obj] of doc.context.enumerateIndirectObjects()){
    if(!(obj instanceof PDFDict))continue;
    const range=obj.lookup(PDFName.of('ByteRange'));
@@ -54,6 +57,26 @@ export async function decodeSignedPDF(encoded,original){
   }
  }catch{throw fault('AF_RESPONSE','El PDF devuelto por AutoFirma no se ha podido abrir.');}
  if(!hasSignature)throw fault('AF_RESPONSE','No se ha encontrado una estructura de firma que cubra el PDF recibido. No se ofrece como firmado.');
+ const result=signatureInfo(doc);
+ if(opts.policy==='final'&&result.certification!==1)throw fault('AF_CERTIFICATION','AutoFirma no ha devuelto la certificación sin cambios solicitada. No se ofrece este archivo como documento cerrado.');
+ if(opts.previous?.signed){
+  // An additional signature must append a revision, retaining the exact input.
+  if(bytes.length<=original.length||!original.every((value,index)=>bytes[index]===value)||result.count<=opts.previous.count)throw fault('AF_PREVIOUS_SIGNATURE','La respuesta no conserva íntegra la revisión firmada anterior. No se ofrece como cofirma.');
+ }
+ if(opts.visible===true){
+  let visible=false;
+  for(const field of doc.getForm().getFields()){
+   const signature=field.acroField.dict.lookup(PDFName.of('V'));
+   if(!(signature instanceof PDFDict))continue;
+   const range=signature.lookup(PDFName.of('ByteRange'));
+   if(!(range instanceof PDFArray)||range.size()!==4||range.lookup(2,PDFNumber).asNumber()+range.lookup(3,PDFNumber).asNumber()!==bytes.length)continue;
+   for(const widget of field.acroField.getWidgets()){
+    const rect=widget.getRectangle();
+    if(Math.max(rect.width,rect.height)>=150&&Math.min(rect.width,rect.height)>=54)visible=true;
+   }
+  }
+  if(!visible)throw fault('AF_APPEARANCE','AutoFirma ha firmado, pero la marca es demasiado pequeña o no aparece. Repite con un recuadro más amplio (aprox. 5,3 × 1,9 cm como mínimo), o desactiva «Mostrar firma en la página».');
+ }
  return bytes; // Never reserialize a signed document.
 }
 
@@ -127,11 +150,12 @@ export async function signWithAutoFirma(file,opts={},progress=()=>{},env={}){
  if(!keystore||typeof win.WebSocket!=='function')throw fault('AF_UNSUPPORTED','Esta integración de AutoFirma requiere Windows o Mac y un navegador actualizado. En móvil puedes usar las otras herramientas de PDF.');
  if(!opts.consent)throw fault('AF_CONSENT','Confirma que quieres firmar este documento con tu certificado.');
  if(!file.bytes?.length||file.bytes.length>MAX_INPUT)throw fault('AF_SIZE','Selecciona un PDF de hasta 100 MB.');
- const properties=autofirmaProperties(opts);
  if(pending)throw fault('AF_BUSY','Ya hay una firma en curso. Termínala o cancélala en AutoFirma.');
  pending=true;
  let session;
  try{
+  const previous=await inspectSignatures(file.bytes);assertCanSign(previous,opts.policy||'approval');
+  const properties=autofirmaProperties(opts);
   progress(.08,'Preparando la conexión con AutoFirma…');
   session=await prepareAutoFirma(env);
   const encoded=toBase64(file.bytes);
@@ -162,6 +186,6 @@ export async function signWithAutoFirma(file,opts={},progress=()=>{},env={}){
    }else start();
   });
   progress(.9,'Recibiendo el PDF de AutoFirma…');
-  return await decodeSignedPDF(response,file.bytes);
+  return await decodeSignedPDF(response,file.bytes,{...opts,previous});
  }finally{session?.dispose();pending=false;}
 }

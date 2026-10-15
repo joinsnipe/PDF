@@ -8,20 +8,28 @@ function geometry(page){
 }
 function wrap(text,font,size,width){
  const lines=[];let line='';
- for(const character of text){
-  if(font.widthOfTextAtSize(line+character,size)>width&&line){lines.push(line.trim());line=character;}else line+=character;
+ for(const word of text.split(/\s+/u).filter(Boolean)){
+  const candidate=line?line+' '+word:word;
+  if(font.widthOfTextAtSize(candidate,size)<=width){line=candidate;continue;}
+  if(line){lines.push(line);line='';}
+  // Prefer word boundaries; only break an individual word if it cannot fit.
+  for(const character of word){
+   if(line&&font.widthOfTextAtSize(line+character,size)>width){lines.push(line);line=character;}else line+=character;
+  }
  }
- if(line.trim())lines.push(line.trim());return lines;
+ if(line)lines.push(line);return lines;
 }
 export async function signatureAppearance(doc,page,options,info,time,reason){
  const r={x:Number(options.x??10),y:Number(options.y??72),w:Number(options.w??65),h:Number(options.h??20)};
  if(Object.values(r).some(n=>!Number.isFinite(n))||r.x<0||r.y<0||r.w<=0||r.h<=0||r.x+r.w>100||r.y+r.h>100)throw new Error('La zona de firma debe quedar dentro de la página.');
  const g=geometry(page),width=g.width*r.w/100,height=g.height*r.h/100;
- if(width<150||height<64)throw new Error('Amplía la zona de firma para que el nombre y la fecha sean legibles.');
+ if(width<150||height<54)throw new Error('Amplía la zona de firma para que el nombre y la fecha sean legibles (mínimo 150 × 54 puntos).');
  const stamp=await PDFDocument.create(),p=stamp.addPage([width,height]);
- const regular=await stamp.embedFont(StandardFonts.Helvetica),bold=await stamp.embedFont(StandardFonts.HelveticaBold);
+ const regular=await stamp.embedFont(StandardFonts.Helvetica);
  const date=time.toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC');
- const rows=[['FIRMADO DIGITALMENTE',bold],[info.signerName,bold],...(info.organization?[[info.organization,regular]]:[]),[date,regular],...(reason?[[reason,regular]]:[])];
+ // Compact, consistent content. Organization/reason remain in the certificate
+ // and signature properties rather than overflowing the visible rectangle.
+ const rows=[['FIRMADO DIGITALMENTE',regular],[info.signerName,regular],[date,regular]];
  for(const [text,font]of rows){try{font.encodeText(text);}catch{throw new Error('El nombre del certificado contiene caracteres que esta apariencia no puede representar. Desactiva «Mostrar firma en la página» para conservar el nombre completo en la firma criptográfica.');}}
  let size=11,lines;
  for(;size>=7;size-=.5){lines=rows.flatMap(([text,font])=>wrap(text,font,size,width-24).map(text=>({text,font})));if(lines.length*size*1.25<=height-20)break;}

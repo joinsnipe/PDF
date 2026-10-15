@@ -1,5 +1,14 @@
 # Cambios
 
+## 2.3.0-beta.4
+
+- Nombre PDF Contigo, con la misma identidad blanca y roja y las mismas rutas.
+- Miniaturas, selección visual, giro previo y visor del resultado en el flujo de las 28 herramientas.
+- Paginación de miniaturas, actualización al reordenar archivos y visor ajustado al ancho.
+- Aprobación o certificación sin cambios (DocMDP P=1), con detección de firmas y bloqueo de edición.
+- Apariencia compacta de firma, ajuste de texto y comprobación de recuadros demasiado pequeños.
+- El usuario confirma firma nativa en Windows con beta 3. Los modos y apariencia nuevos requieren validación nativa.
+
 ## 2.3.0-beta.3
 
 - Corregido un falso `AF_COMPONENT_BLOCKED`: scripts ajenos bloqueados o políticas informativas ya no invalidan un conector disponible.

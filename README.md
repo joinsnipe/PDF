@@ -1,16 +1,16 @@
-> **PDF 2.3.0-beta.3 · AutoFirma y escritorio Windows.** Firma con el certificado instalado mediante AutoFirma, instalación sin consola y opción «Abrir con». [Guía de firma](docs/AUTOFIRMA.md). La integración nativa requiere prueba en tu equipo; continúa siendo beta.
+> **PDF Contigo 2.3.0-beta.4 · Páginas a la vista y firma con protección.** Miniaturas, selección visual y revisión del PDF generado. AutoFirma, instalación Windows sin consola y opción «Abrir con». [Guía de firma](docs/AUTOFIRMA.md). La integración nativa requiere prueba en tu equipo; continúa siendo beta.
 
-<p align="center"><img src="docs/images/portada.svg" alt="PDF. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
+<p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
-# PDF
+# PDF Contigo
 
 **28 herramientas PDF en español, gratuitas y con procesamiento local.** Para unir documentos, leerlos, convertir imágenes, poner una marca de agua, rellenar formularios y resolver tareas cotidianas sin enviar el archivo a un servicio de conversión.
 
-**[Abrir PDF en la web](https://snipe-pdf.snipex.chatgpt.site)** · **[Descargar paquetes](https://github.com/joinsnipe/PDF/releases)** · **[Guía de instalación](docs/INSTALACION.md)**
+**[Abrir PDF Contigo en la web](https://snipe-pdf.snipex.chatgpt.site)** · **[Descargar paquetes](https://github.com/joinsnipe/PDF/releases)** · **[Guía de instalación](docs/INSTALACION.md)**
 
 Interfaz blanca y roja, texto claro, sin cuentas ni suscripciones. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo. No está afiliado a iLovePDF ni a ninguna administración pública.
 
-> **Web actualizada a 2.3 beta 3.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
+> **Web actualizada a 2.3 beta 4.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 
@@ -19,10 +19,14 @@ Interfaz blanca y roja, texto claro, sin cuentas ni suscripciones. El código pr
 | Windows 10/11 x64 | Extrae todo, abre `Instalar_PDF.cmd` una vez y usa el icono PDF | Sí, con el paquete local |
 | Mac con Apple Silicon | ZIP `macos-arm64`, extrae todo y abre `PDF.command` | Sí, con el paquete local |
 | Mac con Intel | ZIP `macos-x64`, extrae todo y abre `PDF.command` | Sí, con el paquete local |
-| Android | Web en Chrome → **Instalar PDF** o **Añadir a pantalla de inicio** | Necesita conexión para abrir |
+| Android | Web en Chrome → **Instalar PDF Contigo** o **Añadir a pantalla de inicio** | Necesita conexión para abrir |
 | iPhone / iPad | Web en Safari → **Compartir → Añadir a pantalla de inicio** | Necesita conexión para abrir |
 
 Mac: macOS 13.5 o posterior y navegador actualizado. Los paquetes de escritorio abren una aplicación web local e incluyen su runtime. No necesitas instalar Python o Node. Android e iOS utilizan la app web: no se distribuye APK, IPA ni aplicación de tienda. [Pasos y solución de problemas](docs/INSTALACION.md).
+
+## Trabaja viendo tus páginas
+
+Selecciona páginas tocando sus miniaturas. En «Girar PDF» ves el giro antes de guardar. Al terminar, revisa el PDF generado en un visor con zoom y búsqueda. Las miniaturas se cargan de doce en doce. [Qué muestra cada una de las 28 herramientas](docs/UX.md).
 
 ## Qué puedes hacer
 
@@ -35,9 +39,9 @@ Mac: macOS 13.5 o posterior y navegador actualizado. Los paquetes de escritorio 
 | Formularios | Rellenar AcroForm y aplanar campos |
 | Leer | Visor con búsqueda y zoom, OCR español/inglés, resumen extractivo, comparar texto |
 
-**Firmar con certificado:** abre **Firmar con certificado**, añade el PDF y deja seleccionado **AutoFirma** en Windows o Mac. Confirma que quieres firmar y pulsa **Firmar con AutoFirma**. Elige el certificado y, si quieres marca visible, su página y zona en AutoFirma. Vuelve a PDF para guardar el resultado. No tienes que exportar el certificado ni introducir aquí la contraseña del P12. [Instalación y solución de problemas](docs/AUTOFIRMA.md).
+**Firmar con certificado:** abre **Firmar con certificado**, añade el PDF y deja seleccionado **AutoFirma** en Windows o Mac. Elige **Permitir otras firmas** o **Certificar sin cambios** (solo como primera firma). Confirma que quieres firmar y pulsa **Firmar con AutoFirma**. Elige el certificado y, si quieres marca visible, su página y zona en AutoFirma. Vuelve a PDF para guardar el resultado. No tienes que exportar el certificado ni introducir aquí la contraseña del P12. [Instalación y solución de problemas](docs/AUTOFIRMA.md).
 
-**PDF con contraseña:** entra en **Visor de PDF**, selecciona el archivo e introduce su contraseña. Se abre el resultado y puedes guardar una copia sin contraseña. Esto se aplica al archivo PDF; primero tienes que descargarlo desde la web de la administración.
+**PDF con contraseña:** entra en **Visor de PDF**, selecciona el archivo e introduce su contraseña. Se abre el resultado y puedes guardar una copia sin contraseña. Si contiene firmas digitales, se bloquea esta conversión para conservarlas; abre el original con un lector compatible. Esto se aplica al archivo PDF; primero tienes que descargarlo desde la web de la administración.
 
 **Descargar:** usa **Descargar**, **Guardar como…**, **Abrir resultado** o **Compartir archivo…**, según lo que admita el navegador. En iPhone, Compartir permite elegir **Guardar en Archivos**. Los resultados múltiples se agrupan en ZIP y, hasta 30 archivos, también tienen enlaces individuales.
 
@@ -45,7 +49,7 @@ Mac: macOS 13.5 o posterior y navegador actualizado. Los paquetes de escritorio 
 
 - El resumen selecciona frases literales con su página. No usa IA generativa. Los escaneados necesitan OCR primero.
 - PDF a Word exporta texto editable: no reproduce diseño ni tablas.
-- La firma dibujada es una imagen. La firma digital de escritorio usa AutoFirma (instalada por separado); el método P12/PFX RSA permanece como alternativa. PDF no configura sello de tiempo ni verifica confianza o revocación de la CA. Editar un PDF firmado puede invalidar sus firmas.
+- La firma dibujada es una imagen. La firma digital de escritorio usa AutoFirma (instalada por separado); el método P12/PFX RSA permanece como alternativa. PDF no configura sello de tiempo ni verifica confianza o revocación de la CA. La app bloquea cambios de contenido y seguridad en documentos firmados. «Certificar sin cambios» declara que no se permiten ediciones ni nuevas firmas; no impide físicamente alterar una copia, pero una modificación prohibida no conserva intacta la certificación.
 - El recorte es visual. Para eliminar una zona utiliza la herramienta específica de ocultación y revisa el resultado; convierte las páginas en imágenes.
 - Hasta 100 MB y 100 archivos por tarea, 500 páginas, OCR de 30 páginas y conversión a imágenes de 150 páginas. Los móviles pueden agotar memoria antes.
 - No incluye Office a PDF, PDF/A validado, reconstrucción de Excel/PowerPoint o edición del texto original.

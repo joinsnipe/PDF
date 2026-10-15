@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFDict, PDFRawStrea
 import { readPdf, pageRange, stem, LIMITS } from './core.js';
 import { openRenderedPdf, pageCanvas, canvasBlob } from './render.js';
 import { signWithAutoFirma } from './autofirma.js';
+import {inspectSignatures,assertCanEdit,readsOriginal} from './signature-policy.js';
 
 export const ADVANCED_TOOLS=[
  ['viewer','Visor de PDF','Lee páginas, amplía el documento y busca texto.','analyze','search'],
@@ -87,7 +88,7 @@ export async function wordDocument(pages,name,Zip=globalThis.JSZip){
  z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
  const paragraphs=pages.map((p,i)=>(i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':'')+p.text.split('\n').map(t=>`<w:p><w:r><w:t xml:space="preserve">${xml(t)}</w:t></w:r></w:p>`).join('')).join('');
  z.file('word/document.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphs}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr></w:body></w:document>`);
- return [{bytes:await z.generateAsync({type:'uint8array'}),name,type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',note:'Word editable con el texto extraído. No reconstruye imágenes, tablas, fuentes ni diseño.'}];
+ return [{bytes:await z.generateAsync({type:'uint8array'}),name,type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',note:'Word editable con el texto extraído. La vista muestra el texto, no el diseño de Word. No reconstruye imágenes, tablas, fuentes ni diseño.',preview:pages.map(p=>'Página '+p.page+'\n'+p.text).join('\n\n').slice(0,22000)}];
 }
 export function qpdfOperation(tool,file,opts={}){
  return new Promise((resolve,reject)=>{
@@ -95,7 +96,7 @@ export function qpdfOperation(tool,file,opts={}){
   const finish=(result,error)=>{clearTimeout(timer);worker?.terminate();opts.password='';opts.confirm='';error?reject(error):resolve(result);};
   try{
    worker=new Worker(new URL('./qpdf-worker.js',import.meta.url));timer=setTimeout(()=>finish(null,new Error('El motor superó 120 segundos. Prueba un PDF más pequeño.')),120000);
-   worker.onmessage=e=>{const r=e.data;if(r.error)finish(null,Object.assign(new Error(r.error),{code:r.code}));else finish([{bytes:r.bytes,name:`${stem(file.name)}-${tool==='protect'?'protegido':tool==='unlock'?'desbloqueado':'reparado'}.pdf`,type:'application/pdf',note:r.note}]);};
+   worker.onmessage=async e=>{const r=e.data;if(r.error)finish(null,Object.assign(new Error(r.error),{code:r.code}));else{try{if(tool!=='protect')assertCanEdit(await inspectSignatures(r.bytes));finish([{bytes:r.bytes,name:`${stem(file.name)}-${tool==='protect'?'protegido':tool==='unlock'?'desbloqueado':'reparado'}.pdf`,type:'application/pdf',note:r.note}]);}catch(error){finish(null,error);}}};
    worker.onerror=()=>finish(null,new Error('No se pudo iniciar el motor PDF. Vuelve a abrir la aplicación.'));
    worker.postMessage({tool,bytes:file.bytes,opts});
   }catch(e){finish(null,e);}
@@ -116,16 +117,17 @@ export function certificateOperation(data){
 }
 export async function advancedOperation(tool,files,opts={},progress=()=>{},extra={}){
  const f=files[0],base=stem(f.name);
+ if(tool!=='digitalsign'&&!readsOriginal(tool)&&!['unlock','repair'].includes(tool))assertCanEdit(await inspectSignatures(f.bytes));
  if(tool==='viewer'){if(f.encrypted)return qpdfOperation('unlock',f,opts);return [{bytes:f.bytes,name:f.name,type:'application/pdf',note:'Documento original sin cambios.'}];}
  if(tool==='digitalsign'){
   if(opts.method==='autofirma'){
    const bytes=await signWithAutoFirma(f,opts,progress,extra);
-   return [{bytes,name:`${base}-firmado.pdf`,type:'application/pdf',note:'PDF recibido de AutoFirma. Guarda esta copia y comprueba su firma en el panel de firmas de un lector independiente. La app no verifica confianza, revocación ni validez jurídica; no configura sello de tiempo.'}];
+   return [{bytes,name:`${base}-${opts.policy==='final'?'certificado':'firmado'}.pdf`,type:'application/pdf',note:(opts.policy==='final'?'Certificación sin cambios solicitada y estructura DocMDP comprobada. Las ediciones o nuevas firmas no están permitidas. ':'Firma de aprobación: puede admitir otras firmas. ')+'Comprueba la firma en un lector independiente. La app no verifica confianza ni revocación; no configura sello de tiempo.'}];
   }
   if(!opts.certBytes?.length)throw new Error('Selecciona tu certificado P12 o PFX.');
   if(!opts.consent)throw new Error('Confirma que quieres firmar este documento con tu certificado.');
-  try{const result=await certificateOperation({pdf:f.bytes,cert:opts.certBytes,password:opts.password,reason:opts.reason??'Aprobación del documento',appearance:{visible:opts.visible,page:opts.page,x:opts.x,y:opts.y,w:opts.w,h:opts.h}});
-   return [{bytes:result.bytes,name:`${base}-firmado.pdf`,type:'application/pdf',note:`Firmado con el certificado de ${result.signerName}.${result.visible?` La marca visible está en la página ${result.page}.`:''} La firma criptográfica cubre el documento completo. Compruébala en el panel de firmas de tu lector PDF. Sin sello de tiempo ni validación de revocación.`}];
+  try{const result=await certificateOperation({pdf:f.bytes,cert:opts.certBytes,password:opts.password,reason:opts.reason??'Aprobación del documento',appearance:{policy:opts.policy,visible:opts.visible,page:opts.page,x:opts.x,y:opts.y,w:opts.w,h:opts.h}});
+   return [{bytes:result.bytes,name:`${base}-${opts.policy==='final'?'certificado':'firmado'}.pdf`,type:'application/pdf',note:`Firmado con el certificado de ${result.signerName}.${result.visible?` La marca visible está en la página ${result.page}.`:''} ${opts.policy==='final'?'Certificado sin permitir cambios ni nuevas firmas.':'Firma de aprobación.'} Compruébala en el panel de firmas de tu lector PDF. Sin sello de tiempo ni validación de revocación.`}];
   }finally{opts.password='';opts.certBytes.fill(0);}
  }
  if(['protect','unlock','repair'].includes(tool)){
