@@ -4,9 +4,9 @@ La forma más rápida es [abrir la web](https://snipe-pdf.snipex.chatgpt.site). 
 
 ## Windows
 
-**Versión actual: 2.4.0-beta.2.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
+**Versión actual: 2.4.0-beta.3.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
 
-1. Descarga `PDF-2.4.0-beta.2-windows-x64.zip`.
+1. Descarga `PDF-2.4.0-beta.3-windows-x64.zip`.
 2. Botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
 3. Abre la carpeta `PDF` y haz doble clic en **Instalar_PDF.cmd**, una sola vez.
 4. Abre **PDF** desde el icono del escritorio o desde **Inicio → PDF Herramientas → PDF**.

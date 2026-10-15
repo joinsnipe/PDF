@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 2.4.0-beta.3
+
+Elimina el acceso duplicado de configuración de IA con estrella, tanto en móvil como en escritorio. La cabecera mantiene el botón con borde rojo.
+
 ## 2.4.0-beta.2
 
 Configuración de IA independiente, conexión con modelo automático, guía para conseguir API y alternativa local visible. La clave permanece solo en memoria de la pestaña y se puede olvidar. Icono de Windows con siete tamaños, rutas entrecomilladas y aviso de actualización de accesos directos. [Detalle](docs/releases/v2.4.0-beta.2.md).
