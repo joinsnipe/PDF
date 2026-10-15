@@ -1,5 +1,13 @@
 # Cambios
 
+## 2.3.0-beta.2
+
+- Conector AutoFirma precargado, disponibilidad explícita y errores de carga separados.
+- Apertura mediante un clic nuevo cuando el navegador ha perdido la activación.
+- Ayuda para el permiso de red local; cancelación y reintentos sin reutilizar una operación.
+- Web y paquetes actualizados; seis regresiones nuevas, 102 pruebas JavaScript y 19 Python.
+- La firma nativa completa sigue pendiente de comprobación en Windows/Mac.
+
 ## 2.3.0-beta.1
 
 - AutoFirma como vía principal de firma en Windows y Mac: certificado instalado y selección de marca visible en la aplicación nativa.

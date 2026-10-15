@@ -141,12 +141,13 @@ test('AutoFirma principal en Windows: certificado nativo, colocación nativa, ca
  assert.ok(nativeFixture);const append=document.body.append;let request,mode='cancel';
  Object.defineProperty(window.navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 Windows NT 10.0 Chrome/155.0.0.0'});
  document.body.append=function(node){append.call(this,node);if(node.tagName==='IFRAME'){
-  node.contentWindow.PDFNativeBridge={sign:(data,ok,fail)=>{request=data;mode==='cancel'?fail('AOCancelledOperationException','Cancelado'):ok(Buffer.from(nativeFixture.signed).toString('base64'));}};
+  node.contentWindow.PDFNativeBridge={version:2,ready:true,sign:(data,ok,fail)=>{request=data;mode==='cancel'?fail('AOCancelledOperationException','Cancelado'):ok(Buffer.from(nativeFixture.signed).toString('base64'));}};
   queueMicrotask(()=>node.onload?.());
  }};
  try{
   $('[data-tool="digitalsign"]').click();await add([nativeFixture.source]);
   assert.equal($('#opt-sign-method').value,'autofirma');assert.equal($('#p12-fields').hidden,true);assert.equal($('#digital-position').hidden,true);assert.equal($('#autofirma-position').hidden,false);assert.match($('#process').textContent,/AutoFirma/);
+  assert.match($('#autofirma-status').textContent,/Conector preparado/);assert.equal(request,undefined);
   Object.defineProperty($('#certificate-input'),'files',{get(){throw new Error('AutoFirma must not read a P12');}});
   $('#opt-consent').checked=true;await $('#process').onclick();assert.match($('#error').textContent,/AF_CANCELLED/);assert.equal($('#result').hidden,true);assert.equal(document.querySelectorAll('iframe').length,0);
   mode='success';const result=await output();assert.deepEqual(result,nativeFixture.signed);assert.equal($('#download').download,'prueba-firmado.pdf');

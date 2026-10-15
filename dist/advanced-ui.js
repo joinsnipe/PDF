@@ -1,4 +1,4 @@
-import {autofirmaPlatform} from './autofirma.js';
+import {autofirmaPlatform,prepareAutoFirma,disposeAutoFirma} from './autofirma.js';
 import { rectPercent, certificateOperation } from './advanced.js';
 import { openRenderedPdf, pageCanvas, canvasBlob } from './render.js';
 const $=s=>document.querySelector(s);
@@ -7,7 +7,7 @@ const field=(id,label,value,min,max)=>`<label class="field">${label}<input id="o
 const range=()=>'<label class="field">Páginas<input id="opt-range" placeholder="Todas · ej.: 1, 3-5"><small>Vacío = todas las páginas.</small></label>';
 const zone=({digital=false}={})=>`<div class="options-row">${field('x','Izquierda (%)',10,0,100)}${field('y','Arriba (%)',digital?72:10,0,100)}${field('w','Ancho (%)',digital?65:50,1,100)}${field('h','Alto (%)',digital?20:10,1,100)}</div><div class="position-preview"><div class="preview-controls">${digital?'Página de la firma':'Vista previa de la zona'} <input id="preview-page" type="number" value="1" min="1" aria-label="${digital?'Página donde mostrar la firma':'Página de vista previa'}"><button type="button" id="refresh-preview" class="text-button">Ver página</button></div><div id="position-stage"><canvas id="position-canvas"></canvas><div id="position-box"></div></div><small>${digital?'La marca aparecerá en esta página. Arrastra dentro de la zona para moverla o fuera para dibujar otra. Ajusta con precisión usando los valores de posición.':'Arrastra sobre la vista previa para seleccionar la zona. Se aplicará en las páginas indicadas arriba. La firma conserva su proporción dentro de esta zona.'}</small></div>`;
 let ink=false,signatureBytes=null,previewSerial=0,viewerDoc=null;
-export function clearAdvanced(){previewSerial++;ink=false;signatureBytes=null;if(viewerDoc){viewerDoc.destroy().catch(()=>{});viewerDoc=null;}}
+export function clearAdvanced(){previewSerial++;ink=false;signatureBytes=null;disposeAutoFirma();if(viewerDoc){viewerDoc.destroy().catch(()=>{});viewerDoc=null;}}
 export function advancedOptions(tool,files){
  const hint=s=>`<p class="hint">${s}</p>`;
  if(tool==='viewer'&&files[0]?.encrypted)return '<div class="options-row"><label class="field">Contraseña del PDF<input id="opt-password" type="password" autocomplete="off" maxlength="127"></label></div>'+hint('Introduce la contraseña del PDF para abrirlo. Déjala vacía si abre sin contraseña y solo tiene restricciones de edición. Podrás descargar una copia sin cifrado; conserva el original si contiene firmas digitales. La contraseña no se guarda.');
@@ -17,7 +17,7 @@ export function advancedOptions(tool,files){
   const native=!!autofirmaPlatform(window.navigator);
   return `<div class="certificate-step"><h3>1. Cómo quieres firmar</h3>
   <label class="field">Método de firma<select id="opt-sign-method"><option value="autofirma" ${native?'selected':'disabled'}>AutoFirma · certificado instalado</option><option value="p12" ${native?'':'selected'}>Archivo P12/PFX · método alternativo</option></select></label>
-  <div id="autofirma-help" ${native?'':'hidden'}><p class="hint">Se abrirá AutoFirma para elegir tu certificado personal o de empresa. No tienes que exportarlo ni introducir su contraseña en esta app. Si el navegador pregunta, acepta «Abrir AutoFirma».</p><p class="hint">Requiere AutoFirma 1.9 o posterior instalada en el ordenador. <a href="https://firmaelectronica.gob.es/descargas" target="_blank" rel="noopener noreferrer">Descarga oficial y ayuda de instalación</a>.</p></div>
+  <div id="autofirma-help" ${native?'':'hidden'}><p class="hint">Se abrirá AutoFirma para elegir tu certificado personal o de empresa. No tienes que exportarlo ni introducir su contraseña en esta app. Acepta «Abrir AutoFirma» y el permiso de red local si el navegador los solicita.</p><p class="hint">Requiere AutoFirma 1.9 o posterior instalada en el ordenador. <a href="https://firmaelectronica.gob.es/descargas" target="_blank" rel="noopener noreferrer">Descarga oficial y ayuda de instalación</a>.</p><p id="autofirma-status" class="hint" role="status" aria-live="polite"></p></div>
   ${native?'':'<p class="hint">La conexión con AutoFirma está disponible en Windows y Mac con un navegador actualizado. Esta integración no admite móviles.</p>'}
   <div id="p12-fields" ${native?'hidden':''}><label class="field">Certificado personal o de empresa (.p12 / .pfx)<input id="certificate-input" type="file" accept=".p12,.pfx"></label><label class="field">Contraseña del certificado<input id="opt-password" type="password" autocomplete="off"><small>Es la contraseña que asignaste al exportar el P12/PFX; no es la del PDF. Déjala vacía solo si el archivo no tiene contraseña.</small></label><button id="check-certificate" type="button" class="text-button">Comprobar certificado</button><p id="certificate-status" role="status" aria-live="polite">Puedes comprobar que el archivo se abre antes de firmar.</p><p class="hint">Si este método no abre tu certificado y funciona en AutoFirma, elige AutoFirma arriba.</p></div>
   <label class="field">Motivo de la firma (opcional)<select id="opt-reason" aria-describedby="reason-help"><option value="Aprobación del documento">Aprobar el documento</option><option value="Conformidad con el contenido">Dar mi conformidad</option><option value="Revisión del documento">Dejar constancia de una revisión</option><option value="Aceptación del presupuesto">Aceptar un presupuesto</option><option value="Presentación ante una administración">Presentar ante una administración</option><option value="">Sin indicar motivo</option><option value="custom">Escribir otro motivo…</option></select><small id="reason-help">Explica para qué firmas. Se incorpora al PDF; no cambia los datos del certificado. Elígelo antes de firmar.</small></label><label class="field" id="custom-reason-field" hidden>Tu motivo<input id="opt-custom-reason" maxlength="120" placeholder="Ej.: Aceptación del contrato"></label></div>
@@ -73,6 +73,12 @@ export function bindAdvanced(tool,files){
    $('#autofirma-position').hidden=!native||!$('#opt-visible').checked;
    $('#sign-method-note').textContent=native?'AutoFirma firma el documento en tu equipo. Esta app no solicita el P12 ni la contraseña del certificado y no configura servidores de firma ni de sello de tiempo.':'Método P12/PFX: compatible con claves RSA; sin DNIe, tarjetas, ECDSA ni cofirmas. Los formularios se aplanan antes de firmar. Sin sello de tiempo ni comprobación de revocación.';
    $('#process').innerHTML=(native?'Firmar con AutoFirma':'Firmar con P12/PFX')+' <span>→</span>';
+   const status=$('#autofirma-status');
+   if(native){
+    status.textContent='Preparando el conector de AutoFirma…';
+    prepareAutoFirma().then(()=>{if(status.isConnected)status.textContent='Conector preparado. AutoFirma se abrirá cuando pulses Firmar.';})
+     .catch(error=>{if(status.isConnected&&error.code!=='AF_CANCELLED')status.textContent='['+error.code+'] '+error.message;});
+   }else{disposeAutoFirma();status.textContent='';}
   };
   $('#opt-sign-method').onchange=()=>{syncMethod();$('#opt-password').value='';$('#certificate-input').value='';if($('#opt-sign-method').value==='p12')$('#refresh-preview').click();};
   syncMethod();

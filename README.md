@@ -1,4 +1,4 @@
-> **PDF 2.3.0-beta.1 · AutoFirma y escritorio Windows.** Firma con el certificado instalado mediante AutoFirma, instalación sin consola y opción «Abrir con». [Guía de firma](docs/AUTOFIRMA.md). La integración nativa requiere prueba en tu equipo; continúa siendo beta.
+> **PDF 2.3.0-beta.2 · AutoFirma y escritorio Windows.** Firma con el certificado instalado mediante AutoFirma, instalación sin consola y opción «Abrir con». [Guía de firma](docs/AUTOFIRMA.md). La integración nativa requiere prueba en tu equipo; continúa siendo beta.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -10,7 +10,7 @@
 
 Interfaz blanca y roja, texto claro, sin cuentas ni suscripciones. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo. No está afiliado a iLovePDF ni a ninguna administración pública.
 
-> **La web alojada puede seguir en la versión anterior.** Consulta la etiqueta de versión en la pantalla. Los cambios de esta entrega están en el código y en los paquetes de la versión 2.3; no actualizan automáticamente una instalación anterior.
+> **Web actualizada a 2.3 beta 2.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 

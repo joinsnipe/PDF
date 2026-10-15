@@ -7,7 +7,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import vm from 'node:vm';
 import {PDFDocument} from '../dist/vendor/pdf-lib.js';
-import {autofirmaPlatform,autofirmaProperties,autofirmaError,decodeSignedPDF,signWithAutoFirma} from '../dist/autofirma.js';
+import {autofirmaPlatform,autofirmaProperties,autofirmaError,decodeSignedPDF,signWithAutoFirma,prepareAutoFirma,disposeAutoFirma} from '../dist/autofirma.js';
 const require=createRequire(import.meta.url),deps=process.env.PDF_BUILD_DEPS;
 const forge=require(deps?deps+'/node-forge':'node-forge');
 globalThis.self=globalThis;
@@ -22,10 +22,13 @@ const p12=new Uint8Array(Buffer.from(forge.asn1.toDer(forge.pkcs12.toPkcs12Asn1(
 const signed=(await signDocument(original,p12,'test','Prueba',{visible:false})).bytes;
 const encoded=Buffer.from(signed).toString('base64'),file={name:'Prueba.pdf',bytes:original};
 
-function environment(action){
+function environment(action,{autoReady=true,activation}={}){
  let removed=0,appended=0;
- const frame={contentWindow:{PDFNativeBridge:{sign:action}},remove(){removed++;}};
- return {window:{navigator:nav,WebSocket:function(){}},document:{createElement:()=>frame,body:{append(){appended++;queueMicrotask(()=>frame.onload?.());}}},timeoutMs:25,stats:()=>({removed,appended}),frame};
+ const win=Object.assign(new EventTarget(),{navigator:nav,WebSocket:function(){}}),document=new EventTarget();
+ const frame={contentWindow:{navigator:{userActivation:activation},PDFNativeBridge:{version:2,ready:true,sign:action}},remove(){removed++;}};
+ const signal=(data={type:'pdf-autofirma-bridge',version:2,ready:true},overrides={})=>{const event=new Event('message');Object.assign(event,{data,source:frame.contentWindow,origin:new URL(frame.src).origin,...overrides});win.dispatchEvent(event);};
+ document.createElement=()=>frame;document.body={append(){appended++;if(autoReady)queueMicrotask(()=>signal());}};
+ return {window:win,document,timeoutMs:25,loadTimeoutMs:25,stats:()=>({removed,appended}),frame,signal};
 }
 
 test('plataformas: Windows y Mac; excluye Android, iOS e iPad en modo escritorio',()=>{
@@ -81,14 +84,89 @@ test('consentimiento, cancelación, timeout y segundo intento no dejan operacion
  await assert.rejects(()=>wait,{code:'AF_TIMEOUT'});assert.equal(hanging.stats().removed,1);
  const retry=environment((_data,ok)=>ok(encoded));assert.deepEqual(await signWithAutoFirma(file,{consent:true},()=>{},retry),signed);
 });
+test('precarga sin PDF ni apertura nativa; señal ready autenticada funciona sin iframe.onload',async()=>{
+ let calls=0,ready=false;
+ const env=environment((_data,ok)=>{calls++;ok(encoded);},{autoReady:false});env.loadTimeoutMs=1000;
+ const preparation=prepareAutoFirma(env).then(value=>{ready=true;return value;});
+ assert.equal(env.stats().appended,1);assert.equal(calls,0);
+ env.signal(undefined,{origin:'https://unrelated.invalid'});env.signal(undefined,{source:{}});
+ await Promise.resolve();assert.equal(ready,false);
+ env.signal();await preparation;assert.equal(calls,0);
+ await prepareAutoFirma(env);assert.equal(env.stats().appended,1);
+ assert.deepEqual(await signWithAutoFirma(file,{consent:true},()=>{},env),signed);
+ assert.equal(calls,1);assert.equal(env.stats().removed,1);
+});
+test('carga lenta, archivo ausente, bloqueo y versión mezclada tienen errores propios y permiten reintentar',async()=>{
+ for(const code of ['AF_COMPONENT_TIMEOUT','AF_COMPONENT_ASSET','AF_COMPONENT_BLOCKED','AF_COMPONENT_VERSION']){
+  const env=environment(()=>assert.fail('must not launch'),{autoReady:false});env.loadTimeoutMs=5;
+  const operation=signWithAutoFirma(file,{consent:true},()=>{},env);
+  if(code==='AF_COMPONENT_VERSION')env.signal({type:'pdf-autofirma-bridge',version:1,ready:true});
+  else if(code!=='AF_COMPONENT_TIMEOUT')env.signal({type:'pdf-autofirma-bridge',version:2,error:code});
+  await assert.rejects(()=>operation,{code});assert.equal(env.stats().removed,1);
+ }
+ const retry=environment((_data,ok)=>ok(encoded));assert.deepEqual(await signWithAutoFirma(file,{consent:true},()=>{},retry),signed);
+});
+test('cerrar la herramienta durante la precarga elimina el marco y sus listeners',async()=>{
+ const env=environment(()=>assert.fail('must not launch'),{autoReady:false});
+ const ready=prepareAutoFirma(env);disposeAutoFirma(env);
+ await assert.rejects(()=>ready,{code:'AF_CANCELLED'});assert.equal(env.stats().removed,1);
+ env.signal();assert.equal(env.stats().removed,1);
+});
+test('si la activación caduca pide un clic nuevo; cancelar no abre AutoFirma y confirmar firma una sola vez',async()=>{
+ const {JSDOM}=require(deps?deps+'/jsdom':'jsdom');
+ for(const cancel of [true,false]){
+  const dom=new JSDOM('<body></body>',{url:'https://pdf.example/'}),win=dom.window,document=win.document;
+  Object.defineProperty(win.navigator,'userAgent',{value:nav.userAgent});
+  win.HTMLDialogElement.prototype.showModal=function(){this.open=true;};win.HTMLDialogElement.prototype.close=function(){this.open=false;};
+  let calls=0,inClick=false;const append=document.body.append.bind(document.body);
+  document.body.append=node=>{append(node);if(node.tagName==='IFRAME'){
+   Object.defineProperty(node.contentWindow.navigator,'userActivation',{value:{isActive:false}});
+   node.contentWindow.PDFNativeBridge={version:2,ready:true,sign:(_data,ok)=>{assert.equal(inClick,true);calls++;ok(encoded);}};
+   queueMicrotask(()=>node.onload?.());
+  }};
+  try{
+   const result=signWithAutoFirma(file,{consent:true},()=>{},{window:win,document,loadTimeoutMs:1000});
+   for(let i=0;i<10&&!document.querySelector('dialog');i++)await Promise.resolve();
+   const prompt=document.querySelector('dialog');assert.ok(prompt?.open);assert.equal(calls,0);
+   inClick=true;prompt.querySelector(cancel?'[data-af-cancel]':'[data-af-open]').click();inClick=false;
+   if(cancel)await assert.rejects(()=>result,{code:'AF_CANCELLED'});else assert.deepEqual(await result,signed);
+   assert.equal(calls,cancel?0:1);assert.equal(document.querySelectorAll('dialog, iframe').length,0);
+  }finally{dom.window.close();}
+ }
+});
+async function loadActualBridge({missingAsset=false}={}){
+ const {JSDOM,requestInterceptor,VirtualConsole}=require(deps?deps+'/jsdom':'jsdom');
+ const html=await readFile(new URL('../dist/autofirma-bridge.html',import.meta.url),'utf8');
+ const paths=[];let ready;const signal=new Promise(resolve=>{ready=resolve;});
+ const intercept=requestInterceptor(async request=>{
+  const path=new URL(request.url).pathname;paths.push(path);
+  if(missingAsset&&path.endsWith('/autoscript.js'))return new Response('Synthetic missing asset',{status:404});
+  if(!['/autofirma-bridge.js','/vendor/autofirma/autoscript.js'].includes(path))throw new Error('Unexpected resource '+path);
+  return new Response(await readFile(new URL('../dist'+path,import.meta.url)),{headers:{'Content-Type':'text/javascript'}});
+ });
+ const dom=new JSDOM(html,{url:'https://pdf.example/autofirma-bridge?v=2',runScripts:'dangerously',resources:{interceptors:[intercept]},virtualConsole:new VirtualConsole(),beforeParse(win){win.addEventListener('message',e=>{if(e.data?.type==='pdf-autofirma-bridge')ready(e.data);});}});
+ let timer;
+ try{const result=await Promise.race([signal,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Bridge did not announce readiness')),2000);})]);return {dom,paths,result};}
+ catch(error){dom.window.close();throw error;}finally{clearTimeout(timer);}
+}
+test('HTML real servido sin extensión carga el bootstrap y AutoScript oficial y anuncia disponibilidad',async()=>{
+ const {dom,paths,result}=await loadActualBridge();
+ try{assert.equal(result.ready,true);assert.equal(result.version,2);assert.equal(dom.window.PDFNativeBridge.ready,true);assert.equal(dom.window.AutoScript.VERSION,'1.9.0');assert.deepEqual(paths,['/autofirma-bridge.js','/vendor/autofirma/autoscript.js']);}
+ finally{dom.window.close();}
+});
+test('HTML real con AutoScript ausente comunica el fallo de archivo antes de firmar',async()=>{
+ const {dom,result}=await loadActualBridge({missingAsset:true});
+ try{assert.equal(result.error,'AF_COMPONENT_ASSET');assert.equal(dom.window.PDFNativeBridge.ready,false);}
+ finally{dom.window.close();}
+});
 test('cliente oficial sin modificar: invocación, WebSocket local, solicitud PAdES y retorno',async()=>{
  const source=await readFile(new URL('../dist/vendor/autofirma/autoscript.js',import.meta.url),'utf8');
  assert.equal(createHash('sha256').update(source).digest('hex'),'567998128f1cd8017c304a8c187f6912a0c56b0feebb02fffa2aa33732e40439');
  const timers=[],sockets=[],launches=[];
  class Socket{constructor(url){assert.match(url,/^wss:\/\/127\.0\.0\.1:\d+$/);this.sent=[];this.readyState=1;sockets.push(this);}send(data){this.sent.push(data);}}
- const document={all:false};Object.defineProperty(document,'location',{set:url=>launches.push(url)});
+ const document={all:false,readyState:'complete'};Object.defineProperty(document,'location',{set:url=>launches.push(url)});
  const context={document,navigator:nav,location:{origin:'http://127.0.0.1:12345',hostname:'127.0.0.1'},WebSocket:Socket,
-  setTimeout:(fn,_delay,...args)=>{timers.push(()=>fn(...args));return timers.length;},clearTimeout(){},crypto:webcrypto,console:{log(){},warn(){},error(){}},Uint8Array,Uint32Array,atob,btoa};context.window=context;
+  setTimeout:(fn,_delay,...args)=>{timers.push(()=>fn(...args));return timers.length;},clearTimeout(){},addEventListener(){},parent:{postMessage(){}},crypto:webcrypto,console:{log(){},warn(){},error(){}},Uint8Array,Uint32Array,atob,btoa};context.window=context;
  vm.createContext(context);vm.runInContext(source,context);vm.runInContext(await readFile(new URL('../dist/autofirma-bridge.js',import.meta.url),'utf8'),context);
  let received,error;
  context.PDFNativeBridge.sign({data:Buffer.from(original).toString('base64'),properties:autofirmaProperties({visible:true}),keystore:'WINDOWS'},data=>{received=data;},(...args)=>{error=args;});

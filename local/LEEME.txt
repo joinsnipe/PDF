@@ -1,6 +1,6 @@
-PDF - 2.3.0-beta.1 - Windows de 64 bits
+PDF - 2.3.0-beta.2 - Windows de 64 bits
 
-1. Pulsa con el boton derecho en PDF-2.3.0-beta.1-windows-x64.zip y elige Extraer todo.
+1. Pulsa con el boton derecho en PDF-2.3.0-beta.2-windows-x64.zip y elige Extraer todo.
 2. Abre la carpeta extraida y haz doble clic en Instalar_PDF.cmd.
 3. Despues utiliza el icono PDF del escritorio o de Inicio. No mantengas una consola abierta.
 4. Elige una herramienta, selecciona tus archivos y guarda el resultado.
