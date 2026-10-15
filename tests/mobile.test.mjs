@@ -5,8 +5,8 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const {JSDOM}=require(process.env.PDF_BUILD_DEPS?process.env.PDF_BUILD_DEPS+'/jsdom':'jsdom');
 const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
-async function setup(installed=false){
- const dom=new JSDOM(html,{url:'https://pdf.example/'});globalThis.window=dom.window;globalThis.document=dom.window.document;
+async function setup(installed=false,url='https://pdf.example/'){
+ const dom=new JSDOM(html,{url});globalThis.window=dom.window;globalThis.document=dom.window.document;
  window.navigator.standalone=installed;window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};window.HTMLDialogElement.prototype.close=function(){this.open=false;};
  await import('../dist/mobile.js?test='+Math.random());return {dom,button:document.querySelector('#install-app'),dialog:document.querySelector('#install-dialog')};
 }
@@ -15,6 +15,12 @@ test('ayuda de instalación incluye Safari, Android y escritorio',async()=>{
 });
 test('modo instalado de iOS oculta la invitación',async()=>{
  const {button,dom}=await setup(true);assert.equal(button.hidden,true);dom.window.close();
+});
+test('escritorio local no ofrece instalar un acceso web que no arranca el servidor',async()=>{
+ const {button,dialog,dom}=await setup(false,'http://127.0.0.1:12345/'+'a'.repeat(32)+'/');
+ assert.equal(button.hidden,true);let prompted=false;
+ const event=new window.Event('beforeinstallprompt',{cancelable:true});event.prompt=async()=>{prompted=true;};window.dispatchEvent(event);
+ button.click();assert.equal(prompted,false);assert.equal(button.hidden,true);assert.equal(dialog.open,false);dom.window.close();
 });
 test('prompt nativo cancelado permite reintentar; appinstalled oculta el botón',async()=>{
  const {button,dialog,dom}=await setup();let prompted=false;const e=new window.Event('beforeinstallprompt',{cancelable:true});

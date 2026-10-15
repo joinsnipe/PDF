@@ -1,9 +1,10 @@
 {
   "name": "pdf-local",
-  "version": "2.2.0-beta.1",
+  "version": "2.3.0-beta.1",
   "private": true,
   "type": "module",
   "scripts": {
+    "pretest": "python3 tests/fixtures/security/generate.py",
     "test": "node --test tests/*.test.mjs",
     "build:signing": "esbuild signing-src/sign.js --bundle --platform=browser --format=esm --minify --define:process=undefined --inject:signing-src/buffer-shim.js --alias:pdf-lib=./dist/vendor/pdf-lib.js --outfile=dist/vendor/signing.js",
     "build:icons": "node scripts/render-icons.mjs",
@@ -29,7 +30,7 @@
     "@tesseract.js-data/eng": "1.0.0"
   },
   "license": "MIT",
-  "description": "Herramientas PDF locales en espa\u00f1ol para Windows, macOS, Android e iOS",
+  "description": "Herramientas PDF locales en español para Windows, macOS, Android e iOS",
   "repository": {
     "type": "git",
     "url": "https://github.com/joinsnipe/PDF.git"

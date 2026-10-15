@@ -66,12 +66,16 @@ def build(target, version):
     shutil.copytree(ROOT / 'docs', package / 'docs', ignore=shutil.ignore_patterns('rea-attempt.json'))
     if target != 'web':
         runtime(target, package / 'runtime')
-        names = ['PDF.cmd', 'launcher.py'] if target.startswith('windows') else ['PDF.command', 'server.mjs']
+        names = ['PDF.cmd', 'launcher.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs']
         for name in names:
             shutil.copy2(ROOT / 'local' / name, package / name)
         launcher = names[0]
+        opening = ('Abre Instalar_PDF.cmd una vez. Después usa el icono PDF del escritorio o de Inicio.\n'
+                   'También puedes abrir PDF.cmd sin instalar. No necesitas una consola abierta.\n'
+                   'Para leer un documento: botón derecho > Abrir con > PDF. Tú eliges el lector predeterminado.\n'
+                   'Para cerrar la aplicación usa Salir de PDF.\n') if target.startswith('windows') else f'Abre {launcher}. Mantén abierta la consola mientras trabajas.\n'
         (package / 'LEEME.txt').write_text(
-            f'PDF {version}\n\nExtrae TODO el ZIP en una carpeta.\nAbre {launcher}. Mantén abierta la consola mientras trabajas.\n'
+            f'PDF {version}\n\nExtrae TODO el ZIP en una carpeta.\n' + opening +
             'No abras index.html directamente. No necesitas instalar lenguajes de programación.\n'
             'Los documentos se procesan en tu navegador y los motores están incluidos.\n\n'
             'Instrucciones: docs/INSTALACION.md\nFunciones y límites: docs/FUNCIONES.md\n'

@@ -19,6 +19,7 @@ await copy('@neslinesli93/qpdf-wasm/dist/qpdf.wasm','qpdf/qpdf.wasm');
 await copy('@neslinesli93/qpdf-wasm/package.json','qpdf/SOURCE.json');
 // Preserve upstream copyright, license and NOTICE files with each distribution.
 await cp('licenses',out,{recursive:true});
+await cp('third_party/autofirma',path.join(out,'autofirma'),{recursive:true});
 async function licenses(directory){
   for(const entry of await readdir(directory,{withFileTypes:true})){
     if(entry.name.startsWith('.'))continue;

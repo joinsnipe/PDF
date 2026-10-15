@@ -1,14 +1,19 @@
-PDF 2.0 - Windows de 64 bits
+PDF - 2.3.0-beta.1 - Windows de 64 bits
 
-1. Pulsa con el boton derecho en PDF_Windows.zip y elige Extraer todo.
-2. Abre la carpeta extraida y haz doble clic en PDF.cmd.
-3. Se abrira PDF en tu navegador. Manten abierta la ventana de PDF.
+1. Pulsa con el boton derecho en PDF-2.3.0-beta.1-windows-x64.zip y elige Extraer todo.
+2. Abre la carpeta extraida y haz doble clic en Instalar_PDF.cmd.
+3. Despues utiliza el icono PDF del escritorio o de Inicio. No mantengas una consola abierta.
 4. Elige una herramienta, selecciona tus archivos y guarda el resultado.
 
 No necesitas instalar Python ni Node. El motor local va incluido.
 Usa Edge, Chrome o Firefox actualizado en Windows 10/11 de 64 bits.
 No abras index.html directamente ni ejecutes PDF.cmd dentro del ZIP.
-Para cerrar la aplicacion, cierra su ventana de consola.
+Para cerrar la aplicacion, guarda tu trabajo y pulsa Salir de PDF.
+Para leer desde Windows: boton derecho en el documento > Abrir con > PDF.
+La instalacion lo ofrece como opcion; tu eliges el lector predeterminado.
+Si tiene contrasena, el visor la solicita. No se sobrescribe el original.
+
+Puedes usar PDF.cmd sin instalar; en ese caso conserva la carpeta extraida.
 
 DESCARGAS
 Pulsa Descargar tras preparar el archivo. Tambien tienes Guardar como
@@ -35,13 +40,16 @@ resumen extractivo, PDF a Word (texto) y escala de grises.
 OCR: espanol e ingles incluidos; hasta 30 paginas por tarea.
 Resumen: selecciona frases del original con referencia de pagina.
 No usa IA generativa. Aplica OCR primero si el PDF es un escaneado.
-Firma digital: certificado RSA P12/PFX, sin DNIe, cofirma o sello de tiempo.
+Firma digital: AutoFirma instalada en Windows/Mac, o P12/PFX RSA alternativo.
+Elige certificado y posicion dentro de AutoFirma. No se configura sello de tiempo.
 Comprueba la confianza del certificado y la firma en tu lector PDF.
 Word: exporta texto editable; no reconstruye diseno, imagenes o tablas.
 No incluye Office a PDF, PDF/A validado ni traduccion.
 
 Los documentos se procesan en tu navegador y no se suben a servicios.
-El servidor local solo sirve los archivos de la aplicacion en 127.0.0.1.
+El servidor local sirve la app y sus controles en 127.0.0.1. Abrir con
+transfiere el PDF elegido solo dentro de tu equipo; sin copias temporales.
+Los documentos pendientes se retiran al recogerlos o a los dos minutos.
 Las descargas quedan donde indique tu navegador. El programa no guarda
 un historial. Esto no garantiza el borrado fisico de la memoria.
 
@@ -51,3 +59,13 @@ Documentos complejos pueden tardar o superar la memoria disponible.
 
 El codigo de la app esta en app/. Las licencias estan en app/vendor/
 y runtime/LICENSE.txt. Mas detalles en README.md y VALIDACION.md.
+
+QUITAR LA INTEGRACION
+Inicio > PDF Herramientas > Quitar integracion de PDF retira Abrir con.
+Despues cierra PDF y elimina sus accesos y la carpeta
+%LOCALAPPDATA%\PDF-Herramientas. No se borran tus documentos.
+
+ESTADO DE ESTA ENTREGA
+Beta con integracion de AutoFirma. Se evita el lector P12 de la app para
+los certificados que ya funcionan en AutoFirma. Debe comprobarse en tu equipo.
+Accesos, pythonw y Abrir con requieren comprobacion en Windows real.

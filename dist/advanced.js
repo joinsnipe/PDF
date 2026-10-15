@@ -1,16 +1,17 @@
-import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFTextField, PDFCheckBox, PDFDropdown, PDFOptionList, PDFRadioGroup } from './vendor/pdf-lib.js';
+import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFDict, PDFRawStream, PDFTextField, PDFCheckBox, PDFDropdown, PDFOptionList, PDFRadioGroup } from './vendor/pdf-lib.js';
 import { readPdf, pageRange, stem, LIMITS } from './core.js';
 import { openRenderedPdf, pageCanvas, canvasBlob } from './render.js';
+import { signWithAutoFirma } from './autofirma.js';
 
 export const ADVANCED_TOOLS=[
  ['viewer','Visor de PDF','Lee páginas, amplía el documento y busca texto.','analyze','search'],
- ['digitalsign','Firma digital · certificado','Firma con tu certificado RSA P12/PFX, en tu dispositivo.','security','pen'],
+ ['digitalsign','Firmar con certificado','Firma con tu certificado personal o de empresa y elige dónde mostrarla.','security','pen'],
  ['ocr','OCR · reconocer texto','Convierte escaneados en PDF buscable y texto. Español e inglés.','convert','search'],
  ['protect','Proteger PDF','Cifra el documento con una contraseña de apertura.','security','lock'],
  ['unlock','Desbloquear PDF','Quita el cifrado usando la contraseña que ya conoces.','security','lock'],
  ['forms','Rellenar formularios','Completa los campos interactivos de tu documento.','edit','pen'],
  ['flatten','Aplanar formularios','Fija los campos para que dejen de ser editables.','edit','pages'],
- ['signature','Firma dibujada','Dibuja tu firma o añade un sello como imagen.','edit','pen'],
+ ['signature','Añadir firma dibujada','Coloca un dibujo o imagen. No firma con un certificado digital.','edit','pen'],
  ['addtext','Añadir texto','Coloca una nota nueva sobre las páginas que elijas.','edit','text'],
  ['crop','Recortar márgenes','Ajusta el área visible de las páginas del PDF.','organize','pages'],
  ['resize','Cambiar tamaño','Adapta tus páginas a A4, A3 o Carta.','organize','pages'],
@@ -90,29 +91,45 @@ export async function wordDocument(pages,name,Zip=globalThis.JSZip){
 }
 export function qpdfOperation(tool,file,opts={}){
  return new Promise((resolve,reject)=>{
-  const worker=new Worker(new URL('./qpdf-worker.js',import.meta.url));const timer=setTimeout(()=>{worker.terminate();reject(new Error('El motor superó 120 segundos. Prueba un PDF más pequeño.'));},120000);
-  worker.onmessage=e=>{clearTimeout(timer);worker.terminate();const r=e.data;if(r.error)reject(new Error(r.error));else resolve([{bytes:r.bytes,name:`${stem(file.name)}-${tool==='protect'?'protegido':tool==='unlock'?'desbloqueado':'reparado'}.pdf`,type:'application/pdf',note:r.note}]);};
-  worker.onerror=()=>{clearTimeout(timer);worker.terminate();reject(new Error('No se pudo iniciar el motor PDF. Vuelve a abrir la aplicación.'));};
-  worker.postMessage({tool,bytes:file.bytes,opts});
+  let worker,timer;
+  const finish=(result,error)=>{clearTimeout(timer);worker?.terminate();opts.password='';opts.confirm='';error?reject(error):resolve(result);};
+  try{
+   worker=new Worker(new URL('./qpdf-worker.js',import.meta.url));timer=setTimeout(()=>finish(null,new Error('El motor superó 120 segundos. Prueba un PDF más pequeño.')),120000);
+   worker.onmessage=e=>{const r=e.data;if(r.error)finish(null,Object.assign(new Error(r.error),{code:r.code}));else finish([{bytes:r.bytes,name:`${stem(file.name)}-${tool==='protect'?'protegido':tool==='unlock'?'desbloqueado':'reparado'}.pdf`,type:'application/pdf',note:r.note}]);};
+   worker.onerror=()=>finish(null,new Error('No se pudo iniciar el motor PDF. Vuelve a abrir la aplicación.'));
+   worker.postMessage({tool,bytes:file.bytes,opts});
+  }catch(e){finish(null,e);}
+ });
+}
+export function certificateOperation(data){
+ return new Promise((resolve,reject)=>{
+  let worker,timer;
+  const finish=(result,error)=>{clearTimeout(timer);worker?.terminate();data.cert?.fill(0);data.password='';error?reject(error):resolve(result);};
+  try{
+   worker=new Worker(new URL('./sign-worker.js',import.meta.url),{type:'module'});
+   timer=setTimeout(()=>finish(null,new Error('La operación de firma superó el tiempo permitido. Prueba un archivo menor.')),120000);
+   worker.onmessage=e=>finish(e.data,e.data.error?Object.assign(new Error(e.data.error),{code:e.data.code}):null);
+   worker.onerror=()=>finish(null,new Error('No se pudo iniciar el motor de firma.'));
+   worker.postMessage(data);
+  }catch(e){finish(null,e);}
  });
 }
 export async function advancedOperation(tool,files,opts={},progress=()=>{},extra={}){
  const f=files[0],base=stem(f.name);
- if(tool==='viewer'){if(f.encrypted){if(!opts.password)throw new Error('Escribe la contraseña del PDF.');return qpdfOperation('unlock',f,opts);}return [{bytes:f.bytes,name:f.name,type:'application/pdf',note:'Documento original sin cambios.'}];}
+ if(tool==='viewer'){if(f.encrypted)return qpdfOperation('unlock',f,opts);return [{bytes:f.bytes,name:f.name,type:'application/pdf',note:'Documento original sin cambios.'}];}
  if(tool==='digitalsign'){
+  if(opts.method==='autofirma'){
+   const bytes=await signWithAutoFirma(f,opts,progress,extra);
+   return [{bytes,name:`${base}-firmado.pdf`,type:'application/pdf',note:'PDF recibido de AutoFirma. Guarda esta copia y comprueba su firma en el panel de firmas de un lector independiente. La app no verifica confianza, revocación ni validez jurídica; no configura sello de tiempo.'}];
+  }
   if(!opts.certBytes?.length)throw new Error('Selecciona tu certificado P12 o PFX.');
   if(!opts.consent)throw new Error('Confirma que quieres firmar este documento con tu certificado.');
-  return new Promise((resolve,reject)=>{
-   const worker=new Worker(new URL('./sign-worker.js',import.meta.url),{type:'module'});const timer=setTimeout(()=>{worker.terminate();reject(new Error('La firma superó el tiempo permitido. Prueba un archivo menor.'));},120000);
-   worker.onmessage=e=>{clearTimeout(timer);worker.terminate();opts.certBytes.fill(0);opts.password='';if(e.data.error)reject(new Error(e.data.error));else resolve([{bytes:e.data.bytes,name:`${base}-firmado.pdf`,type:'application/pdf',note:`Firmado criptográficamente por ${e.data.signerName}. Sin sello de tiempo ni consulta de revocación. Revisa la firma y la confianza del certificado en tu lector PDF.`}]);};
-   worker.onerror=()=>{clearTimeout(timer);worker.terminate();opts.certBytes.fill(0);opts.password='';reject(new Error('No se pudo iniciar el motor de firma.'));};
-   worker.postMessage({pdf:f.bytes,cert:opts.certBytes,password:opts.password,reason:opts.reason||'Aprobación del documento'});
-  });
+  try{const result=await certificateOperation({pdf:f.bytes,cert:opts.certBytes,password:opts.password,reason:opts.reason??'Aprobación del documento',appearance:{visible:opts.visible,page:opts.page,x:opts.x,y:opts.y,w:opts.w,h:opts.h}});
+   return [{bytes:result.bytes,name:`${base}-firmado.pdf`,type:'application/pdf',note:`Firmado con el certificado de ${result.signerName}.${result.visible?` La marca visible está en la página ${result.page}.`:''} La firma criptográfica cubre el documento completo. Compruébala en el panel de firmas de tu lector PDF. Sin sello de tiempo ni validación de revocación.`}];
+  }finally{opts.password='';opts.certBytes.fill(0);}
  }
  if(['protect','unlock','repair'].includes(tool)){
-  if(tool==='protect'&&(String(opts.password||'').length<8||String(opts.password).length>100))throw new Error('Usa una contraseña de entre 8 y 100 caracteres.');
   if(tool==='protect'&&opts.password!==opts.confirm)throw new Error('Las contraseñas no coinciden.');
-  if(tool==='unlock'&&!opts.password)throw new Error('Escribe la contraseña conocida del documento.');
   return qpdfOperation(tool,f,opts);
  }
  if(['summary','compare','word'].includes(tool)){
@@ -134,6 +151,12 @@ export async function advancedOperation(tool,files,opts={},progress=()=>{},extra
  const doc=await readPdf(f.bytes),count=doc.getPageCount();
  if(!['forms','flatten','metadata'].includes(tool)&&doc.getForm().getFields().length)throw new Error('Aplana los campos interactivos antes de usar esta herramienta.');
  if(tool==='metadata'){
+  // Unlinking Info/XMP alone leaves their indirect objects in pdf-lib's output.
+  // Empty the original objects too, preserving any aliases without stale data.
+  const info=doc.context.lookup(doc.context.trailerInfo.Info);
+  if(info instanceof PDFDict)for(const key of info.keys())info.delete(key);
+  const xmp=doc.catalog.lookup(PDFName.of('Metadata'));
+  if(xmp instanceof PDFRawStream){xmp.contents=new Uint8Array();xmp.dict.delete(PDFName.of('Filter'));xmp.dict.delete(PDFName.of('DecodeParms'));}
   doc.context.trailerInfo.Info=undefined;doc.catalog.delete(PDFName.of('Metadata'));
   return outPdf(doc,`${base}-sin-metadatos.pdf`,'Elimina Info y XMP del documento. No elimina texto visible, comentarios, adjuntos ni metadatos internos de imágenes; no garantiza anonimización.');
  }

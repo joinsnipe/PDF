@@ -70,6 +70,11 @@ $('#start-again').onclick=reset;
 $('#clear-files').onclick=reset;
 $('#choose-files').onclick=$('#add-files').onclick=()=>$('#file-input').click();
 $('#file-input').addEventListener('change',async e=>{const chosen=[...e.target.files];e.target.value='';await addFiles(chosen);});
+window.addEventListener('pdf-desktop-open',async e=>{
+  if(busy||loading||!e.detail?.file)return;
+  openTool('viewer');
+  await addFiles([e.detail.file]);
+});
 const zone=$('#dropzone');
 zone.addEventListener('dragover',e=>{e.preventDefault();if(!busy&&!loading)zone.classList.add('dragover');});
 zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
@@ -180,7 +185,7 @@ $('#process').onclick=async()=>{
     else if(['pdfimages','text'].includes(active.id)||(active.id==='compress'&&opts.mode==='raster'))outputs=await renderOperation(active.id,files[0],opts,progress);
     else outputs=await processPdf(active.id,files,opts,progress);
     progress(1,'Preparando descarga…');await showResults(outputs);
-  }catch(e){error(e.message||'No se pudo procesar el documento. Prueba con un archivo más pequeño.');}finally{for(const id of ['opt-password','opt-confirm','certificate-input']){const el=$('#'+id);if(el)el.value='';}setBusy(false);}
+  }catch(e){error(((/^(CERT_|PDF_|AF_)/.test(e.code||''))?'['+e.code+'] ':'')+(e.message||'No se pudo procesar el documento. Prueba con un archivo más pequeño.'));}finally{for(const id of ['opt-password','opt-confirm','certificate-input']){const el=$('#'+id);if(el)el.value='';}setBusy(false);}
 };
 async function showResults(outputs){
   freeOutputs();$('#download').replaceWith($('#download').cloneNode(true));$('#open-result').replaceWith($('#open-result').cloneNode(true));const total=outputs.reduce((n,o)=>n+o.bytes.length,0);
@@ -195,7 +200,7 @@ async function showResults(outputs){
   if(outputs.length>1&&outputs.length<=30)outputs.forEach(o=>{const a=document.createElement('a');a.href=url(o);a.download=o.name;a.target='_blank';a.rel='noopener';a.textContent=o.name;$('#individual-downloads').append(a);});
   $('#editor-area').hidden=true;$('#result').hidden=false;$('#process').hidden=true;$('#download').focus();
   $('#result-viewer').replaceChildren();
-  if(active.id==='unlock'||(active.id==='viewer'&&files[0]?.encrypted)){clearAdvanced();$('#tool-options').replaceChildren();const opened={...outputs[0],size:outputs[0].bytes.length,encrypted:false};$('#result-viewer').innerHTML=advancedOptions('viewer',[opened]);bindAdvanced('viewer',[opened]);$('#result-note').textContent='Documento abierto. Puedes leerlo aquí y descargar la copia sin contraseña. Modificar un PDF firmado puede invalidar su firma.';}
+  if(active.id==='unlock'||active.id==='viewer'){clearAdvanced();$('#tool-options').replaceChildren();const opened={...outputs[0],size:outputs[0].bytes.length,encrypted:false};$('#result-viewer').innerHTML=advancedOptions('viewer',[opened]);bindAdvanced('viewer',[opened]);if(active.id==='unlock'||files[0]?.encrypted)$('#result-note').textContent='Documento abierto. Puedes leerlo aquí y descargar la copia sin contraseña. '+(outputs[0].note||'Modificar un PDF firmado puede invalidar su firma.');}
 }
 $('#save-as').onclick=async()=>{if(!lastDownload)return;try{if(typeof window.showSaveFilePicker==='function'){const handle=await window.showSaveFilePicker({suggestedName:lastDownload.name});const stream=await handle.createWritable();await stream.write(new Blob([lastDownload.bytes],{type:lastDownload.type}));await stream.close();$('#result-note').textContent='Archivo guardado en la ubicación elegida.';}else{$('#download').click();}}catch(e){if(e.name!=='AbortError'){error('El navegador no permite elegir carpeta aquí. Usa Descargar o Abrir resultado.');}}};
 // Do not revoke a result during pagehide: a browser may still be opening or saving it.

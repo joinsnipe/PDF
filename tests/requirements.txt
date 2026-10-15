@@ -1,0 +1,4 @@
+# Only used to generate fictitious interoperability test documents.
+# Not bundled with or required by the application.
+pypdf==6.10.0
+cryptography==50.0.2

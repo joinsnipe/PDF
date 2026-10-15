@@ -1,5 +1,13 @@
 # Cambios
 
+## 2.3.0-beta.1
+
+- AutoFirma como vía principal de firma en Windows y Mac: certificado instalado y selección de marca visible en la aplicación nativa.
+- Descarga del PDF devuelto sin reescribir sus bytes; cancelación y errores de conexión diferenciados.
+- Instalación Windows por usuario, accesos sin consola, cierre explícito y opción Abrir con PDF.
+- Correcciones del visor, contraseñas PDF, metadatos y compatibilidad del método P12 alternativo; el certificado real no se considera corregido por ese método.
+- Componente AutoScript oficial fijado, fuente y licencias incluidas. Pruebas nativas en dispositivos reales pendientes.
+
 ## 2.2.0-beta.1
 
 - Código público con licencia MIT, portada y documentación en español.

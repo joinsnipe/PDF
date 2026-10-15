@@ -1,0 +1,12 @@
+{
+  "name": "AutoScript",
+  "version": "1.9.0",
+  "repository": "https://github.com/ctt-gob-es/clienteafirma",
+  "ref": "v1.9",
+  "path": "afirma-ui-miniapplet-deploy/src/main/webapp/js/autoscript.js",
+  "git_blob": "2055f7be27238f2290c500f56c9848983daec870",
+  "sha256": "567998128f1cd8017c304a8c187f6912a0c56b0feebb02fffa2aa33732e40439",
+  "license": "GPL-2.0 (selected from upstream GPL-2.0 / EUPL-1.1 alternatives)",
+  "modified": false,
+  "notes": "Only AutoScript is bundled. Install the native AutoFirma application separately from firmaelectronica.gob.es. No intermediate server is configured."
+}

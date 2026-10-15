@@ -57,7 +57,7 @@ test('Word genera un paquete OOXML válido con texto escapado',async()=>{
 });
 async function qpdfWorker(tool,bytes,opts={}){
  const src=await readFile(new URL('../dist/vendor/qpdf/qpdf.js',import.meta.url),'utf8');const cjs=scratch+'/qpdf-test.cjs';await writeFile(cjs,src);const create=require(cjs);
- let result;const sandbox={URL,crypto:globalThis.crypto,Module:create,importScripts(){},self:{location:{href:new URL('../dist/qpdf-worker.js',import.meta.url).href},postMessage(value){result=value;}}};
+ let result;const sandbox={URL,TextEncoder,TextDecoder,crypto:globalThis.crypto,Module:create,importScripts(){},self:{location:{href:new URL('../dist/qpdf-worker.js',import.meta.url).href},postMessage(value){result=value;}}};
  vm.runInNewContext(await readFile(new URL('../dist/qpdf-worker.js',import.meta.url),'utf8'),sandbox);await sandbox.self.onmessage({data:{tool,bytes,opts}});return result;
 }
 test('qpdf worker: AES256, contraseña incorrecta, descifrado y reparación',async()=>{

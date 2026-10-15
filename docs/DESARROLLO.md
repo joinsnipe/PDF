@@ -10,6 +10,8 @@
 | `dist/render.js` | PDF.js, renderizado y extracción |
 | `dist/qpdf-worker.js`, `sign-worker.js` | Cifrado/reparación y firma |
 | `dist/mobile.js`, manifiesto e iconos | Instalación web y marca |
+| `dist/autofirma*.js`, `autofirma-bridge.html` | Adaptador local de AutoFirma y marco con CSP restringida |
+| `third_party/autofirma/` | AutoScript oficial sin modificar, fuente fijada y licencias |
 | `signing-src/` | Fuente de la firma CMS |
 | `scripts/vendor.mjs` | Motores y modelos fijados por el lockfile |
 | `local/` | Lanzadores Python/Node |
@@ -25,12 +27,15 @@ Node 24 y npm; Python 3.10+; OpenSSL para las pruebas de firma. El lockfile fija
 ```bash
 npm ci
 npm run build
+python3 -m pip install -r tests/requirements.txt
 npm test
-python -B -m unittest discover -s tests -p test_launcher.py
+python -B -m unittest discover -s tests -p 'test_*.py'
 python local/launcher.py
 ```
 
 Usa `python3` si así se llama el ejecutable. La batería completa se ejecuta en Linux y genera certificados RSA sintéticos temporales. Algunas comprobaciones usan rutas Linux: en Windows, utiliza WSL o GitHub Actions para ejecutar la batería completa.
+
+`npm test` ejecuta primero el generador Python de cinco PDF ficticios cifrados. Solo se publica su código fuente: los documentos generados se excluyen de Git y no se distribuyen con la app. Las dependencias Python de `tests/requirements.txt` solo son necesarias para las pruebas.
 
 El módulo de firma usa el mismo `dist/vendor/pdf-lib.js` mediante un alias de esbuild. No elimines ese alias: duplicar clases de pdf-lib rompe ByteRange. Los iconos PNG se regeneran desde el SVG propio con `npm run build:icons`.
 
@@ -75,3 +80,5 @@ Aloja todo `dist/` en un servicio estático con HTTPS, con index.html en su raí
 GitHub Pages es una opción: activa Pages en los ajustes del repo y usa su workflow oficial para construir y publicar dist. El workflow incluido distribuye Releases: **no configura Pages**. La web enlazada en el README se aloja por separado; una Release no actualiza ese alojamiento automáticamente.
 
 No hay service worker ni caché offline garantizada de la web. Los paquetes locales sí contienen todos los recursos.
+
+La integración AutoFirma se prueba con el cliente oficial y un WebSocket simulado; `tests/autofirma.test.mjs` cubre el protocolo y el retorno. No configura servicios intermedios. La prueba nativa completa requiere Windows/Mac y AutoFirma instalada; véase `docs/AUTOFIRMA.md`. Mantén intactos los bytes firmados y no conviertas un error de comunicación en error de contraseña.

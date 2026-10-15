@@ -5,6 +5,7 @@ El código propio usa MIT. Esa licencia no sustituye las licencias de las depend
 | Componente | Versión fijada | Licencia / origen |
 | --- | --- | --- |
 | pdf-lib | 1.17.1 | MIT — https://github.com/Hopding/pdf-lib |
+| AutoScript | 1.9.0, tag oficial v1.9 | GPL-2.0 (alternativa elegida); fuente íntegra sin modificar y licencia en third_party/autofirma — https://github.com/ctt-gob-es/clienteafirma |
 | PDF.js legacy | 5.6.205 | Apache-2.0 — https://github.com/mozilla/pdf.js |
 | JSZip | 3.10.1 | MIT (opción elegida) — https://github.com/Stuk/jszip |
 | Tesseract.js y core | 7.0.0 | Apache-2.0 — https://github.com/naptha/tesseract.js |
@@ -22,3 +23,5 @@ PDF.js incluye fuentes, mapas y motores WASM con avisos adicionales dentro de su
 El wrapper de qpdf declara ISC pero su paquete no incluye un archivo LICENSE independiente; se conserva su declaración en `vendor/qpdf/SOURCE.json`, además de la licencia y NOTICE de qpdf. No se atribuye autoría propia sobre estas bibliotecas.
 
 La portada e icono vectorial del proyecto forman parte del código propio. No se incluyen logotipos, recursos gráficos o código de iLovePDF. No se distribuyen PDFs personales ni certificados de prueba privados.
+
+AutoFirma nativa no se redistribuye: se instala por separado desde su web oficial. AutoScript se distribuye con su código fuente completo, procedencia y GPL-2.0; sus términos se conservan en el paquete construido. MIT se refiere al código propio de PDF y no sustituye las obligaciones de GPL del componente distribuido.
