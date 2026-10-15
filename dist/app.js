@@ -67,7 +67,7 @@ document.querySelectorAll('[data-ai-action]').forEach(button=>button.addEventLis
  else openTool('summary');
 }));
 $('#tool-grid').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b)openTool(b.dataset.tool);});
-document.addEventListener('keydown',e=>{if(e.key==='/'&&!dialog.open&&!$('#help-dialog').open&&!$('#ai-settings-dialog').open&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus();}});
+document.addEventListener('keydown',e=>{if(e.key==='/'&&!dialog.open&&!$('#help-dialog').open&&!$('#ai-settings-dialog').open&&!$('#share-app-dialog').open&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus();}});
 for(const id of ['help-open','privacy-open'])$('#'+id).onclick=()=>$('#help-dialog').showModal();
 for(const id of ['help-close','help-done'])$('#'+id).onclick=()=>$('#help-dialog').close();
 

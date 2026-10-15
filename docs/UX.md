@@ -1,6 +1,6 @@
 # Experiencia visual de PDF Contigo
 
-Revisión de las 29 herramientas en **2.4.0-beta.3**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
+Revisión de las 29 herramientas en **2.4.0-beta.4**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
 
 ## Antes y después
 
@@ -57,3 +57,5 @@ Pruebas de selección y descargas con JSDOM; miniaturas reales con PDF.js y Canv
 «Configurar IA» está visible en la barra superior (también en móvil) y sección «Leer, analizar e IA». La conexión es proveedor → clave → Conectar. El modelo se elige automáticamente y la selección manual queda en opciones avanzadas. «No tengo API» explica cómo conseguirla, la posibilidad de cuota gratuita de Gemini y la alternativa local sin IA. La conexión se conserva solo en memoria de la pestaña entre documentos y se puede olvidar explícitamente. Cambiarla invalida el texto autorizado; cerrar o cambiar proveedor descarta respuestas de conexión tardías.
 
 En 2.4 beta 3 se elimina el acceso lateral con estrella en todos los tamaños de pantalla. La cabecera conserva el botón de configuración con borde rojo.
+
+En 2.4 beta 4, «Compartir» ocupa el extremo derecho de la cabecera, con icono y texto visible. Ofrece el menú nativo cuando existe, o un diálogo para copiar el enlace público. La instalación y la conexión de IA siguen accesibles sin duplicar botones en móvil.

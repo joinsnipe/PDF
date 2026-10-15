@@ -1,3 +1,6 @@
+import {bindAppSharing} from './share-app.js';
+bindAppSharing(window,document);
+
 // Browser installation is offered only when the browser supplies a native prompt.
 const button=document.querySelector('#install-app');
 const help=document.querySelector('#install-dialog');

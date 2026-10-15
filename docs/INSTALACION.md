@@ -4,9 +4,9 @@ La forma más rápida es [abrir la web](https://snipe-pdf.snipex.chatgpt.site). 
 
 ## Windows
 
-**Versión actual: 2.4.0-beta.3.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
+**Versión actual: 2.4.0-beta.4.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
 
-1. Descarga `PDF-2.4.0-beta.3-windows-x64.zip`.
+1. Descarga `PDF-2.4.0-beta.4-windows-x64.zip`.
 2. Botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
 3. Abre la carpeta `PDF` y haz doble clic en **Instalar_PDF.cmd**, una sola vez.
 4. Abre **PDF** desde el icono del escritorio o desde **Inicio → PDF Herramientas → PDF**.
@@ -96,3 +96,9 @@ Windows: guarda tu trabajo, pulsa **Salir de PDF**, extrae la nueva versión y e
 Para DOCX/XLSX/PPTX a PDF instala LibreOffice desde https://www.libreoffice.org/download/download-libreoffice/ y abre el paquete de escritorio actualizado. En «Office a PDF», pulsa «Comprobar instalación». No se incluye LibreOffice en el ZIP. La web y los móviles no ejecutan este motor local.
 
 Para IA abre «Resumir y entender», elige el modo IA, proveedor y modelo, pega tu propia clave, revisa el texto y autoriza la consulta. Necesita internet incluso desde un paquete local. El modo de frases locales sigue disponible sin cuenta. [Guía completa](IA-Y-OFFICE.md).
+
+## Compartir la app
+
+Pulsa **Compartir** arriba a la derecha, también disponible en móvil y al abrirla como app instalada. Si el navegador permite compartir, abre el menú nativo para elegir una aplicación o destinatario. Si no lo permite, aparece el enlace con **Copiar enlace**; cuando el portapapeles está bloqueado, puedes seleccionarlo y copiarlo manualmente.
+
+Comparte siempre la dirección pública de PDF Contigo, también desde el paquete local de Windows/Mac. No incorpora documentos ni direcciones de sesión. Para compartir un resultado PDF, utiliza **Compartir archivo…** después de procesarlo.

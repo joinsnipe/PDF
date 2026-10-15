@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 2.4.0-beta.4
+
+Botón Compartir visible arriba a la derecha, en móvil y escritorio. Menú nativo cuando está disponible y alternativa para copiar el enlace público de la app. No comparte documentos ni direcciones locales.
+
 ## 2.4.0-beta.3
 
 Elimina el acceso duplicado de configuración de IA con estrella, tanto en móvil como en escritorio. La cabecera mantiene el botón con borde rojo.
