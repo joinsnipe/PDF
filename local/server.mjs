@@ -1,3 +1,4 @@
+import {findOffice,convertOffice,MAX_INPUT} from './office.mjs';
 import http from 'node:http';
 import {readFile,realpath,stat} from 'node:fs/promises';
 import {randomBytes} from 'node:crypto';
@@ -10,12 +11,22 @@ export function makeHandler(directory,token,getPort){
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Cache-Control','no-store');
     const fail=code=>{res.statusCode=code;res.end();};
     if(req.headers.host!==`127.0.0.1:${getPort()}`)return fail(403);
-    if(!['GET','HEAD'].includes(req.method))return fail(405);
     try{
       const raw=req.url.split('?')[0],prefix=`/${token}/`;
       if(!raw.startsWith(prefix))return fail(404);
       const relative=decodeURIComponent(raw.slice(prefix.length));
       if(relative.includes('\\')||relative.includes('\0')||relative.split('/').some(p=>p==='.'||p==='..'))return fail(404);
+      if(relative==='_desktop/office/status'&&req.method==='GET'){
+        if(req.headers['x-pdf-local']!=='1'||!['same-origin',undefined].includes(req.headers['sec-fetch-site']))return fail(403);
+        res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({available:!!await findOffice()}));
+      }
+      if(relative==='_desktop/office/convert'&&req.method==='POST'){
+        if(req.headers.origin!==`http://127.0.0.1:${getPort()}`||req.headers['x-pdf-local']!=='1'||!['same-origin',undefined].includes(req.headers['sec-fetch-site']))return fail(403);
+        const length=Number(req.headers['content-length']);if(!Number.isInteger(length)||length<1||length>MAX_INPUT||req.headers['transfer-encoding']||req.headers['content-type']!=='application/octet-stream')return fail(400);
+        try{let size=0;const chunks=[];req.setTimeout(15000,()=>req.destroy());for await(const chunk of req){size+=chunk.length;if(size>length)throw new Error();chunks.push(chunk);}if(size!==length)throw new Error();req.setTimeout(0);const result=await convertOffice(Buffer.concat(chunks),req.headers['x-pdf-extension']);res.setHeader('Content-Type','application/pdf');res.setHeader('Content-Length',result.length);return res.end(result);}
+        catch(e){res.statusCode=400;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({code:e.code?.startsWith('OFFICE_')?e.code:'OFFICE_INPUT',error:e.code?.startsWith('OFFICE_')?e.message:'No se pudo leer el archivo completo.'}));}
+      }
+      if(!['GET','HEAD'].includes(req.method))return fail(405);
       const root=await realpath(directory);
       const file=await realpath(path.join(root,relative||'index.html'));
       if(!file.startsWith(root+path.sep)||!(await stat(file)).isFile())return fail(404);

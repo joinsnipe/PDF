@@ -64,7 +64,7 @@ function clearError(){$('#error').hidden=true;$('#error').textContent='';}
 function freeOutputs(){lastDownload=null;$('#share-result').hidden=true;$('#open-result').removeAttribute('href');outputUrls.forEach(URL.revokeObjectURL);outputUrls=[];$('#individual-downloads').replaceChildren();$('#download').removeAttribute('href');}
 function releasePreview(){generation++;pageBrowser?.dispose();pageBrowser=null;previewUrls.forEach(URL.revokeObjectURL);previewUrls=[];if(previewDoc){previewDoc.destroy().catch(()=>{});previewDoc=null;}}
 function reset(){clearAdvanced();freeOutputs();releasePreview();files=[];pageState=[];$('#result').hidden=true;$('#result-viewer').replaceChildren();$('#editor-area').hidden=false;$('#process').hidden=false;$('#status').hidden=true;clearError();renderFiles();renderOptions();}
-function openTool(id){active=tools.find(t=>t.id===id);$('#work-title').textContent=active.name;$('#work-description').textContent=active.detail;$('#work-icon').innerHTML=icon(active.icon);$('#work-icon').style.setProperty('--tint',active.color);$('#work-icon').style.setProperty('--tone',active.tone);$('#process').innerHTML=`${active.action} <span>→</span>`;$('#file-input').accept=id==='images'?'.jpg,.jpeg,.png':'.pdf';$('#file-input').multiple=['merge','images','compare'].includes(id);$('#drop-title').textContent=id==='images'?'Arrastra tus imágenes aquí':'Arrastra tus PDF aquí';$('#file-limits').textContent=id==='images'?'JPG o PNG · Hasta 100 MB · 16 MP por imagen':'Hasta 100 MB en total · 500 páginas';$('#document-note').hidden=['images','text','pdfimages','summary','compare','word','viewer'].includes(id);reset();dialog.showModal();}
+function openTool(id){active=tools.find(t=>t.id===id);$('#work-title').textContent=active.name;$('#work-description').textContent=active.detail;$('#work-icon').innerHTML=icon(active.icon);$('#work-icon').style.setProperty('--tint',active.color);$('#work-icon').style.setProperty('--tone',active.tone);$('#process').innerHTML=`${active.action} <span>→</span>`;$('#file-input').accept=id==='images'?'.jpg,.jpeg,.png':id==='office'?'.docx,.xlsx,.pptx':'.pdf';$('#file-input').multiple=['merge','images','compare'].includes(id);$('#drop-title').textContent=id==='images'?'Arrastra tus imágenes aquí':id==='office'?'Arrastra tu archivo Office aquí':'Arrastra tus PDF aquí';$('#file-limits').textContent=id==='images'?'JPG o PNG · Hasta 100 MB · 16 MP por imagen':id==='office'?'DOCX, XLSX o PPTX · Hasta 25 MB':'Hasta 100 MB en total · 500 páginas';$('#document-note').hidden=['images','office','text','pdfimages','summary','compare','word','viewer'].includes(id);reset();dialog.showModal();}
 function closeTool(){if(busy||loading)return;dialog.close();reset();}
 $('#work-close').onclick=closeTool;
 dialog.addEventListener('cancel',e=>{e.preventDefault();closeTool();});
@@ -93,6 +93,7 @@ async function addFiles(chosen){
   if(active.id==='compare'&&files.length+chosen.length>2){error('Añade exactamente dos PDF. Vacía la selección para empezar de nuevo.');return;}
   if(!multi&&chosen.length>1){error('Esta herramienta admite un archivo cada vez.');return;}
   const total=chosen.reduce((n,f)=>n+f.size,0)+(multi?files.reduce((n,f)=>n+f.size,0):0);
+  if(active.id==='office'&&total>25*1024*1024){error('El archivo Office supera 25 MB.');return;}
   if(total>LIMITS.bytes){error('El total supera 100 MB. Trabaja con menos archivos.');return;}
   if(chosen.length+(multi?files.length:0)>100){error('Admitimos hasta 100 archivos por tarea.');return;}
   setBusy(true,true);progress(0,'Comprobando archivos…');const incoming=[];
@@ -104,6 +105,8 @@ async function addFiles(chosen){
         if(!png&&!jpg)throw new Error(`${f.name}: selecciona una imagen JPG o PNG.`);
         const bmp=await createImageBitmap(f);
         try{if(bmp.width*bmp.height>LIMITS.pixels)throw new Error(`${f.name}: supera 16 megapíxeles. Reduce su tamaño antes de añadirla.`);}finally{bmp.close();}
+      }else if(active.id==='office'){
+        if(!/\.(docx|xlsx|pptx)$/i.test(f.name)||bytes[0]!==80||bytes[1]!==75)throw new Error('Selecciona un archivo DOCX, XLSX o PPTX sin contraseña.');pages=null;
       }else{
         if(!new TextDecoder('latin1').decode(bytes.slice(0,1024)).includes('%PDF-'))throw new Error(`${f.name}: no parece un PDF válido.`);
         try{const doc=await readPdf(bytes);pages=doc.getPageCount();signatures=signatureInfo(doc);if(active.id==='forms')fields=formFields(doc);}catch(e){if((active.id==='viewer'||active.id==='unlock')&&e.code==='PDF_PASSWORD'){pages=null;encrypted=true;}else if(active.id==='repair'){pages=null;}else throw e;}
@@ -117,7 +120,7 @@ async function addFiles(chosen){
 }
 function renderFiles(){
   $('#file-area').hidden=!files.length;$('#dropzone').hidden=!!files.length;$('#files-count').textContent=files.length;$('#add-files').textContent=['merge','images','compare'].includes(active.id)?'Añadir archivos ＋':'Cambiar archivo';
-  $('#file-list').innerHTML=files.map((f,i)=>`<li class="file-item"><span class="file-type">${active.id==='images'?'IMG':'PDF'}</span><span class="file-info"><strong title="${escape(f.name)}">${escape(f.name)}</strong><small>${niceSize(f.size)}${active.id==='images'||f.pages===null?'':` · ${f.pages} ${f.pages===1?'página':'páginas'}`}</small></span><span class="file-controls">${files.length>1?`<button data-file-action="up" data-index="${i}" ${i===0?'disabled':''} aria-label="Subir ${escape(f.name)}">↑</button><button data-file-action="down" data-index="${i}" ${i===files.length-1?'disabled':''} aria-label="Bajar ${escape(f.name)}">↓</button>`:''}<button data-file-action="remove" data-index="${i}" aria-label="Quitar ${escape(f.name)}">✕</button></span></li>`).join('');
+  $('#file-list').innerHTML=files.map((f,i)=>`<li class="file-item"><span class="file-type">${active.id==='images'?'IMG':active.id==='office'?'DOC':'PDF'}</span><span class="file-info"><strong title="${escape(f.name)}">${escape(f.name)}</strong><small>${niceSize(f.size)}${active.id==='images'||f.pages===null?'':` · ${f.pages} ${f.pages===1?'página':'páginas'}`}</small></span><span class="file-controls">${files.length>1?`<button data-file-action="up" data-index="${i}" ${i===0?'disabled':''} aria-label="Subir ${escape(f.name)}">↑</button><button data-file-action="down" data-index="${i}" ${i===files.length-1?'disabled':''} aria-label="Bajar ${escape(f.name)}">↓</button>`:''}<button data-file-action="remove" data-index="${i}" aria-label="Quitar ${escape(f.name)}">✕</button></span></li>`).join('');
   $('#total-size').textContent=niceSize(files.reduce((n,f)=>n+f.size,0));$('#process').disabled=busy||loading||!canProcess();
 }
 $('#file-list').addEventListener('click',e=>{const b=e.target.closest('[data-file-action]');if(!b||busy||loading)return;const i=Number(b.dataset.index);if(b.dataset.fileAction==='remove')files.splice(i,1);else{const j=i+(b.dataset.fileAction==='up'?-1:1);[files[i],files[j]]=[files[j],files[i]];}renderFiles();if(active.id==='organize'){releasePreview();pageState=[];renderOptions();}else{clearAdvanced();renderOptions();}});
@@ -145,7 +148,7 @@ function renderOptions(){
   notice.hidden=!signed.length;notice.textContent=signed.map(f=>f.name+': '+signatureNotice(f.signatures)).join(' ');
   pageBrowser?.dispose();pageBrowser=null;
   const preview=$('#document-preview');preview.hidden=true;
-  if(files.length&&!['viewer','organize'].includes(active.id)){
+  if(files.length&&!['viewer','organize','office'].includes(active.id)){
    pageBrowser=createPageBrowser({container:preview,files,tool:active.id,getOptions:()=>Object.fromEntries(['range','angle','text','start'].map(k=>[k,$('#opt-'+k)?.value])),onSelection:value=>{const input=$('#opt-range');if(input){input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));}}});
   }
 }
@@ -201,7 +204,7 @@ $('#process').onclick=async()=>{
     else if(['pdfimages','text'].includes(active.id)||(active.id==='compress'&&opts.mode==='raster'))outputs=await renderOperation(active.id,files[0],opts,progress);
     else outputs=await processPdf(active.id,files,opts,progress);
     progress(1,'Preparando descarga…');await showResults(outputs);
-  }catch(e){error(((/^(CERT_|PDF_|AF_)/.test(e.code||''))?'['+e.code+'] ':'')+(e.message||'No se pudo procesar el documento. Prueba con un archivo más pequeño.'));}finally{for(const id of ['opt-password','opt-confirm','certificate-input']){const el=$('#'+id);if(el)el.value='';}setBusy(false);}
+  }catch(e){error(((/^(CERT_|PDF_|AF_|AI_|OFFICE_)/.test(e.code||''))?'['+e.code+'] ':'')+(e.message||'No se pudo procesar el documento. Prueba con un archivo más pequeño.'));}finally{for(const id of ['opt-password','opt-confirm','certificate-input','opt-apiKey']){const el=$('#'+id);if(el)el.value='';}setBusy(false);}
 };
 async function showResults(outputs){
   freeOutputs();$('#download').replaceWith($('#download').cloneNode(true));$('#open-result').replaceWith($('#open-result').cloneNode(true));const total=outputs.reduce((n,o)=>n+o.bytes.length,0);
@@ -217,14 +220,17 @@ async function showResults(outputs){
   $('#editor-area').hidden=true;$('#result').hidden=false;$('#process').hidden=true;$('#download').focus();
   $('#result-viewer').replaceChildren();
   pageBrowser?.dispose();pageBrowser=null;
+  const original=outputs.find(o=>o.sourcePdf)?.sourcePdf;
   const pdfOutputs=outputs.filter(output=>output.type==='application/pdf');
+  if(!pdfOutputs.length&&original)pdfOutputs.push(original);
   if(pdfOutputs.length&&active.id!=='protect'){
    clearAdvanced();$('#tool-options').replaceChildren();
-   const heading=document.createElement('h4');heading.textContent='Revisa el resultado';$('#result-viewer').append(heading);
+   const heading=document.createElement('h4');heading.textContent=original?'Documento original para contrastar':'Revisa el resultado';$('#result-viewer').append(heading);
    const viewer=document.createElement('div');
    const showOutput=index=>{clearAdvanced();const opened={...pdfOutputs[index],size:pdfOutputs[index].bytes.length,encrypted:false};viewer.innerHTML=advancedOptions('viewer',[opened]);bindAdvanced('viewer',[opened]);};
    if(pdfOutputs.length>1){const label=document.createElement('label');label.className='field';label.textContent='Documento que quieres revisar';const select=document.createElement('select');for(const [index,item]of pdfOutputs.entries()){const option=document.createElement('option');option.value=String(index);option.textContent=item.name;select.append(option);}select.onchange=()=>showOutput(Number(select.value));label.append(select);$('#result-viewer').append(label);}
    $('#result-viewer').append(viewer);showOutput(0);
+   const refs=outputs.find(o=>o.references)?.references;if(refs){const links=document.createElement('div');links.className='reference-pages';for(const page of refs){const button=document.createElement('button');button.className='text-button';button.textContent='Ver página '+page;button.onclick=()=>{const field=$('#view-page');if(field){field.value=page;field.dispatchEvent(new Event('change'));viewer.scrollIntoView({block:'nearest'});}};links.append(button);}viewer.before(links);}
    if(active.id==='unlock'||(active.id==='viewer'&&files[0]?.encrypted))$('#result-note').textContent='Documento abierto. Puedes leerlo aquí y descargar la copia sin contraseña. '+(outputs[0].note||'');
   }else if(outputs.every(o=>o.type.startsWith('image/'))){
    const grid=document.createElement('div');grid.className='page-browser-grid';for(const item of outputs.slice(0,12)){const img=document.createElement('img');img.src=url(item);img.alt=item.name;img.className='result-image';grid.append(img);}const caption=document.createElement('p');caption.textContent=`Vista de ${Math.min(12,outputs.length)} de ${outputs.length} imágenes. La descarga incluye todas las seleccionadas.`;$('#result-viewer').append(caption,grid);

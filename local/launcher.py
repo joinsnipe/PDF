@@ -1,5 +1,6 @@
 """PDF desktop: loopback assets and a one-use handoff of explicitly opened PDFs."""
 import functools
+import importlib.util
 import hashlib
 import http.server
 import json
@@ -16,6 +17,9 @@ from pathlib import Path
 
 PROTOCOL = 'pdf-desktop-1'
 MAX_PDF = 100 * 1024 * 1024
+_spec = importlib.util.spec_from_file_location('pdf_office', Path(__file__).with_name('office.py'))
+office = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(office)
 
 
 def pdf_bytes(data):
@@ -87,6 +91,12 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
         decoded = self.local_path()
         if decoded is None:
             return None
+        if decoded == '_desktop/office/status':
+            if self.headers.get('X-PDF-Local') != '1' or self.headers.get('Sec-Fetch-Site', 'same-origin') != 'same-origin':
+                self.send_error(403)
+                return None
+            self.office_reply({'available': bool(office.find_office())})
+            return None
         if decoded == '_desktop/ping':
             content = json.dumps({'app': PROTOCOL}).encode()
             self.send_response(200)
@@ -127,6 +137,33 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         decoded = self.local_path()
         if decoded is None:
+            return
+        if decoded == '_desktop/office/convert':
+            if (self.headers.get('Origin') != f'http://127.0.0.1:{self.server.server_port}' or
+                    self.headers.get('X-PDF-Local') != '1' or
+                    self.headers.get('Sec-Fetch-Site', 'same-origin') != 'same-origin'):
+                self.send_error(403)
+                return
+            length = self.headers.get('Content-Length', '')
+            if (not re.fullmatch(r'[0-9]{1,9}', length) or not 0 < int(length) <= office.MAX_INPUT or
+                    self.headers.get('Transfer-Encoding') or self.headers.get('Content-Type') != 'application/octet-stream'):
+                self.office_reply({'code': 'OFFICE_SIZE', 'error': 'Selecciona un archivo Office de hasta 25 MB.'}, 400)
+                return
+            try:
+                self.connection.settimeout(15)
+                data = self.rfile.read(int(length))
+                if len(data) != int(length):
+                    raise OSError()
+                result = office.convert_office(data, self.headers.get('X-PDF-Extension', ''))
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/pdf')
+                self.send_header('Content-Length', str(len(result)))
+                self.end_headers()
+                self.wfile.write(result)
+            except office.OfficeError as error:
+                self.office_reply({'code': error.code, 'error': str(error)}, 400)
+            except OSError:
+                self.office_reply({'code': 'OFFICE_INPUT', 'error': 'No se pudo leer el archivo completo.'}, 400)
             return
         if decoded == '_desktop/open':
             # This secret is in the per-user state file, NEVER in the browser.
@@ -177,6 +214,15 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Content-Length', '0')
         self.end_headers()
         threading.Thread(target=self.server.shutdown, daemon=True).start()
+
+    def office_reply(self, data, status=200):
+        content = json.dumps(data).encode()
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(content)))
+        self.end_headers()
+        if self.command != 'HEAD':
+            self.wfile.write(content)
 
     def list_directory(self, path):
         self.send_error(404)

@@ -84,3 +84,9 @@ Los originales no se sobrescriben. Guarda el resultado antes de vaciar/cerrar la
 Web/móvil: cierra y vuelve a abrir con conexión. Mac: descarga el nuevo ZIP en una carpeta nueva, sin mezclar versiones; para quitarlo cierra Terminal y elimina su carpeta.
 
 Windows: guarda tu trabajo, pulsa **Salir de PDF**, extrae la nueva versión y ejecuta **Instalar_PDF.cmd**. Se copia a otra carpeta de versión y se actualizan los accesos; no se sobrescribe una versión en ejecución. Para quitarla, elige antes otro lector predeterminado si usabas PDF. Abre **Inicio → PDF Herramientas → Quitar integración de PDF** para retirar «Abrir con»; también puedes ejecutar `Quitar_integracion_Windows.cmd` de la versión instalada. Después cierra PDF, elimina `%LOCALAPPDATA%\PDF-Herramientas` y los accesos PDF creados en el escritorio y en Inicio. Esta instalación por usuario no se registra todavía en la lista de aplicaciones de Windows. No se eliminan documentos de Descargas ni de otras carpetas del usuario.
+
+## Office e IA en 2.4
+
+Para DOCX/XLSX/PPTX a PDF instala LibreOffice desde https://www.libreoffice.org/download/download-libreoffice/ y abre el paquete de escritorio actualizado. En «Office a PDF», pulsa «Comprobar instalación». No se incluye LibreOffice en el ZIP. La web y los móviles no ejecutan este motor local.
+
+Para IA abre «Resumir y entender», elige el modo IA, proveedor y modelo, pega tu propia clave, revisa el texto y autoriza la consulta. Necesita internet incluso desde un paquete local. El modo de frases locales sigue disponible sin cuenta. [Guía completa](IA-Y-OFFICE.md).

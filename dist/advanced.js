@@ -1,3 +1,6 @@
+import {layoutWord} from './word-layout.js';
+import {aiSummary} from './ai-client.js';
+import {officeToPDF} from './office-client.js';
 import { PDFDocument, StandardFonts, rgb, degrees, PDFName, PDFDict, PDFRawStream, PDFTextField, PDFCheckBox, PDFDropdown, PDFOptionList, PDFRadioGroup } from './vendor/pdf-lib.js';
 import { readPdf, pageRange, stem, LIMITS } from './core.js';
 import { openRenderedPdf, pageCanvas, canvasBlob } from './render.js';
@@ -12,7 +15,7 @@ export const ADVANCED_TOOLS=[
  ['unlock','Desbloquear PDF','Quita el cifrado usando la contraseña que ya conoces.','security','lock'],
  ['forms','Rellenar formularios','Completa los campos interactivos de tu documento.','edit','pen'],
  ['flatten','Aplanar formularios','Fija los campos para que dejen de ser editables.','edit','pages'],
- ['signature','Añadir firma dibujada','Coloca un dibujo o imagen. No firma con un certificado digital.','edit','pen'],
+ ['signature','Añadir firma a mano','Firma a mano o añade una imagen. No equivale a una firma con certificado digital.','security','pen'],
  ['addtext','Añadir texto','Coloca una nota nueva sobre las páginas que elijas.','edit','text'],
  ['crop','Recortar márgenes','Ajusta el área visible de las páginas del PDF.','organize','pages'],
  ['resize','Cambiar tamaño','Adapta tus páginas a A4, A3 o Carta.','organize','pages'],
@@ -20,10 +23,11 @@ export const ADVANCED_TOOLS=[
  ['metadata','Quitar metadatos','Elimina título, autor y metadatos generales del PDF.','security','shield'],
  ['repair','Reparar estructura','Intenta reconstruir un PDF con errores estructurales.','edit','spark'],
  ['compare','Comparar texto','Encuentra frases añadidas y eliminadas entre dos PDF.','analyze','arrows'],
- ['summary','Resumen rápido','Selecciona frases relevantes con su número de página.','analyze','text'],
- ['word','PDF a Word · texto','Exporta texto editable a DOCX, sin reconstruir el diseño.','convert','text'],
+ ['summary','Resumir y entender','Frases locales o una explicación con IA y tu propia API.','analyze','text'],
+ ['word','PDF a Word','Texto y tablas sencillas editables, o páginas como imágenes.','convert','text'],
+ ['office','Office a PDF','Convierte Word, Excel y PowerPoint con LibreOffice en escritorio.','convert','text'],
  ['gray','Escala de grises','Genera una copia de imágenes en blanco, negro y grises.','edit','image']
-].map(([id,name,desc,category,icon])=>({id,name,desc,category,icon,color:'#fff0ef',tone:'#d63232',action:({viewer:'Descargar original',digitalsign:'Firmar PDF',ocr:'Reconocer texto',protect:'Proteger PDF',unlock:'Desbloquear PDF',forms:'Guardar formulario',flatten:'Aplanar PDF',signature:'Añadir firma',addtext:'Añadir texto',crop:'Recortar PDF',resize:'Cambiar tamaño',redact:'Generar copia ocultada',metadata:'Quitar metadatos',repair:'Intentar reparación',compare:'Comparar documentos',summary:'Crear resumen',word:'Exportar a Word',gray:'Convertir a grises'})[id],detail:desc}));
+].map(([id,name,desc,category,icon])=>({id,name,desc,category,icon,color:'#fff0ef',tone:'#d63232',action:({viewer:'Descargar original',digitalsign:'Firmar PDF',ocr:'Reconocer texto',protect:'Proteger PDF',unlock:'Desbloquear PDF',forms:'Guardar formulario',flatten:'Aplanar PDF',signature:'Añadir firma',addtext:'Añadir texto',crop:'Recortar PDF',resize:'Cambiar tamaño',redact:'Generar copia ocultada',metadata:'Quitar metadatos',repair:'Intentar reparación',compare:'Comparar documentos',summary:'Crear resumen',word:'Exportar a Word',office:'Convertir a PDF',gray:'Convertir a grises'})[id],detail:desc}));
 
 export function formFields(doc){
   return doc.getForm().getFields().map(f=>{
@@ -117,6 +121,8 @@ export function certificateOperation(data){
 }
 export async function advancedOperation(tool,files,opts={},progress=()=>{},extra={}){
  const f=files[0],base=stem(f.name);
+ if(tool==='office')return officeToPDF(f,progress);
+ if(tool==='word')return layoutWord(f,opts,progress,extra);
  if(tool!=='digitalsign'&&!readsOriginal(tool)&&!['unlock','repair'].includes(tool))assertCanEdit(await inspectSignatures(f.bytes));
  if(tool==='viewer'){if(f.encrypted)return qpdfOperation('unlock',f,opts);return [{bytes:f.bytes,name:f.name,type:'application/pdf',note:'Documento original sin cambios.'}];}
  if(tool==='digitalsign'){
@@ -138,6 +144,7 @@ export async function advancedOperation(tool,files,opts={},progress=()=>{},extra
   const pages=await extractPages(f,opts,progress,extra);
   if(!pages.some(p=>p.text.trim()))throw new Error('No hay texto seleccionable. Utiliza OCR antes de esta herramienta.');
   if(tool==='summary'){
+   if(opts.summarymode==='ai')return aiSummary(f,pages,opts,progress);
    const items=summarize(pages,Math.min(20,Math.max(3,Number(opts.count||8))));
    return outputText(`RESUMEN EXTRACTIVO · ${f.name}\n${pages.length} páginas analizadas. Selección automática de frases, sin IA generativa. Puede omitir contexto; consulta el original.\n\n`+items.map(x=>`[Página ${x.page}] ${x.text}`).join('\n\n'),`${base}-resumen.txt`,'Frases del original seleccionadas por relevancia léxica. No es una síntesis exhaustiva ni una interpretación.');
   }

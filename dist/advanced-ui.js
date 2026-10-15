@@ -1,5 +1,7 @@
+import {aiOptions,bindAI,collectAI,clearAI} from './ai-ui.js';
+import {officeOptions,bindOffice} from './office-client.js';
 import {autofirmaPlatform,prepareAutoFirma,disposeAutoFirma} from './autofirma.js';
-import { rectPercent, certificateOperation } from './advanced.js';
+import { rectPercent, certificateOperation, extractPages } from './advanced.js';
 import { openRenderedPdf, pageCanvas, canvasBlob } from './render.js';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,7 +9,7 @@ const field=(id,label,value,min,max)=>`<label class="field">${label}<input id="o
 const range=()=>'<label class="field">Páginas<input id="opt-range" placeholder="Todas · ej.: 1, 3-5"><small>Vacío = todas las páginas.</small></label>';
 const zone=({digital=false}={})=>`<div class="options-row">${field('x','Izquierda (%)',10,0,100)}${field('y','Arriba (%)',digital?72:10,0,100)}${field('w','Ancho (%)',digital?65:50,1,100)}${field('h','Alto (%)',digital?20:10,1,100)}</div><div class="position-preview"><div class="preview-controls">${digital?'Página de la firma':'Vista previa de la zona'} <input id="preview-page" type="number" value="1" min="1" aria-label="${digital?'Página donde mostrar la firma':'Página de vista previa'}"><button type="button" id="refresh-preview" class="text-button">Ver página</button></div><div id="position-stage"><canvas id="position-canvas"></canvas><div id="position-box"></div></div><small>${digital?'La marca aparecerá en esta página. Arrastra dentro de la zona para moverla o fuera para dibujar otra. Ajusta con precisión usando los valores de posición.':'Arrastra sobre la vista previa para seleccionar la zona. Se aplicará en las páginas indicadas arriba. La firma conserva su proporción dentro de esta zona.'}</small></div>`;
 let ink=false,signatureBytes=null,previewSerial=0,viewerDoc=null;
-export function clearAdvanced(){previewSerial++;ink=false;signatureBytes=null;disposeAutoFirma();if(viewerDoc){viewerDoc.destroy().catch(()=>{});viewerDoc=null;}}
+export function clearAdvanced(){clearAI();previewSerial++;ink=false;signatureBytes=null;disposeAutoFirma();if(viewerDoc){viewerDoc.destroy().catch(()=>{});viewerDoc=null;}}
 export function advancedOptions(tool,files){
  const hint=s=>`<p class="hint">${s}</p>`;
  if(tool==='viewer'&&files[0]?.encrypted)return '<div class="options-row"><label class="field">Contraseña del PDF<input id="opt-password" type="password" autocomplete="off" maxlength="127"></label></div>'+hint('Introduce la contraseña del PDF para abrirlo. Déjala vacía si abre sin contraseña y solo tiene restricciones de edición. Podrás descargar una copia sin cifrado. Si detectamos firmas digitales, se bloquea la conversión para no invalidarlas; abre ese original con un lector compatible. La contraseña no se guarda.');
@@ -35,12 +37,13 @@ export function advancedOptions(tool,files){
  case 'crop':return `<div class="options-row">${range()}${field('margin','Quitar de cada borde (mm)',10,0,100)}</div>${hint('Recorte visual de los cuatro márgenes. Lo que quede fuera sigue dentro del archivo. Para eliminar información utiliza «Ocultar una zona».')}`;
  case 'resize':return `<div class="options-row">${range()}<label class="field">Tamaño<select id="opt-size"><option value="a4">A4</option><option value="a3">A3</option><option value="letter">Carta</option></select></label><label class="field">Orientación<select id="opt-orientation"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></label></div>${hint('Escala sin deformar el contenido y lo centra con un margen mínimo. No conserva enlaces ni anotaciones de las páginas adaptadas.')}`;
  case 'addtext':return `<div class="options-row">${range()}<label class="field">Texto nuevo<input id="opt-text" maxlength="150" placeholder="Escribe tu nota"></label>${field('fontsize','Tamaño máximo (pt)',14,4,100)}</div>${zone()}${hint('Añade texto sobre el PDF; no modifica el texto original. El tamaño se ajusta para caber en la zona.')}`;
- case 'signature':return `<div class="options-row">${range()}</div><label class="field">Dibuja aquí tu firma<canvas id="signature-canvas" width="640" height="180" aria-label="Panel para dibujar la firma"></canvas></label><div class="signature-actions"><button id="clear-signature" type="button" class="text-button">Limpiar dibujo</button><label class="text-button">O elegir PNG / JPG <input id="signature-input" type="file" accept=".png,.jpg,.jpeg"></label></div><small id="signature-status">Firma como imagen, sin certificado digital.</small>${zone()}`;
+ case 'signature':return `<div class="options-row">${range()}</div><label class="field">Dibuja aquí tu firma<canvas id="signature-canvas" width="640" height="180" aria-label="Panel para dibujar la firma"></canvas></label><div class="signature-actions"><button id="clear-signature" type="button" class="text-button">Limpiar dibujo</button><label class="text-button">O elegir PNG / JPG <input id="signature-input" type="file" accept=".png,.jpg,.jpeg"></label></div><small id="signature-status">Añade una firma como imagen. No equivale a una firma con certificado digital ni verifica la identidad del firmante.</small>${zone()}`;
  case 'redact':return `<div class="options-row">${range()}</div>${zone()}<label class="check-row"><input type="checkbox" id="opt-consent">Acepto crear un PDF nuevo de imágenes, sin texto seleccionable, enlaces, campos, firmas digitales ni objetos originales.</label>${hint('La zona se cubre de negro antes de generar las nuevas páginas. Revisa cada página antes de compartir. Se aplica el mismo rectángulo a las páginas seleccionadas. Máximo 150 páginas.')}`;
  case 'gray':return hint('Todas las páginas se convierten a imágenes en escala de grises. Pierde texto seleccionable y enlaces; el tamaño puede aumentar. Máximo 150 páginas.');
- case 'summary':return `<div class="options-row">${range()}<label class="field">Extensión<select id="opt-count"><option value="5">Breve · hasta 5 frases</option><option value="8" selected>Normal · hasta 8 frases</option><option value="15">Amplio · hasta 15 frases</option></select></label></div>${hint('Resumen extractivo, sin IA generativa: selecciona frases existentes por relevancia léxica y muestra sus páginas. Puede omitir matices o contexto. Si es un escaneado, aplica OCR primero.')}`;
+ case 'office':return officeOptions();
+ case 'summary':return aiOptions()+`<div class="options-row">${range()}<label class="field">Extensión<select id="opt-count"><option value="5">Breve · hasta 5 frases</option><option value="8" selected>Normal · hasta 8 frases</option><option value="15">Amplio · hasta 15 frases</option></select></label></div>${hint('El modo local selecciona frases literales sin IA. El modo con IA sintetiza o explica el texto y aporta citas por página. Ambos pueden omitir contexto. Si es un escaneado, aplica OCR primero.')}`;
  case 'compare':return hint('Añade exactamente dos PDF: A es el primero y B el segundo. Compara frases de texto, incluidos duplicados. Ignora cambios de orden, imágenes, firmas y diseño.');
- case 'word':return `<div class="options-row">${range()}</div>${hint('Genera un DOCX editable con el texto. No reconstruye el diseño original, las tablas ni las imágenes. Puedes abrirlo en Word o LibreOffice. Para escaneados, aplica OCR primero.')}`;
+ case 'word':return `<div class="options-row">${range()}<label class="field">Qué quieres conservar<select id="opt-wordmode"><option value="editable">Texto editable y tablas sencillas</option><option value="visual">Aspecto · cada página como imagen</option></select></label></div>${hint('Hasta 80 páginas. El modo editable reconstruye líneas, tamaños de letra y tablas sencillas alineadas; no incluye imágenes y puede cambiar la distribución. Aplica OCR si no hay texto seleccionable. El modo aspecto conserva la página como imagen: su texto y tablas no son editables. Revisa el DOCX en Word o LibreOffice.')}`;
  default:return '';
  }
 }
@@ -56,6 +59,8 @@ function formOptions(fields){
 }
 export function bindAdvanced(tool,files){
  previewSerial++;const serial=previewSerial;
+ if(tool==='summary'){bindAI(files,extractPages);return;}
+ if(tool==='office'){bindOffice();return;}
  if(tool==='viewer'){if(!files[0]?.encrypted)bindViewer(files,serial);return;}
  if(tool==='signature'){
   ink=false;signatureBytes=null;const canvas=$('#signature-canvas'),ctx=canvas.getContext('2d');let down=false;
@@ -115,7 +120,8 @@ export function bindAdvanced(tool,files){
  if(files.length){$('#preview-page').max=files[0].pages;if(tool!=='digitalsign'||$('#opt-sign-method').value==='p12')refresh();}
 }
 export async function collectAdvanced(tool,files){
- const opts={};for(const k of ['range','language','password','confirm','margin','size','orientation','text','fontsize','x','y','w','h','count','reason']){const el=$('#opt-'+k);if(el)opts[k]=el.value;}
+ const opts={};for(const k of ['range','language','password','confirm','margin','size','orientation','text','fontsize','x','y','w','h','count','reason','wordmode']){const el=$('#opt-'+k);if(el)opts[k]=el.value;}
+ if(tool==='summary')Object.assign(opts,collectAI());
  opts.consent=!!$('#opt-consent')?.checked;opts.flatten=!!$('#opt-flatten')?.checked;opts.policy=$('#opt-policy')?.value;
  if(tool==='forms')opts.fields=[...document.querySelectorAll('[data-form-index]')].map(el=>{const f=files[0].fields[Number(el.dataset.formIndex)];return {name:f.name,value:f.kind==='check'?el.checked:f.kind==='select'?[...el.selectedOptions].map(o=>o.value).filter(Boolean):el.value};});
  if(tool==='signature'){

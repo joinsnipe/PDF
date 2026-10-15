@@ -60,13 +60,13 @@ def build(target, version):
         shutil.rmtree(staging)
     package = staging / ('PDF-web' if target == 'web' else 'PDF')
     package.mkdir(parents=True)
-    shutil.copytree(ROOT / 'dist', package if target == 'web' else package / 'app', dirs_exist_ok=True)
+    shutil.copytree(ROOT / 'dist', package if target == 'web' else package / 'app', dirs_exist_ok=True, ignore=shutil.ignore_patterns('client', 'server', '.openai'))
     for name in ['README.md', 'LICENSE', 'CHANGELOG.md', 'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md', 'SECURITY.md']:
         shutil.copy2(ROOT / name, package / name)
     shutil.copytree(ROOT / 'docs', package / 'docs', ignore=shutil.ignore_patterns('rea-attempt.json'))
     if target != 'web':
         runtime(target, package / 'runtime')
-        names = ['PDF.cmd', 'launcher.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs']
+        names = ['PDF.cmd', 'launcher.py', 'office.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs', 'office.mjs']
         for name in names:
             shutil.copy2(ROOT / 'local' / name, package / name)
         launcher = names[0]
@@ -77,7 +77,7 @@ def build(target, version):
         (package / 'LEEME.txt').write_text(
             f'PDF {version}\n\nExtrae TODO el ZIP en una carpeta.\n' + opening +
             'No abras index.html directamente. No necesitas instalar lenguajes de programación.\n'
-            'Los documentos se procesan en tu navegador y los motores están incluidos.\n\n'
+            'Las herramientas habituales son locales. Office a PDF requiere LibreOffice instalado. La IA es opcional, usa internet y tu propia API.\n\n'
             'Instrucciones: docs/INSTALACION.md\nFunciones y límites: docs/FUNCIONES.md\n'
             'Esta es una beta: todavía requiere comprobación en dispositivos reales.\n'
             'Proyecto: https://github.com/joinsnipe/PDF\n', encoding='utf-8')

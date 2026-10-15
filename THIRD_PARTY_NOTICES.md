@@ -25,3 +25,9 @@ El wrapper de qpdf declara ISC pero su paquete no incluye un archivo LICENSE ind
 La portada e icono vectorial del proyecto forman parte del código propio. No se incluyen logotipos, recursos gráficos o código de iLovePDF. No se distribuyen PDFs personales ni certificados de prueba privados.
 
 AutoFirma nativa no se redistribuye: se instala por separado desde su web oficial. AutoScript se distribuye con su código fuente completo, procedencia y GPL-2.0; sus términos se conservan en el paquete construido. MIT se refiere al código propio de PDF y no sustituye las obligaciones de GPL del componente distribuido.
+
+## Servidor opcional de IA y Office
+
+El servidor opcional de `hosting/` utiliza React, Next.js, Vinext, Vite y el plugin de Sites, con sus licencias indicadas en los paquetes fijados en `hosting/package-lock.json`. El plugin de Sites conserva su archivo `hosting/build/sites-vite-plugin.LICENSE`. Estos componentes no se incluyen en los ZIP de escritorio.
+
+LibreOffice se instala por separado desde su distribución oficial; no se redistribuye su código ni binarios en los paquetes de PDF Contigo. Los servicios de API de Google, OpenAI, Anthropic, xAI y Mistral conservan sus propias condiciones; no se incluyen claves ni crédito de esos servicios.

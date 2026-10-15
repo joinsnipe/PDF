@@ -32,7 +32,7 @@ test('descargas ZIP y renovación de la selección',async()=>{
  $('[data-tool="split"]').click();await add([await sample()]);$('#opt-mode').value='each';$('#opt-range').value='1,1';const bytes=await output();const zip=await Zip.loadAsync(bytes);assert.equal(Object.keys(zip.files).length,2);assert.equal($('#download').download,'PDF-split.zip');$('#start-again').click();assert.equal($('#download').hasAttribute('href'),false);assert.equal($('#process').disabled,true);$('#work-close').click();
 });
 test('todas las herramientas tienen opciones y acción definida',()=>{
- const buttons=[...document.querySelectorAll('[data-tool]')];assert.equal(buttons.length,28);
+ const buttons=[...document.querySelectorAll('[data-tool]')];assert.equal(buttons.length,29);
  for(const button of buttons){button.click();assert.doesNotMatch($('#process').textContent,/undefined/);$('#work-close').click();}
 });
 test('Abrir con muestra el visor directamente y conserva los bytes del original',async()=>{
@@ -155,7 +155,7 @@ test('AutoFirma principal en Windows: certificado nativo, colocación nativa, ca
  }finally{document.body.append=append;delete window.navigator.userAgent;$('#work-close').click();}
 });
 test('limpiar dibujo no se presenta como borrar una firma criptográfica',()=>{
- $('[data-tool="signature"]').click();assert.equal($('#clear-signature').textContent,'Limpiar dibujo');assert.match($('#signature-status').textContent,/sin certificado/);$('#work-close').click();
+ $('[data-tool="signature"]').click();assert.equal($('#clear-signature').textContent,'Limpiar dibujo');assert.match($('#signature-status').textContent,/No equivale a una firma con certificado digital ni verifica la identidad/);$('#work-close').click();
  $('[data-tool="digitalsign"]').click();assert.equal($('#clear-signature'),null);$('#opt-visible').checked=false;$('#opt-visible').onchange();assert.equal($('#digital-position').hidden,true);$('#work-close').click();
 });
 test('seguridad: interfaz -> motor real -> descarga -> desbloquear -> visor',async()=>{
@@ -199,4 +199,17 @@ test('PDF firmado: aviso, edición bloqueada, certificación deshabilitada y lec
 });
 test('cambiar protección requiere confirmar de nuevo la firma',async()=>{
  $('[data-tool="digitalsign"]').click();await add([await sample()]);$('#opt-consent').checked=true;$('#opt-policy').value='final';$('#opt-policy').onchange();assert.equal($('#opt-consent').checked,false);assert.match($('#sign-policy-help').textContent,/ni nuevas firmas/);$('#work-close').click();
+});
+test('firma dibujada se encuentra en Firma y seguridad',()=>{
+ document.querySelector('.filter[data-filter="security"]').click();assert.ok($('[data-tool="signature"]'));assert.ok($('[data-tool="digitalsign"]'));
+ document.querySelector('.filter[data-filter="edit"]').click();assert.equal($('[data-tool="signature"]'),null);document.querySelector('.filter[data-filter="all"]').click();
+});
+test('IA revisa texto, exige consentimiento, consulta y borra clave sin almacenarla',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;let calls=0;
+ globalThis.fetch=async(url,init)=>{if(String(url).endsWith('/api/ai')){calls++;const body=JSON.parse(init.body);assert.equal(body.provider,'mistral');assert.equal(body.consent,true);assert.equal(body.apiKey,'test-api-key-example');return Response.json({report:{items:[{group:'Resumen',text:'Documento de prueba.',page:1,quote:'Documento de prueba'}],missing:[]}});}return previousFetch(url,init);};
+ try{
+  $('[data-tool="summary"]').click();await add([await sample()]);$('#opt-summarymode').value='ai';$('#opt-summarymode').onchange();$('#opt-provider').value='mistral';$('#opt-provider').onchange();$('#opt-apiKey').value='test-api-key-example';$('#opt-model').value='test-model';await $('#process').onclick();assert.equal(calls,0);assert.match($('#error').textContent,/autoriza/);
+  $('#opt-apiKey').value='test-api-key-example';await $('#ai-review').onclick();assert.match($('#ai-review-text').textContent,/Documento de prueba/);assert.equal($('#ai-consent').disabled,false);$('#ai-consent').checked=true;
+  await $('#process').onclick();assert.equal($('#error').hidden,true,$('#error').textContent);assert.equal(calls,1);assert.ok($('#download').download.endsWith('-informe-ia.txt'));assert.equal($('#opt-apiKey'),null);assert.match($('#result-viewer').textContent,/Documento original para contrastar/);assert.match($('#result-preview').textContent,/Cita/);assert.equal(window.localStorage.length,0);$('#work-close').click();
+ }finally{globalThis.fetch=previousFetch;delete globalThis.location;}
 });

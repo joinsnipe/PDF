@@ -1,6 +1,6 @@
 # Experiencia visual de PDF Contigo
 
-Revisión de las 28 herramientas en **2.3.0-beta.4**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
+Revisión de las 29 herramientas en **2.4.0-beta.1**. La selección del archivo muestra sus páginas, cuando se pueden abrir. Las miniaturas se cargan de doce en doce y se liberan al cambiar de tarea. Los nombres largos se pueden consultar en la lista y las páginas seleccionables tienen estado accesible y foco de teclado.
 
 ## Antes y después
 
@@ -23,7 +23,7 @@ Revisión de las 28 herramientas en **2.3.0-beta.4**. La selección del archivo 
 | Desbloquear PDF | Contraseña si es necesaria; miniaturas si ya es legible | Visor de la copia sin cifrado |
 | Rellenar formularios | Páginas originales y campos editables | PDF con los valores guardados |
 | Aplanar formularios | Páginas originales y explicación del cambio | PDF con campos fijados |
-| Añadir firma dibujada | Selección de páginas, dibujo y zona sobre una página | PDF con la imagen incorporada |
+| Añadir firma a mano | Selección de páginas, dibujo y zona sobre una página | PDF con la imagen incorporada |
 | Añadir texto | Selección de páginas y zona sobre una página | PDF con el texto añadido |
 | Recortar márgenes | Selección de páginas y cantidad de margen | PDF con el área visible recortada |
 | Cambiar tamaño | Selección de páginas, tamaño y orientación | PDF adaptado |
@@ -31,8 +31,9 @@ Revisión de las 28 herramientas en **2.3.0-beta.4**. La selección del archivo 
 | Quitar metadatos | Páginas del original y alcance de la limpieza | PDF resultante; el aspecto puede ser idéntico |
 | Reparar estructura | Miniaturas si el original es legible | Visor del documento recuperado, si se pudo reparar |
 | Comparar texto | Miniaturas de ambos originales, A y B | Frases añadidas/eliminadas y TXT |
-| Resumen rápido | Selección visual y extensión | Frases extraídas con referencia a su página |
-| PDF a Word · texto | Selección visual de páginas | Texto extraído como vista; DOCX descargable |
+| Resumir y entender | Modo local o IA, proveedor/modelo, texto revisado y consentimiento | Informe descargable, citas y visor del original |
+| PDF a Word | Selección de páginas y modo editable/visual | Texto extraído o visor del original, identificado como tal; DOCX descargable |
+| Office a PDF | Archivo Office y comprobación de LibreOffice en escritorio | PDF generado en el visor |
 | Escala de grises | Miniaturas en gris de forma orientativa | PDF rasterizado en el visor |
 
 Las miniaturas muestran el **original** salvo los efectos orientativos indicados. Recorte, tamaño, texto, campos y calidad se comprueban en el resultado generado. No se presenta una simulación como si fuera el PDF final. Las vistas de texto se limitan a 22.000 caracteres; el archivo contiene el resultado completo.
@@ -48,3 +49,5 @@ Las miniaturas muestran el **original** salvo los efectos orientativos indicados
 ## Alcance de la comprobación
 
 Pruebas de selección y descargas con JSDOM; miniaturas reales con PDF.js y Canvas, incluyendo render, giro, paginación y cierre durante carga. Los motores PDF se ejercitan con documentos ficticios y las firmas con OpenSSL. Está pendiente la revisión visual en navegadores y dispositivos reales. Véase [Validación](VALIDACION.md).
+
+«Añadir firma a mano» pertenece a «Firma y seguridad». Su aviso explica que es una imagen y no equivale a una firma con certificado digital ni verifica la identidad del firmante.

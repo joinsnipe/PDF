@@ -1,6 +1,6 @@
 # Validación de PDF 2.2.0-beta.1
 
-**Entrega actual: PDF Contigo 2.3.0-beta.4.** Construcción completa y **122 pruebas JavaScript + 19 pruebas Python aprobadas** en Linux. Incluye protocolo AutoScript oficial con WebSocket simulado, firma ficticia verificada con OpenSSL, DocMDP leído también con pypdf, miniaturas reales con PDF.js/Canvas e interfaz hasta descarga. [Alcance de AutoFirma](AUTOFIRMA.md) y [revisión de las 28 herramientas](UX.md).
+**Entrega actual: PDF Contigo 2.4.0-beta.1.** Batería automatizada en Linux, con UI simulada, motores PDF reales, LibreOffice y adaptadores de IA simulados. Ver los resultados de CI de esta versión. La ejecución real en navegador y Windows/Mac sigue pendiente.
 
 El usuario confirmó que beta 3 ya firma mediante la web y AutoFirma en su Windows. La certificación sin cambios y la nueva apariencia de beta 4 no se han probado con AutoFirma nativa. La revisión visual completa en navegadores reales también sigue pendiente.
 
@@ -55,7 +55,7 @@ Revisión del 14 de octubre de 2026. Algunas marcas técnicas pueden corresponde
 
 Se reprodujo un enlace de resultado obsoleto durante la reutilización del elemento de descarga en JSDOM. Ahora se crea un enlace nuevo por resultado. Se eliminó la revocación de URL durante `pagehide`, que podía interferir al abrir/guardar. No se afirma que esa sea la única causa del problema observado en el navegador del usuario.
 
-Pruebas de interfaz con DOM simulado: selección -> procesamiento -> enlace blob -> lectura de bytes PDF válidos para marca de agua e imágenes a PDF. ZIP con entradas correctas. Guardar como recibe los mismos bytes. `pagehide` mantiene el enlace disponible. Las 28 herramientas tienen opciones y acción. El visor detecta el marcador de cifrado, solicita contraseña, permite reintentar, elimina la entrada y presenta el resultado. Este último contrato usa un worker simulado; el descifrado real se comprueba por separado con qpdf.
+Pruebas de interfaz con DOM simulado: selección -> procesamiento -> enlace blob -> lectura de bytes PDF válidos para marca de agua e imágenes a PDF. ZIP con entradas correctas. Guardar como recibe los mismos bytes. `pagehide` mantiene el enlace disponible. Las 29 herramientas tienen opciones y acción. El visor detecta el marcador de cifrado, solicita contraseña, permite reintentar, elimina la entrada y presenta el resultado. Este último contrato usa un worker simulado; el descifrado real se comprueba por separado con qpdf.
 
 El motor qpdf real cifra con AES-256, rechaza una contraseña incorrecta, descifra con la correcta conservando el texto y reescribe un PDF válido en modo reparación. Esto no prueba la reparación de toda corrupción posible.
 
@@ -79,7 +79,7 @@ El motor qpdf real cifra con AES-256, rechaza una contraseña incorrecta, descif
 
 ## Lanzador y paquete
 
-El manejador HTTP se ejercita en memoria, sin servidor de previsualización: entrega index y MIME WASM; rechaza Host ajeno, ruta sin token, traversal y POST. El código enlaza únicamente 127.0.0.1 y no implementa subida de archivos. El ZIP incorpora Python oficial para Windows x64, todos los activos, modelos, código fuente de la aplicación y licencias. Su integridad se comprueba con CRC y manifiesto SHA-256.
+El manejador HTTP se ejercita en memoria, sin servidor de previsualización: entrega index y MIME WASM; rechaza Host ajeno, ruta sin token, traversal y POST no autorizado. El código enlaza únicamente 127.0.0.1; la conversión Office recibe bytes únicamente con origen, cabecera y límites correctos. El ZIP incorpora Python oficial para Windows x64, todos los activos, modelos, código fuente de la aplicación y licencias. Su integridad se comprueba con CRC y manifiesto SHA-256.
 
 ## Límites de esta validación
 
@@ -90,3 +90,11 @@ La firma no tiene TSA, consulta de revocación, prueba de confianza de CA ni cer
 ## Actualización pública y Android 2.1
 
 El propietario autorizó expresamente el acceso público; Sites devolvió access_mode public, revisión 2. Icono SVG propio inspeccionado y PNG comprobados (192/512, adaptable 512, favicon 32). Manifiesto y rutas válidos. Seis regresiones de interfaz aprobadas. Comprobaciones adicionales en DOM: ayuda de instalación sin prompt nativo, cancelación del prompt, reintento, appinstalled e IDs únicos. No se repitió la batería de motores PDF, cuyo código no cambió. No se ejecutó navegador por ausencia de control-browser en el entorno administrado; pendiente instalación y descarga real en Android.
+
+## IA y Office · 2.4 beta
+
+- Cinco proveedores: formatos de petición/respuesta, autenticación, listado de modelos, cuota, tamaño, origen y consentimiento probados con fixtures. No se ha usado ninguna clave real ni comprobado facturación, disponibilidad o calidad de un modelo externo.
+- Flujo de UI simulado: seleccionar modo IA, revisar texto, autorizar, obtener informe y TXT, limpiar clave y mostrar visor del original. Sin almacenamiento web.
+- Word editable: DOCX con tabla real y texto, abierto con LibreOffice. Modo visual: imágenes por página y conversión de vuelta a PDF sin páginas vacías extra. Revisión visual del PDF renderizado. No cubre toda la diversidad de PDFs de usuarios.
+- DOCX, XLSX y PPTX ficticios convertidos realmente con LibreOffice en Linux por ambos adaptadores (Python y Node). Se comprueban número de páginas y contenido. Rechazo de macros, contenido externo y límites antes de ejecutar.
+- Pendiente: API real de cada proveedor con clave del usuario, permisos/cuotas/modelos; Word en Microsoft Word; LibreOffice nativo Windows/Mac, documentos representativos y navegación móvil.

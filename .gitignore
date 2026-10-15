@@ -9,3 +9,15 @@ __pycache__/
 dist/vendor/
 .openai/
 tests/fixtures/security/*.pdf
+
+hosting/node_modules/
+hosting/public/
+hosting/dist/
+hosting/.wrangler/
+hosting/.openai/
+dist/client/
+dist/server/
+hosting/.sites-runtime/
+hosting/.env*
+dist/.openai/
+hosting/.next/

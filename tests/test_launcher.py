@@ -64,6 +64,24 @@ class LocalHandlerTests(unittest.TestCase):
             self.assertIn(b'204', self.request('/test-token/_desktop/stop', method='POST', headers=headers))
             thread.assert_called_once_with(target=self.shutdown, daemon=True)
 
+    def test_office_endpoint_requires_origin_and_converts_only_selected_bytes(self):
+        endpoint = '/test-token/_desktop/office/convert'
+        headers = {'Origin': 'http://127.0.0.1:12345', 'X-PDF-Local': '1',
+                   'Content-Type': 'application/octet-stream', 'Content-Length': '3', 'X-PDF-Extension': 'docx'}
+        with patch.object(launcher.office, 'convert_office', return_value=b'%PDF-fake') as convert:
+            self.assertIn(b'403', self.request(endpoint, method='POST', headers={**headers, 'Origin': 'https://evil.example'}, body=b'abc'))
+            self.assertIn(b'400', self.request(endpoint, method='POST', headers={**headers, 'Content-Length': str(launcher.office.MAX_INPUT+1)}))
+            convert.assert_not_called()
+            response = self.request(endpoint, method='POST', headers=headers, body=b'abc')
+            self.assertIn(b'application/pdf', response)
+            self.assertTrue(response.endswith(b'%PDF-fake'))
+            convert.assert_called_once_with(b'abc', 'docx')
+        self.assertIn(b'403', self.request('/test-token/_desktop/office/status'))
+        with patch.object(launcher.office, 'find_office', return_value='/private/location/soffice'):
+            response = self.request('/test-token/_desktop/office/status', headers={'X-PDF-Local': '1'})
+            self.assertIn(b'"available": true', response)
+            self.assertNotIn(b'/private/location', response)
+
     def test_no_session_or_file_directory_leak(self):
         response = self.request('/test-token/_desktop/ping')
         self.assertIn(b'Cache-Control: no-store', response)

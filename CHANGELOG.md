@@ -1,3 +1,9 @@
+# Historial de cambios
+
+## 2.4.0-beta.1
+
+IA opcional con clave propia de Gemini, OpenAI, Claude, Grok y Mistral, revisión previa del texto y citas por página. Word editable con tablas sencillas o modo visual. Office a PDF con LibreOffice en escritorio. «Añadir firma a mano» pasa a «Firma y seguridad». [Detalle y límites](docs/releases/v2.4.0-beta.1.md).
+
 # Cambios
 
 ## 2.3.0-beta.4
