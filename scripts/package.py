@@ -66,7 +66,7 @@ def build(target, version):
     shutil.copytree(ROOT / 'docs', package / 'docs', ignore=shutil.ignore_patterns('rea-attempt.json'))
     if target != 'web':
         runtime(target, package / 'runtime')
-        names = ['PDF.cmd', 'launcher.py', 'office.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs', 'office.mjs']
+        names = ['PDF.cmd', 'launcher.py', 'ai.py', 'ai-policy.json', 'office.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs', 'ai.mjs', 'ai-policy.json', 'office.mjs']
         for name in names:
             shutil.copy2(ROOT / 'local' / name, package / name)
         launcher = names[0]
@@ -77,7 +77,7 @@ def build(target, version):
         (package / 'LEEME.txt').write_text(
             f'PDF {version}\n\nExtrae TODO el ZIP en una carpeta.\n' + opening +
             'No abras index.html directamente. No necesitas instalar lenguajes de programación.\n'
-            'Las herramientas habituales son locales. Office a PDF requiere LibreOffice instalado. La IA es opcional, usa internet y tu propia API.\n\n'
+            'Las herramientas habituales son locales. Office a PDF requiere LibreOffice instalado. La IA es opcional: tu conector local contacta directamente con el proveedor usando tu API, sin servidor compartido de PDF Contigo.\n\n'
             'Instrucciones: docs/INSTALACION.md\nFunciones y límites: docs/FUNCIONES.md\n'
             'Esta es una beta: todavía requiere comprobación en dispositivos reales.\n'
             'Proyecto: https://github.com/joinsnipe/PDF\n', encoding='utf-8')

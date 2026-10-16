@@ -1,4 +1,4 @@
-// The desktop/client remains buildless. Vinext adds only the optional AI relay.
+// The PDF client is static; Vinext serves the site. The former AI relay is retired.
 import {cp,mkdir,rm,readdir,readFile,writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';

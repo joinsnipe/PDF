@@ -105,3 +105,11 @@ El propietario autorizó expresamente el acceso público; Sites devolvió access
 - Respuestas tardías al cambiar proveedor o cerrar se descartan; una clave rechazada permite reintentar. Selección automática probada para los cinco proveedores y filtrado de modelos de imagen/audio/embeddings.
 - El ICO se decodifica con Pillow en sus siete tamaños, con canal alfa y contenido visible. El instalador conserva el icono en la carpeta de la aplicación, entrecomilla su ruta y solicita actualizar los accesos cuando Windows permite la llamada. No se borra la caché del sistema.
 - Se mantienen las pruebas de motores y seguridad. La IA usa respuestas simuladas, sin claves reales ni consumo. Este entorno Linux no confirma el aspecto de accesos directos de Windows, el diálogo nativo de instalación ni la maquetación final en navegadores reales.
+
+## IA directa, DeepSeek y accesibilidad · 2.4 beta 6
+
+- Adaptadores de seis proveedores, solicitudes directas, DeepSeek en JSON sin razonamiento, selección de modelo, citas, consentimiento y errores con respuestas simuladas. No se utilizan claves reales ni consumo de APIs.
+- Conectores Python y Node: las mismas doce peticiones (catálogo e informe por proveedor) pasan su política de destinos. Se rechazan URLs manipuladas, cabeceras inesperadas, redirecciones y respuestas excesivas. Los controladores locales exigen origen, sesión y tamaño.
+- El endpoint público retirado responde 410 en workerd real sin ninguna petición saliente. La UI ya no tiene una URL de relay público; la CSP permite solo los seis destinos de IA, además del propio origen para recursos locales.
+- UI simulada en JSDOM: configuración, selección automática, revisión/consentimiento, informe, olvido de clave, cancelaciones y cambios tardíos. Preferencias visuales restauradas y eliminadas; funcionamiento cuando se bloquea localStorage; nombres accesibles y salto al contenido.
+- No equivale a comprobar CORS, credenciales, disponibilidad o cuotas reales de cada cuenta. Tampoco a una auditoría de accesibilidad: pendientes lectores de pantalla, zoom/reflujo y dispositivos Windows/Mac/Android/iOS reales. Consulta [el alcance](ACCESIBILIDAD.md).

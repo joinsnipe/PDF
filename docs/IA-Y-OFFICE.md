@@ -12,7 +12,7 @@
 
 ## IA con tu proveedor
 
-Proveedores incluidos: **Gemini, OpenAI, Claude, Grok y Mistral**. No hay clave compartida en el código ni suscripción a PDF Contigo. Cada proveedor puede cobrar consumo; sus cuotas gratuitas dependen de la cuenta, modelo, región y condiciones vigentes. Una suscripción de chat no implica crédito de API.
+Proveedores incluidos: **Gemini, OpenAI, Claude, Grok, Mistral y DeepSeek**. No hay clave compartida en el código ni suscripción a PDF Contigo. Cada proveedor puede cobrar consumo; sus cuotas gratuitas dependen de la cuenta, modelo, región y condiciones vigentes. Una suscripción de chat no implica crédito de API.
 
 1. Pulsa **Configurar IA** en la barra superior o la sección **Leer, analizar e IA**. No necesitas seleccionar un PDF primero.
 2. Elige proveedor y pega tu clave. Pulsa **Conectar**: la app consulta los modelos y selecciona uno de texto automáticamente, sin enviar documentos. Este paso no comprueba saldo, cuota, precio ni permiso de generación.
@@ -24,7 +24,15 @@ Proveedores incluidos: **Gemini, OpenAI, Claude, Grok y Mistral**. No hay clave 
 
 Cambiar páginas, conexión o tipo de informe invalida la revisión anterior. La clave se conserva **solo en la memoria de esta pestaña**, para no repetirla en cada documento; no se escribe en localStorage, sessionStorage, cookies ni archivos. Se olvida al pulsar **Desconectar y olvidar clave**, recargar o salir de la pestaña. Al cerrar la configuración se vacía su campo, pero la conexión sigue disponible en memoria. No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
 
-El texto y la clave pasan por HTTPS por el servidor de PDF Contigo hacia el proveedor elegido. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus condiciones. **Conectar** en modo automático envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
+**El texto y la clave van de tu dispositivo al proveedor elegido por HTTPS.** En web/móvil el navegador hace la petición directamente. El paquete Windows/Mac utiliza el conector de tu propio ordenador (`127.0.0.1`), sin intermediario compartido de PDF Contigo. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus condiciones. **Conectar** en modo automático envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
+
+### Conexión directa y errores
+
+Desde **2.4 beta 6** se retira el relay público. Recarga la web o actualiza el ZIP: los paquetes anteriores no tienen este conector local. No necesitas contratar un servidor ni introducir su dirección. La configuración muestra el recorrido que usa tu instalación.
+
+En móvil y web el proveedor debe admitir peticiones desde el navegador (CORS). Si no las admite, o la cuenta las restringe, usa el paquete de escritorio o el resumen local. No se envían las claves a un proxy de terceros como alternativa. Un fallo de red no demuestra que la clave sea incorrecta.
+
+DeepSeek consulta su catálogo y prefiere un modelo de texto Flash cuando está disponible. Usa Chat Completions y salida JSON, sin modo de razonamiento en esta tarea. No se presenta como API gratuita: revisa el saldo y las condiciones de tu cuenta.
 
 ### Sin API o con cuota gratuita
 
@@ -34,7 +42,7 @@ Gemini ofrece un plan gratuito para ciertos modelos y cuentas. [Crea tu clave en
 
 No se incluye una clave pública compartida ni se promete IA anónima gratuita. La revisión de proveedores del 15 de octubre de 2026 no encontró una opción sin credenciales que se incorporase como servicio estable: incluso [Pollinations requiere clave para generar](https://gen.pollinations.ai/docs). Las condiciones de servicios externos pueden cambiar.
 
-El servidor exige una cita literal y página para cada punto y comprueba que esa cita exista en el texto extraído. Una cita correcta **no demuestra que la interpretación de la IA sea correcta**. Revisa cifras, nombres, obligaciones y fechas en el original. No calcula plazos administrativos ni realiza gestiones. Los escaneados necesitan OCR; sus errores pueden trasladarse al informe. No es una revisión profesional ni sustituye el documento.
+La aplicación exige una cita literal y página para cada punto y comprueba que esa cita exista en el texto extraído. Una cita correcta **no demuestra que la interpretación de la IA sea correcta**. Revisa cifras, nombres, obligaciones y fechas en el original. No calcula plazos administrativos ni realiza gestiones. Los escaneados necesitan OCR; sus errores pueden trasladarse al informe. No es una revisión profesional ni sustituye el documento.
 
 ## Qué esperar de PDF a Word
 
@@ -52,8 +60,8 @@ Se procesa en el ordenador, con temporales que se eliminan al finalizar normalme
 
 ## Comprobación de esta beta
 
-En 2.4 beta 5 se corrige una incompatibilidad de redirecciones de fetch con workerd que impedía conectar. El flujo se verifica también en ese motor real con un proveedor ficticio. La configuración de OpenAI explica la separación entre API y ChatGPT; los errores diferencian autenticación, permisos, saldo/límite de gasto, ritmo/cuota y modelo. El código de diagnóstico aparece junto al mensaje de conexión, sin exponer detalles brutos del proveedor.
+En 2.4 beta 6 el flujo se ejecuta en el dispositivo. Se comprueba en workerd real que la ruta pública antigua responde 410 y no contacta con proveedores. Se prueban destinos directos, conector local, redirecciones, cancelaciones y límites con proveedores ficticios. La configuración de OpenAI explica la separación entre API y ChatGPT; los errores diferencian autenticación, permisos, saldo/límite de gasto, ritmo/cuota y modelo. El código de diagnóstico aparece junto al mensaje de conexión, sin exponer detalles brutos del proveedor.
 
-Los adaptadores de IA se verifican con respuestas simuladas para los cinco proveedores, validación de citas, límites y consentimiento. No se ha realizado consumo con claves reales en esta entrega. Las conversiones Office se prueban con documentos ficticios y LibreOffice en Linux; Windows, Mac, navegadores y dispositivos reales siguen necesitando comprobación. No se presenta una prueba simulada como validación completa del servicio externo.
+Los adaptadores de IA se verifican con respuestas simuladas para los seis proveedores, validación de citas, límites y consentimiento. No se ha realizado consumo con claves reales en esta entrega. Las conversiones Office se prueban con documentos ficticios y LibreOffice en Linux; Windows, Mac, navegadores y dispositivos reales siguen necesitando comprobación. No se presenta una prueba simulada como validación completa del servicio externo.
 
-Referencias de implementación: [Gemini](https://ai.google.dev/gemini-api/docs), [OpenAI](https://platform.openai.com/docs/api-reference/responses), [Claude](https://platform.claude.com/docs/en/api/overview), [Grok](https://docs.x.ai/developers/rest-api-reference/inference), [Mistral](https://docs.mistral.ai/api/endpoint/chat), [LibreOffice](https://help.libreoffice.org/latest/es/text/shared/guide/start_parameters.html).
+Referencias de implementación: [Gemini](https://ai.google.dev/gemini-api/docs), [OpenAI](https://platform.openai.com/docs/api-reference/responses), [Claude](https://platform.claude.com/docs/en/api/overview), [Grok](https://docs.x.ai/developers/rest-api-reference/inference), [Mistral](https://docs.mistral.ai/api/endpoint/chat), [DeepSeek](https://api-docs.deepseek.com/api/create-chat-completion/), [LibreOffice](https://help.libreoffice.org/latest/es/text/shared/guide/start_parameters.html).

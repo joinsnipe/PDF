@@ -1,3 +1,4 @@
+import {initReadingPreferences} from './accessibility.js';
 import { ADVANCED_TOOLS, advancedOperation, formFields } from './advanced.js';
 import { advancedOptions, bindAdvanced, collectAdvanced, clearAdvanced } from './advanced-ui.js';
 import { LIMITS, niceSize, readPdf, processPdf, imagesToPdf, pageRange } from './core.js';
@@ -51,7 +52,7 @@ function renderTools(){
   const search=$('#search').value.toLocaleLowerCase('es');
   const displayed=tools.filter(t=>(filter==='all'||t.category===filter)&&`${t.name} ${t.desc}`.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(search.normalize('NFD').replace(/[\u0300-\u036f]/g,'')));
   $('#tool-grid').innerHTML=displayed.map(t=>`<button class="tool-card" data-tool="${t.id}" style="--tint:${t.color};--tone:${t.tone}"><span class="tool-icon">${icon(t.icon)}</span>${t.tag?`<span class="card-tag">${t.tag}</span>`:''}<span class="card-arrow" aria-hidden="true">↗</span><h3>${t.name}</h3><p>${t.desc}</p></button>`).join('');
-  const aiMatch=['ia','api','gemini','openai','claude','grok','mistral','resumen','resumir','explicar','leer','analizar'].some(word=>word.includes(search.trim()));
+  const aiMatch=['ia','api','gemini','openai','claude','grok','mistral','deepseek','resumen','resumir','explicar','leer','analizar'].some(word=>word.includes(search.trim()));
   $('#ai-panel').hidden=!['all','analyze'].includes(filter)||!aiMatch;
   $('#empty-search').hidden=!!displayed.length||!$('#ai-panel').hidden;
   $('#tools-title').textContent={all:'Todas las herramientas',organize:'Organizar',convert:'Convertir',edit:'Editar y optimizar',security:'Firma y seguridad',analyze:'Leer, analizar e IA'}[filter];
@@ -60,6 +61,7 @@ function renderTools(){
 document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;renderTools();}));
 $('#search').addEventListener('input',renderTools);
 initAISettings();
+initReadingPreferences();
 document.querySelectorAll('[data-ai-action]').forEach(button=>button.addEventListener('click',()=>{
  const action=button.dataset.aiAction,mode=action==='local'?'local':'ai',task=action==='explain'?'explain':'summary';
  setAIIntent(mode,task);
@@ -67,7 +69,7 @@ document.querySelectorAll('[data-ai-action]').forEach(button=>button.addEventLis
  else openTool('summary');
 }));
 $('#tool-grid').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b)openTool(b.dataset.tool);});
-document.addEventListener('keydown',e=>{if(e.key==='/'&&!dialog.open&&!$('#help-dialog').open&&!$('#ai-settings-dialog').open&&!$('#share-app-dialog').open&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus();}});
+document.addEventListener('keydown',e=>{if(e.key==='/'&&!document.querySelector('dialog[open]')&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();$('#search').focus();}});
 for(const id of ['help-open','privacy-open'])$('#'+id).onclick=()=>$('#help-dialog').showModal();
 for(const id of ['help-close','help-done'])$('#'+id).onclick=()=>$('#help-dialog').close();
 

@@ -18,7 +18,7 @@
 | `tests/` | Motores, UI simulada y controladores HTTP |
 | `scripts/package.py` | ZIPs con runtimes, licencias y hashes |
 
-El cliente PDF sigue siendo estático. `server/ai-service.mjs` añade un relay opcional sin base de datos para las claves aportadas por cada usuario; `hosting/` lo publica con Vinext/Cloudflare Workers. `local/office.py` y `local/office.mjs` ejecutan LibreOffice opcionalmente. `dist/vendor/` se genera y se excluye del GitHub público para no almacenar binarios grandes. Instala las dependencias de raíz y `hosting/` para construir la web completa.
+El cliente PDF sigue siendo estático. `dist/ai-provider.js` implementa los seis proveedores en el cliente. `hosting/` entrega la web mediante Vinext/Cloudflare Workers; el antiguo `server/ai-service.mjs` solo responde 410, sin leer cuerpos ni ejecutar peticiones externas. `local/office.py` y `local/office.mjs` ejecutan LibreOffice opcionalmente. `dist/vendor/` se genera y se excluye del GitHub público para no almacenar binarios grandes. Instala las dependencias de raíz y `hosting/` para construir la web completa.
 
 ## Construcción y pruebas
 
@@ -76,7 +76,7 @@ La primera versión es prerelease hasta comprobar los dispositivos reales. Mant�
 
 ## Publicar la web
 
-Aloja todo `dist/` en un servicio estático con HTTPS, con index.html en su raíz y MIME correctos para JS/MJS/WASM. Las herramientas locales no requieren claves ni variables de entorno. Para IA se necesita además `/api/ai`: el ZIP estático y GitHub Pages por sí solos no lo incluyen. Las rutas relativas permiten alojar en subdirectorios como `/PDF/`.
+Aloja todo `dist/` en un servicio estático con HTTPS, con index.html en su raíz y MIME correctos para JS/MJS/WASM. Las herramientas locales no requieren claves ni variables de entorno. Desde beta 6 la IA directa también funciona en un alojamiento estático si el proveedor admite CORS; no requiere `/api/ai`. Las rutas relativas permiten alojar en subdirectorios como `/PDF/`.
 
 GitHub Pages es una opción: activa Pages en los ajustes del repo y usa su workflow oficial para construir y publicar dist. El workflow incluido distribuye Releases: **no configura Pages**. La web enlazada en el README se aloja por separado; una Release no actualiza ese alojamiento automáticamente.
 
@@ -84,12 +84,12 @@ No hay service worker ni caché offline garantizada de la web. Los paquetes loca
 
 La integración AutoFirma se prueba con el cliente oficial y un WebSocket simulado; `tests/autofirma.test.mjs` cubre el protocolo y el retorno. No configura servicios intermedios. La prueba nativa completa requiere Windows/Mac y AutoFirma instalada; véase `docs/AUTOFIRMA.md`. Mantén intactos los bytes firmados y no conviertas un error de comunicación en error de contraseña.
 
-## Relay de IA y extensibilidad
+## IA directa y extensibilidad
 
-`dist/ai-contract.js` define proveedores y valida citas; `dist/ai-ui.js` exige revisión y consentimiento; `dist/ai-client.js` llama a `/api/ai` o al servidor público desde el paquete local. `server/ai-service.mjs` fija los destinos de los cinco proveedores, sin endpoints arbitrarios ni secretos compartidos. Los modelos se consultan con la clave del usuario; se puede escribir el identificador manualmente. Las peticiones llevan un máximo de 60.000 caracteres/100 páginas y 4.096 tokens de salida. No se activan herramientas, navegación ni acciones del modelo. Una cita que no aparece en su página hace rechazar el informe completo; esto no valida la interpretación.
+`dist/ai-contract.js` define proveedores y valida citas; `dist/ai-ui.js` exige revisión y consentimiento; `dist/ai-client.js` llama directamente al proveedor desde web/móvil o al conector de la propia sesión local de escritorio. `dist/ai-provider.js` fija los destinos y formatos de los seis proveedores. `local/ai.py` y `local/ai.mjs` permiten únicamente las rutas y cabeceras de `local/ai-policy.json`, sin endpoints arbitrarios, redirecciones, reintentos ni secretos compartidos. El endpoint local exige sesión aleatoria, Host, origen, cabecera específica, JSON y límite de 512 KiB. Las respuestas se acotan a 1 MiB (16 KiB en errores). Los modelos se consultan con la clave del usuario; se puede escribir el identificador manualmente. Las peticiones llevan un máximo de 60.000 caracteres/100 páginas y 4.096 tokens de salida. No se activan herramientas, navegación ni acciones del modelo. Una cita que no aparece en su página hace rechazar el informe completo; esto no valida la interpretación.
 
-Para añadir un proveedor, incorpora su etiqueta, endpoint y adaptadores de autenticación, listado, petición y respuesta, y añade fixtures en `tests/ai.test.mjs`. No uses una clave común en JavaScript, ni añadas registros de cuerpos de petición. Claude admite el workspace opcional para claves que lo requieren. No se guardan claves de servidor en este proyecto.
+Para añadir un proveedor, incorpora su etiqueta, endpoint y adaptadores de autenticación, listado, petición y respuesta, y actualiza la CSP y `local/ai-policy.json`. Añade fixtures en `tests/ai.test.mjs` y verifica la paridad de ambos conectores en `tests/ai-transport.test.mjs`. No uses una clave común en JavaScript, ni añadas registros de cuerpos de petición. Claude admite el workspace opcional para claves que lo requieren. No se guardan claves de servidor en este proyecto.
 
-`npm run build:client` basta para los ZIP locales o el cliente estático. `npm run build` prepara también `dist/client` y `dist/server`, que no se incluyen en los ZIP de escritorio. `scripts/build-hosting.mjs` copia el cliente a `hosting/public`, ejecuta el build de Vinext conservando la integración `sites()` y recoge el Worker. En otro alojamiento implementa la ruta server-side equivalente o despliega el Worker; configura una política de origen específica, HTTPS y registros sin cuerpos/credenciales. La IA no funcionará en un alojamiento exclusivamente estático.
+`npm run build:client` basta para los ZIP locales o el cliente estático. `npm run build` prepara también `dist/client` y `dist/server`, que no se incluyen en los ZIP de escritorio. `scripts/build-hosting.mjs` copia el cliente a `hosting/public`, ejecuta el build de Vinext conservando la integración `sites()` y recoge el Worker. No añadas un relay compartido al alojar una copia: la IA del cliente utiliza los destinos HTTPS declarados en la CSP. Las políticas CORS externas pueden bloquear web/móvil; los conectores de escritorio operan desde el equipo del usuario. El servicio retirado se mantiene solo para indicar que los clientes antiguos deben actualizarse.
 
 Para pruebas de conversión real instala LibreOffice (Writer, Calc e Impress). CI lo instala, genera DOCX/XLSX/PPTX ficticios y convierte con ambos adaptadores; no distribuye esos archivos. Las pruebas de IA usan respuestas simuladas, no consumen APIs reales. Ver `docs/VALIDACION.md`.

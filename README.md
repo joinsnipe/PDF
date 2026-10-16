@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.5 · Office e IA opcional.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok o Mistral. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
+> **PDF Contigo 2.4.0-beta.6 · IA desde tu dispositivo y lectura cómoda.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -10,7 +10,7 @@
 
 Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opcional requiere una cuenta de API externa y puede generar consumo. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo.
 
-> **Web actualizada a 2.4 beta 5.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
+> **Web actualizada a 2.4 beta 6.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 
@@ -24,6 +24,12 @@ Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opc
 
 Mac: macOS 13.5 o posterior y navegador actualizado. Los paquetes de escritorio abren una aplicación web local e incluyen su runtime. No necesitas instalar Python o Node. Android e iOS utilizan la app web: no se distribuye APK, IPA ni aplicación de tienda. [Pasos y solución de problemas](docs/INSTALACION.md).
 
+## Independencia de ChatGPT
+
+Los ZIP de Windows y Mac incluyen la aplicación y sus motores: las herramientas PDF habituales funcionan en tu equipo sin cuenta, suscripción a ChatGPT ni alojamiento de PDF Contigo. Conserva una copia del ZIP. AutoFirma y LibreOffice requieren sus instalaciones respectivas; la IA externa requiere Internet y la cuenta del proveedor.
+
+La web pública sí depende de su alojamiento, y el acceso instalado en Android/iPhone sigue siendo esa web. El proyecto no garantiza alojamiento perpetuo ni su continuidad al cambiar un plan de ChatGPT. El ZIP `web` puede alojarse en un servicio estático HTTPS que tú controles; no necesita el servidor de IA de PDF Contigo. [Opciones técnicas](docs/DESARROLLO.md).
+
 ## Configura la IA sin complicaciones
 
 Pulsa **Configurar IA** en la parte superior, elige proveedor, pega tu clave y pulsa **Conectar**. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después elige **Resumir con IA** o **Explicar documento**. Revisa y autoriza el texto de cada consulta.
@@ -31,6 +37,14 @@ Pulsa **Configurar IA** en la parte superior, elige proveedor, pega tu clave y p
 **¿No tienes API?** La configuración incluye enlaces y pasos para obtenerla. Gemini ofrece cuota gratuita para ciertos modelos y cuentas; comprueba tu plan en Google AI Studio. No se garantiza uso gratuito con cualquier clave o modelo. También puedes elegir **Resumen gratuito sin API**, que selecciona frases localmente y no utiliza IA.
 
 La clave se conserva solo en la memoria de la pestaña hasta desconectar, recargar o salir de ella. No se guarda para próximas visitas. [Guía y condiciones](docs/IA-Y-OFFICE.md).
+
+**Tu dispositivo → tu proveedor.** La web conecta directamente con la API elegida. En Windows/Mac, el conector se ejecuta en tu propio ordenador y contacta con ese proveedor por HTTPS. Las consultas no pasan por un servidor compartido de PDF Contigo. En web/móvil, la conexión depende de que el proveedor permita acceso desde el navegador; si lo bloquea, utiliza el paquete de escritorio. No se recurre a un proxy externo automáticamente.
+
+## Accesibilidad y lectura cómoda
+
+Abre **Accesibilidad · lectura cómoda**, debajo del título, para activar texto más grande, más contraste o reducir movimiento. Se recuerdan solo estas preferencias visuales en tu navegador. Se refuerza el foco del teclado y el enlace para saltar al contenido. El visor ofrece **Texto de esta página**, ampliable y navegable con teclado; los escaneados requieren OCR.
+
+Son mejoras prácticas de acceso a la interfaz, no una certificación WCAG ni una conversión automática de documentos a PDF accesible. [Alcance y comprobaciones](docs/ACCESIBILIDAD.md).
 
 ## Trabaja viendo tus páginas
 
@@ -55,7 +69,7 @@ Selecciona páginas tocando sus miniaturas. En «Girar PDF» ves el giro antes d
 
 ## Límites que conviene conocer
 
-- Resumen local: frases literales. Resumen con IA: síntesis o explicación con citas por página, usando tu API de uno de los cinco proveedores. Debes revisar y autorizar el texto; puede tener coste y equivocarse. Los escaneados necesitan OCR primero.
+- Resumen local: frases literales. Resumen con IA: síntesis o explicación con citas por página, usando tu API de uno de los seis proveedores. Debes revisar y autorizar el texto; puede tener coste y equivocarse. Los escaneados necesitan OCR primero.
 - PDF a Word ofrece texto y tablas sencillas editables, sin reconstruir imágenes ni garantizar el diseño. El modo aspecto inserta una imagen por página y no es editable. Hasta 80 páginas.
 - La firma a mano es una imagen. La firma digital de escritorio usa AutoFirma (instalada por separado); el método P12/PFX RSA permanece como alternativa. PDF no configura sello de tiempo ni verifica confianza o revocación de la CA. La app bloquea cambios de contenido y seguridad en documentos firmados. «Certificar sin cambios» declara que no se permiten ediciones ni nuevas firmas; no impide físicamente alterar una copia, pero una modificación prohibida no conserva intacta la certificación.
 - El recorte es visual. Para eliminar una zona utiliza la herramienta específica de ocultación y revisa el resultado; convierte las páginas en imágenes.
@@ -82,7 +96,7 @@ python local/launcher.py
 
 Si el ejecutable se llama `python3`, sustituye `python` por `python3`. El lanzador muestra una dirección local y abre el navegador. No abras `dist/index.html` directamente como archivo.
 
-Los motores se reconstruyen con las versiones fijadas en `package-lock.json`: el repositorio contiene código y licencias; las Releases contienen la aplicación preparada. `npm run build:client` prepara PDF.js, pdf-lib, qpdf WASM, OCR, firma e iconos. `npm run build` añade el servidor opcional de IA; requiere las dependencias de `hosting/`. [Arquitectura, empaquetado y despliegue](docs/DESARROLLO.md).
+Los motores se reconstruyen con las versiones fijadas en `package-lock.json`: el repositorio contiene código y licencias; las Releases contienen la aplicación preparada. `npm run build:client` prepara PDF.js, pdf-lib, qpdf WASM, OCR, firma e iconos. `npm run build` prepara además el alojamiento web, sin relay de IA; requiere las dependencias de `hosting/`. [Arquitectura, empaquetado y despliegue](docs/DESARROLLO.md).
 
 ## Colaborar y compartir
 

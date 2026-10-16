@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 2.4.0-beta.6
+
+La IA conecta desde el dispositivo al proveedor elegido. En Windows/Mac se usa exclusivamente el conector del propio equipo. Se retira el relay público: las versiones anteriores deben actualizarse. Se mantienen la revisión del texto, el consentimiento, las citas y la clave solo en memoria. Se añade DeepSeek, su catálogo y salida JSON, sin cambio automático de proveedor. Web/móvil dependen de que el proveedor permita CORS.
+
+Nueva sección «Accesibilidad · lectura cómoda»: texto grande, más contraste y reducción de movimiento, con preferencias locales. Foco visible reforzado, salto al contenido enfocable, progreso etiquetado y texto del visor navegable con teclado. Son mejoras de interfaz, sin certificación WCAG ni PDF/UA. [Alcance](docs/ACCESIBILIDAD.md).
+
 ## 2.4.0-beta.5
 
 Corrige la conexión de IA en Cloudflare Workers: usa redirección manual y rechaza destinos alternativos sin reenviar claves. Distingue errores de autenticación, permisos, saldo, cuota y modelo. Añade una prueba en workerd real con proveedor simulado. La configuración de OpenAI explica que su API se factura aparte de ChatGPT.

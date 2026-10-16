@@ -1,12 +1,22 @@
 import {AI_PROVIDERS,AI_TEXT_LIMIT,aiError,validateReport,reportText} from './ai-contract.js';
-export const AI_SERVICE='https://snipe-pdf.snipex.chatgpt.site/api/ai';
-export function aiEndpoint(location=globalThis.location){return location?.hostname==='127.0.0.1'?AI_SERVICE:new URL('./api/ai',location.href).href;}
-export async function requestAI(input,{signal,fetcher=fetch,endpoint=aiEndpoint()}={}){
- let response;
- try{response=await fetcher(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-PDF-AI':'1'},body:JSON.stringify(input),credentials:'omit',cache:'no-store',redirect:'error',signal:signal||AbortSignal.timeout(90000)});}
- catch(e){throw aiError('AI_CONNECTION',e.name==='AbortError'?'Consulta cancelada. Puede haber consumo si ya llegó al proveedor.':'No se pudo conectar con el servicio de IA. Comprueba tu conexión; la consulta no se repite automáticamente.');}
- let result;try{result=await response.json();}catch{throw aiError('AI_SERVICE','El servicio de IA no está disponible en esta instalación. Usa la web oficial o configura su servidor.');}
- if(!response.ok||result.error)throw aiError(result.code||'AI_SERVICE',result.error||'No se pudo completar la consulta.');return result;
+import {callAI,boundedJSON} from './ai-provider.js';
+export function desktopAIEndpoint(location=globalThis.location){
+ if(location?.protocol!=='http:'||location.hostname!=='127.0.0.1'||!/^\/[A-Za-z0-9_-]{32}\/(?:index\.html)?$/.test(location.pathname))return null;
+ return new URL('./_desktop/ai',location.href).href;
+}
+export async function requestAI(input,{signal,fetcher=fetch,location=globalThis.location}={}){
+ const endpoint=desktopAIEndpoint(location);
+ const transport=endpoint?async(url,init)=>{
+  let response;
+  try{response=await fetcher(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-PDF-Local':'1'},body:JSON.stringify({url,method:init.method,headers:init.headers,body:init.body}),credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'same-origin',signal:init.signal});}
+  catch(e){if(init.signal?.aborted)throw e;throw aiError('AI_LOCAL_CONNECTION','No se pudo contactar con el conector de tu ordenador. Vuelve a abrir PDF y actualiza el paquete si es antiguo. No se ha recurrido a un servidor externo.');}
+  if(!response.ok)throw aiError('AI_LOCAL_CONNECTION','El conector local no está disponible o ha rechazado la petición. Actualiza y vuelve a abrir el paquete de escritorio.');
+  const result=await boundedJSON(response,2*1024*1024);
+  if(result.code)throw aiError(result.code,result.error);
+  if(!Number.isInteger(result.status)||result.status<200||result.status>599||typeof result.body!=='string')throw aiError('AI_LOCAL_RESPONSE','El conector local devolvió una respuesta no válida.');
+  return new Response([204,205,304].includes(result.status)?null:result.body,{status:result.status});
+ }:fetcher;
+ return callAI(input,transport,{signal,browser:!endpoint});
 }
 export async function aiSummary(file,pages,opts,progress=()=>{}){
  try{

@@ -207,10 +207,10 @@ test('firma dibujada se encuentra en Firma y seguridad',()=>{
 test('IA: configurar sin PDF, modelo automático, revisar, autorizar, reutilizar y olvidar',async()=>{
  const previousFetch=globalThis.fetch;globalThis.location=window.location;const calls=[];
  const {getAISettings}=await import('../dist/ai-settings.js');
- globalThis.fetch=async(url,init)=>{if(String(url).endsWith('/api/ai')){const body=JSON.parse(init.body);calls.push(body);assert.equal(body.provider,'mistral');assert.equal(body.apiKey,'test-api-key-example');
-  if(body.action==='models'){assert.equal(body.pages,undefined);return Response.json({models:[{id:'mistral-large-latest'},{id:'mistral-small-latest'},{id:'mistral-embed'}]});}
-  assert.equal(body.consent,true);assert.equal(body.model,'mistral-small-latest');return Response.json({report:{items:[{group:'Resumen',text:'Documento de prueba.',page:1,quote:'Documento de prueba'}],missing:[]}});
- }return previousFetch(url,init);};
+ globalThis.fetch=async(url,init)=>{if(String(url).startsWith('https://api.mistral.ai/v1/')){const body=init.body?JSON.parse(init.body):null;calls.push({url,body});assert.equal(init.headers.Authorization,'Bearer test-api-key-example');
+  if(init.method==='GET'){assert.equal(init.body,undefined);return Response.json({data:[{id:'mistral-large-latest'},{id:'mistral-small-latest'},{id:'mistral-embed'}]});}
+  assert.equal(body.model,'mistral-small-latest');return Response.json({choices:[{message:{content:JSON.stringify({items:[{group:'Resumen',text:'Documento de prueba.',page:1,quote:'Documento de prueba'}],missing:[]})}}]});
+ }assert.ok(!String(url).includes('/api/ai'),'Nunca usa el relay de PDF');return previousFetch(url,init);};
  try{
   $('.topbar [data-ai-settings]').click();assert.equal($('#work-dialog').open,false);assert.equal($('#ai-settings-dialog').open,true);
   $('#ai-provider').value='mistral';$('#ai-provider').onchange();$('#ai-key').value='test-api-key-example';await $('#ai-connect').onclick();
@@ -218,7 +218,7 @@ test('IA: configurar sin PDF, modelo automático, revisar, autorizar, reutilizar
   $('[data-ai-action="explain"]').click();await add([await sample()]);assert.equal($('#opt-summarymode').value,'ai');assert.equal($('#opt-aimode').value,'explain');assert.equal($('#ai-options').hidden,false);
   await $('#process').onclick();assert.equal(calls.length,1);assert.match($('#error').textContent,/autoriza/);
   await $('#ai-review').onclick();assert.match($('#ai-review-text').textContent,/Documento de prueba/);assert.equal($('#ai-consent').disabled,false);$('#ai-consent').checked=true;
-  await $('#process').onclick();assert.equal($('#error').hidden,true,$('#error').textContent);assert.equal(calls.length,2);assert.equal(calls[1].mode,'explain');assert.ok($('#download').download.endsWith('-informe-ia.txt'));assert.match($('#result-viewer').textContent,/Documento original para contrastar/);assert.match($('#result-preview').textContent,/Cita/);assert.equal(getAISettings().apiKey,'test-api-key-example');
+  await $('#process').onclick();assert.equal($('#error').hidden,true,$('#error').textContent);assert.equal(calls.length,2);assert.match(calls[1].body.messages[1].content,/Explica qué pide/);assert.ok($('#download').download.endsWith('-informe-ia.txt'));assert.match($('#result-viewer').textContent,/Documento original para contrastar/);assert.match($('#result-preview').textContent,/Cita/);assert.equal(getAISettings().apiKey,'test-api-key-example');
   $('#start-again').click();await add([await sample()]);await $('#ai-review').onclick();$('#ai-consent').checked=true;
   $('#tool-options [data-ai-settings]').click();$('#ai-forget').click();$('#ai-settings-close').click();assert.equal(getAISettings(),null);assert.equal($('#ai-consent').checked,false);assert.equal($('#ai-consent').disabled,true);
   await $('#process').onclick();assert.match($('#error').textContent,/Configurar IA/);assert.equal(calls.length,2);
@@ -232,7 +232,7 @@ test('IA: cancelar o cambiar proveedor descarta conexiones tardías y permite re
  try{
   $('[data-ai-settings]').click();$('#ai-key').value='test-api-key-example';const pending=$('#ai-connect').onclick();assert.equal($('#ai-connect').disabled,true);
   $('#ai-provider').value='openai';$('#ai-provider').onchange();finish(Response.json({models:[{id:'gemini-2.5-flash'}]}));await pending;assert.equal(getAISettings(),null);assert.equal($('#ai-key').value,'');assert.equal($('#ai-connect').disabled,false);assert.equal($('#ai-settings-dialog').open,true);
-  $('#ai-key').value='test-api-key-example';globalThis.fetch=async()=>Response.json({error:'Clave no válida.'},{status:401});await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/Clave no válida/);assert.equal(getAISettings(),null);assert.equal($('#ai-connect').disabled,false);
+  $('#ai-key').value='test-api-key-example';globalThis.fetch=async()=>Response.json({error:'Clave no válida.'},{status:401});await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/no acepta esta clave/);assert.equal(getAISettings(),null);assert.equal($('#ai-connect').disabled,false);
   globalThis.fetch=()=>new Promise(resolve=>{finish=resolve;});const cancelled=$('#ai-connect').onclick();$('#ai-settings-close').click();finish(Response.json({models:[{id:'gpt-4.1-mini'}]}));await cancelled;assert.equal(getAISettings(),null);assert.equal($('#ai-key').value,'');
   $('[data-ai-settings]').click();$('#ai-key').value='test-api-key-example';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gemini-custom-text';await $('#ai-connect').onclick();assert.equal(getAISettings().manual,true);assert.equal(getAISettings().model,'gemini-custom-text');window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);
  }finally{globalThis.fetch=previousFetch;delete globalThis.location;}

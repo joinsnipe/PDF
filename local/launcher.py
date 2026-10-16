@@ -20,6 +20,9 @@ MAX_PDF = 100 * 1024 * 1024
 _spec = importlib.util.spec_from_file_location('pdf_office', Path(__file__).with_name('office.py'))
 office = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(office)
+_ai_spec = importlib.util.spec_from_file_location('pdf_ai', Path(__file__).with_name('ai.py'))
+ai = importlib.util.module_from_spec(_ai_spec)
+_ai_spec.loader.exec_module(ai)
 
 
 def pdf_bytes(data):
@@ -139,6 +142,26 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         decoded = self.local_path()
         if decoded is None:
+            return
+        if decoded == '_desktop/ai':
+            if (self.headers.get('Origin') != f'http://127.0.0.1:{self.server.server_port}' or
+                    self.headers.get('X-PDF-Local') != '1' or
+                    self.headers.get('Sec-Fetch-Site', 'same-origin') != 'same-origin'):
+                self.send_error(403)
+                return
+            length = self.headers.get('Content-Length', '')
+            if (not re.fullmatch(r'[0-9]{1,9}', length) or not 0 < int(length) <= ai.MAX_INPUT or
+                    self.headers.get('Transfer-Encoding') or self.headers.get('Content-Type') != 'application/json'):
+                self.send_error(400)
+                return
+            try:
+                self.connection.settimeout(15)
+                raw = self.rfile.read(int(length))
+                if len(raw) != int(length):
+                    raise ValueError('incomplete')
+                self.office_reply(ai.forward(json.loads(raw)))
+            except (ValueError, OSError):
+                self.send_error(400)
             return
         if decoded == '_desktop/office/convert':
             if (self.headers.get('Origin') != f'http://127.0.0.1:{self.server.server_port}' or

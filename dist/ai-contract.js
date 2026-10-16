@@ -1,4 +1,4 @@
-export const AI_PROVIDERS=Object.freeze({gemini:'Gemini · Google',openai:'OpenAI',anthropic:'Claude · Anthropic',xai:'Grok · xAI',mistral:'Mistral'});
+export const AI_PROVIDERS=Object.freeze({gemini:'Gemini · Google',openai:'OpenAI',anthropic:'Claude · Anthropic',xai:'Grok · xAI',mistral:'Mistral',deepseek:'DeepSeek'});
 export const AI_TEXT_LIMIT=60000;
 export function aiError(code,message){return Object.assign(new Error(message),{code});}
 const normalized=s=>s.normalize('NFKC').replace(/\s+/gu,' ').trim();

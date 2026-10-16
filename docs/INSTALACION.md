@@ -102,3 +102,9 @@ Para IA abre «Resumir y entender», elige el modo IA, proveedor y modelo, pega 
 Pulsa **Compartir** arriba a la derecha, también disponible en móvil y al abrirla como app instalada. Si el navegador permite compartir, abre el menú nativo para elegir una aplicación o destinatario. Si no lo permite, aparece el enlace con **Copiar enlace**; cuando el portapapeles está bloqueado, puedes seleccionarlo y copiarlo manualmente.
 
 Comparte siempre la dirección pública de PDF Contigo, también desde el paquete local de Windows/Mac. No incorpora documentos ni direcciones de sesión. Para compartir un resultado PDF, utiliza **Compartir archivo…** después de procesarlo.
+
+## ¿Depende de ChatGPT Pro o de una web activa?
+
+Los paquetes Windows/Mac llevan los motores y recursos de PDF. Las herramientas habituales no comprueban una cuenta de ChatGPT ni necesitan que siga activa la web pública. Puedes conservar y redistribuir el ZIP bajo sus licencias. IA externa requiere tu clave, conexión y condiciones del proveedor; Office/AutoFirma requieren sus programas locales.
+
+Android/iPhone utilizan actualmente la web añadida a inicio: necesitan que siga disponible el alojamiento, no son una app nativa con todos los recursos incluidos. No se garantiza que un alojamiento externo sea permanente ni que su disponibilidad se conserve tras cambiar la suscripción del propietario. Puedes alojar el paquete `web` en un servicio HTTPS propio; desde beta 6 la IA conecta directamente con el proveedor, sujeta a CORS.

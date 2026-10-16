@@ -1,11 +1,12 @@
 import {AI_PROVIDERS} from './ai-contract.js';
-import {requestAI} from './ai-client.js';
+import {requestAI,desktopAIEndpoint} from './ai-client.js';
 const $=id=>document.getElementById(id);
 const links={
  gemini:{key:'https://aistudio.google.com/apikey',terms:'https://ai.google.dev/gemini-api/docs/pricing'},
  openai:{key:'https://platform.openai.com/api-keys',terms:'https://openai.com/api/pricing/'},
  anthropic:{key:'https://console.anthropic.com',terms:'https://www.anthropic.com/pricing'},
  xai:{key:'https://console.x.ai',terms:'https://docs.x.ai/docs/models'},
+ deepseek:{key:'https://platform.deepseek.com',terms:'https://api-docs.deepseek.com/quick_start/pricing/'},
  mistral:{key:'https://console.mistral.ai',terms:'https://mistral.ai/pricing'}
 };
 let connection=null,revision=0,pending=null,requestRevision=0;
@@ -27,13 +28,14 @@ export function forgetAISettings(){connection=null;revision++;cleanDraft();annou
 // Prefer stable text families. Selection does not establish quota or price.
 export function chooseAIModel(provider,models){
  const rows=(Array.isArray(models)?models:[]).filter(m=>typeof m?.id==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,149}$/.test(m.id)&&!/(embedding|image|audio|tts|transcri|realtime|live|research|robotic|computer-use|moderation|rerank|vision-only|aqa)/i.test(m.id));
- const families={gemini:/^gemini-.*(flash|pro)/,openai:/^(gpt-([4-9]|\d{2,})|o[1-9]|chatgpt-)/,anthropic:/^claude-/,xai:/^grok-/,mistral:/mistral|ministral|magistral|mixtral/};
+ const families={gemini:/^gemini-.*(flash|pro)/,openai:/^(gpt-([4-9]|\d{2,})|o[1-9]|chatgpt-)/,anthropic:/^claude-/,xai:/^grok-/,mistral:/mistral|ministral|magistral|mixtral/,deepseek:/^deepseek-/};
  const score=id=>{
   let n=/(preview|experimental|exp-|beta)/i.test(id)?-100:0;
   if(provider==='gemini')n+=id==='gemini-2.5-flash'?90:/flash-lite/.test(id)?70:/flash/.test(id)?60:0;
   if(provider==='openai')n+=/mini/.test(id)?60:/nano/.test(id)?40:0;
   if(provider==='anthropic')n+=/haiku/.test(id)?60:/sonnet/.test(id)?30:0;
   if(provider==='xai')n+=/fast/.test(id)?60:/mini/.test(id)?40:0;
+  if(provider==='deepseek')n+=/flash/.test(id)?90:/chat/.test(id)?60:0;
   if(provider==='mistral')n+=id==='mistral-small-latest'?90:/small/.test(id)?60:/medium/.test(id)?30:0;
   return n+(/latest/.test(id)?5:0);
  };
@@ -57,6 +59,7 @@ export function openAISettings(){
  $('ai-provider').value=connection?.provider||'gemini';providerChanged();
  if(connection){$('ai-key').value=connection.apiKey;$('ai-workspace').value=connection.workspace;$('ai-current-model').textContent=`Modelo actual: ${connection.model}. La cuota y el precio dependen de tu cuenta.`;
   if(connection.manual){$('ai-model-choice').value='manual';$('ai-manual-model').hidden=false;$('ai-model-id').value=connection.model;}}
+ $('ai-connection-route').textContent=desktopAIEndpoint()?'Conexión: tu navegador → conector en tu ordenador → proveedor elegido.':'Conexión: tu navegador → proveedor elegido. Sin servidor intermedio de PDF Contigo.';
  $('ai-advanced').open=false;$('ai-get-key-help').open=!connection;
  if($('ai-forget'))$('ai-forget').hidden=!connection;
  dialog.showModal();

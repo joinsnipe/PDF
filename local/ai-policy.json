@@ -1,0 +1,8 @@
+{
+  "https://api.openai.com/v1": {"get": "/models", "post": "/responses", "auth": "Authorization"},
+  "https://api.x.ai/v1": {"get": "/models", "post": "/responses", "auth": "Authorization"},
+  "https://api.mistral.ai/v1": {"get": "/models", "post": "/chat/completions", "auth": "Authorization"},
+  "https://api.deepseek.com": {"get": "/models", "post": "/chat/completions", "auth": "Authorization"},
+  "https://api.anthropic.com/v1": {"get": "/models?limit=100", "post": "/messages", "auth": "x-api-key"},
+  "https://generativelanguage.googleapis.com/v1beta": {"get": "/models?pageSize=100", "post": "/models/", "auth": "x-goog-api-key"}
+}

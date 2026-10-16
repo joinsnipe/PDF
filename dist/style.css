@@ -40,3 +40,31 @@ dialog{border:1px solid #e1e5db;border-radius:18px;padding:0;color:var(--ink);bo
 .topbar-actions{margin-left:auto;min-width:0}.topbar-settings{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}.share-app-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;border:1px solid #c92b32;border-radius:5px;background:#c92b32;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}.share-app-button:hover{background:#aa2027;border-color:#aa2027}.share-app-button svg{width:18px;height:18px;stroke-width:1.8}.share-app-dialog{max-width:460px}.share-app-dialog>p{font-size:14px;line-height:1.6}.share-app-dialog .field{margin:20px 0}.share-app-dialog input{width:100%;font-size:14px}.share-app-status{min-height:44px;color:#555}
 @media(max-width:1100px){.topbar>div:first-child{display:none}.topbar-actions{width:100%;justify-content:flex-end}}
 @media(max-width:720px){.topbar-actions{flex-wrap:nowrap;align-items:flex-start;gap:8px}.topbar-settings{gap:8px;flex:1}.topbar-settings .install-button{font-size:12px;padding:10px 8px}.topbar .share-app-button{margin-left:auto;min-height:44px;padding:10px;font-size:12px}.share-app-dialog input{font-size:16px}.share-app-dialog .primary{width:100%;justify-content:center}}
+/* Reading preferences apply to the interface, never to PDF page pixels. */
+.reading-tools{margin:0 0 24px;padding:12px 16px;border:1px solid #c8c8c8;border-radius:6px;background:#fff;color:#27272b}
+.reading-tools>summary{cursor:pointer;font-size:15px;font-weight:700;min-height:44px;align-content:center}
+.reading-options{display:flex;gap:12px 24px;align-items:center;flex-wrap:wrap}
+.reading-options .check-row{min-height:44px;display:flex;align-items:center;gap:10px;font-size:15px}
+.reading-options input{width:20px;height:20px;flex-shrink:0;accent-color:#a11b22}
+.reading-tools p{font-size:14px;line-height:1.6;max-width:80ch}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #1548a6;outline-offset:3px}
+.icon-button,.file-controls button,.page-actions button{min-width:44px;min-height:44px}
+.viewer-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-family:Arial,Helvetica,sans-serif}
+[data-reading-large] body :is(p,small,label,summary,.text-button,.filter,.file-info strong,.file-info small,.ai-status,.hint,.document-note,.viewer-text,.viewer-status,.preview-help,.thumbnail-label,.version-label){font-size:1.125rem;line-height:1.65}
+[data-reading-large] body :is(button,input,select,textarea){font-size:1.125rem}
+[data-reading-large] body :is(.tool-card h3,.ai-panel h3,.how-strip h3){font-size:1.3rem;line-height:1.4}
+[data-reading-large] body :is(.topbar,.tool-card,.filter,.how-strip,.dialog-footer){height:auto;min-height:44px}
+[data-reading-large] body :is(.topbar-actions,.topbar-settings,.viewer-controls,.viewer-search,.download-alternatives){flex-wrap:wrap}
+[data-reading-large] body .tool-card{overflow:visible}
+[data-reading-large] body :is(.file-info,.field,.ai-panel-heading>div,.dialog-heading){min-width:0}
+[data-reading-large] body .ai-panel-heading{flex-wrap:wrap}
+[data-reading-contrast]{--ink:#111;--muted:#333;--line:#777;--accent:#a11b22;--green:#a11b22;--side:#a11b22}
+[data-reading-contrast] body :is(p,small,label,summary,.hint,.document-note,.viewer-status,.file-info strong,.file-info small,.preview-status,.thumbnail-label,.version-label){color:#222}
+[data-reading-contrast] body :is(.tool-card,.reading-tools,.ai-panel,.ai-help,.ai-connection,input,select,textarea,.document-preview){border-color:#666}
+[data-reading-contrast] body :is(.primary,.share-app-button){background:#a11b22;color:white;border-color:#a11b22}
+[data-reading-contrast] body :is(.install-button,.text-button,.filter,a:not(.primary):not(.brand)){color:#85151b}
+[data-reading-contrast] body .filter.active{background:#fce8e9;color:#701017;border-color:#85151b}
+[data-reading-contrast] body .error{background:#fff1f2;color:#761018;border-color:#85151b}
+[data-reading-motion] *,[data-reading-motion] *::before,[data-reading-motion] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(max-width:720px){[data-reading-large] body .tool-grid{grid-template-columns:1fr}.reading-tools{padding:10px 12px}.reading-options{gap:8px 16px}}

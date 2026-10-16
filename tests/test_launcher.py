@@ -29,6 +29,22 @@ class Socket:
 
 
 class LocalHandlerTests(unittest.TestCase):
+    def test_ai_connector_only_accepts_own_origin_session_and_bounded_json(self):
+        endpoint = '/test-token/_desktop/ai'
+        body = b'{"url":"https://api.deepseek.com/models"}'
+        headers = {'Origin': 'http://127.0.0.1:12345', 'X-PDF-Local': '1',
+                   'Content-Type': 'application/json', 'Content-Length': str(len(body))}
+        with patch.object(launcher.ai, 'forward', return_value={'status': 200, 'body': '{"data":[]}'}) as forward:
+            for bad in [{'Origin': 'https://evil.example'}, {'Sec-Fetch-Site': 'cross-site'}, {'X-PDF-Local': '0'}]:
+                self.assertIn(b'403', self.request(endpoint, method='POST', headers={**headers, **bad}, body=body))
+            self.assertIn(b'404', self.request('/wrong/_desktop/ai', method='POST', headers=headers, body=body))
+            self.assertIn(b'400', self.request(endpoint, method='POST', headers={**headers, 'Content-Length': '9999999'}))
+            forward.assert_not_called()
+            response = self.request(endpoint, method='POST', headers=headers, body=body)
+            self.assertIn(b'200 OK', response)
+            self.assertIn(b'Cache-Control: no-store', response)
+            forward.assert_called_once_with(json.loads(body))
+
     def request(self, path, host='127.0.0.1:12345', method='GET', headers=None, body=b'', documents=None):
         with tempfile.TemporaryDirectory() as temp:
             pathlib.Path(temp, 'index.html').write_text('PDF APP')
