@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 2.4.0-beta.7
+
+Configuración de IA sin Gemini preseleccionado. Cambiar proveedor conserva la clave pegada, los eventos repetidos no reinician el formulario y un cierre pendiente no vacía una configuración recién abierta. Se distinguen el campo vacío, un formato incompleto y un rechazo real del proveedor. Los formatos reconocibles de claves o modelos de otro proveedor se bloquean antes de enviar; la corrección requiere una elección y un clic explícitos. Google `API_KEY_INVALID` en HTTP 400 se clasifica como autenticación. [Detalle y pruebas](docs/releases/v2.4.0-beta.7.md).
+
 ## 2.4.0-beta.6
 
 La IA conecta desde el dispositivo al proveedor elegido. En Windows/Mac se usa exclusivamente el conector del propio equipo. Se retira el relay público: las versiones anteriores deben actualizarse. Se mantienen la revisión del texto, el consentimiento, las citas y la clave solo en memoria. Se añade DeepSeek, su catálogo y salida JSON, sin cambio automático de proveedor. Web/móvil dependen de que el proveedor permita CORS.

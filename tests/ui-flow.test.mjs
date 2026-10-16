@@ -230,10 +230,90 @@ test('IA: cancelar o cambiar proveedor descarta conexiones tardías y permite re
  const previousFetch=globalThis.fetch;globalThis.location=window.location;const {getAISettings}=await import('../dist/ai-settings.js');let finish;
  globalThis.fetch=()=>new Promise(resolve=>{finish=resolve;});
  try{
-  $('[data-ai-settings]').click();$('#ai-key').value='test-api-key-example';const pending=$('#ai-connect').onclick();assert.equal($('#ai-connect').disabled,true);
-  $('#ai-provider').value='openai';$('#ai-provider').onchange();finish(Response.json({models:[{id:'gemini-2.5-flash'}]}));await pending;assert.equal(getAISettings(),null);assert.equal($('#ai-key').value,'');assert.equal($('#ai-connect').disabled,false);assert.equal($('#ai-settings-dialog').open,true);
+  $('[data-ai-settings]').click();$('#ai-provider').value='gemini';$('#ai-provider').onchange();$('#ai-key').value='test-api-key-example';const pending=$('#ai-connect').onclick();assert.equal($('#ai-connect').disabled,true);
+  $('#ai-provider').value='openai';$('#ai-provider').onchange();finish(Response.json({models:[{id:'gemini-2.5-flash'}]}));await pending;assert.equal(getAISettings(),null);assert.equal($('#ai-key').value,'test-api-key-example');assert.equal($('#ai-connect').disabled,false);assert.equal($('#ai-settings-dialog').open,true);
   $('#ai-key').value='test-api-key-example';globalThis.fetch=async()=>Response.json({error:'Clave no válida.'},{status:401});await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/no acepta esta clave/);assert.equal(getAISettings(),null);assert.equal($('#ai-connect').disabled,false);
   globalThis.fetch=()=>new Promise(resolve=>{finish=resolve;});const cancelled=$('#ai-connect').onclick();$('#ai-settings-close').click();finish(Response.json({models:[{id:'gpt-4.1-mini'}]}));await cancelled;assert.equal(getAISettings(),null);assert.equal($('#ai-key').value,'');
-  $('[data-ai-settings]').click();$('#ai-key').value='test-api-key-example';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gemini-custom-text';await $('#ai-connect').onclick();assert.equal(getAISettings().manual,true);assert.equal(getAISettings().model,'gemini-custom-text');window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);
+  $('[data-ai-settings]').click();$('#ai-provider').value='gemini';$('#ai-provider').onchange();$('#ai-key').value='test-api-key-example';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gemini-custom-text';await $('#ai-connect').onclick();assert.equal(getAISettings().manual,true);assert.equal(getAISettings().model,'gemini-custom-text');window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);
  }finally{globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+
+test('IA: proveedor explícito, clave OpenAI en Gemini bloqueada y corrección sin envío automático',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;const calls=[];
+ const {getAISettings}=await import('../dist/ai-settings.js');
+ const fakeKey='sk-proj-only-a-test-not-a-real-key';
+ globalThis.fetch=async(url,init)=>{
+  calls.push(url);assert.equal(new URL(url).hostname,'api.openai.com');assert.equal(init.headers.Authorization,'Bearer '+fakeKey);
+  if(init.method==='GET')return Response.json({data:[{id:'gpt-4.1-mini'}]});
+  assert.equal(new URL(url).pathname,'/v1/responses');assert.equal(JSON.parse(init.body).model,'gpt-4.1-mini');
+  return Response.json({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({items:[{group:'Resumen',text:'Documento de prueba.',page:1,quote:'Documento de prueba'}],missing:[]})}]}]});
+ };
+ try{
+  $('[data-ai-settings]').click();assert.equal($('#ai-provider').value,'');assert.equal($('#ai-key').disabled,true);assert.equal($('#ai-connect').disabled,true);
+  await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/Elige primero/);assert.equal(calls.length,0);
+  $('#ai-provider').value='gemini';$('#ai-provider').onchange();$('#ai-key').value=fakeKey;$('#ai-key').dispatchEvent(new window.Event('input'));
+  assert.equal($('#ai-key-warning').hidden,false);assert.match($('#ai-key-warning').textContent,/OpenAI/);assert.equal($('#ai-key-provider-fix').hidden,false);
+  assert.equal($('#ai-provider').value,'gemini');await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/AI_KEY_PROVIDER/);assert.equal(calls.length,0);assert.equal(getAISettings(),null);
+  $('#ai-key-provider-fix').click();assert.equal($('#ai-provider').value,'openai');assert.equal($('#ai-key').value,fakeKey);assert.equal($('#ai-key-warning').hidden,true);assert.equal($('#ai-openai-help').hidden,false);assert.match($('#ai-connect').textContent,/OpenAI/);assert.equal(calls.length,0);
+  await $('#ai-connect').onclick();assert.equal(calls.length,1);assert.equal(getAISettings().provider,'openai');assert.equal($('#ai-key').value,'');
+  $('[data-ai-action="summary"]').click();await add([await sample()]);await $('#ai-review').onclick();$('#ai-consent').checked=true;
+  await $('#process').onclick();assert.equal($('#error').hidden,true,$('#error').textContent);assert.equal(calls.length,2);assert.match($('#result-preview').textContent,/Proveedor: OpenAI/);
+  $('#work-close').click();$('[data-ai-settings]').click();$('#ai-forget').click();$('#ai-settings-close').click();assert.equal(getAISettings(),null);
+ }finally{globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+
+test('IA manual también bloquea clave o modelo de otro proveedor sin red',async()=>{
+ const previousFetch=globalThis.fetch;const {getAISettings}=await import('../dist/ai-settings.js');let calls=0;
+ globalThis.fetch=async()=>{calls++;throw new Error('No debe salir ninguna petición');};
+ try{
+  $('[data-ai-settings]').click();$('#ai-provider').value='gemini';$('#ai-provider').onchange();$('#ai-key').value='sk-proj-fake-only-testing';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gemini-test';
+  await $('#ai-connect').onclick();assert.equal(getAISettings(),null);assert.match($('#ai-connect-status').textContent,/AI_KEY_PROVIDER/);
+  $('#ai-provider').value='openai';$('#ai-provider').onchange();$('#ai-key').value='sk-proj-fake-only-testing';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gemini-test';
+  await $('#ai-connect').onclick();assert.equal(getAISettings(),null);assert.match($('#ai-connect-status').textContent,/AI_MODEL_PROVIDER/);assert.equal(calls,0);$('#ai-settings-close').click();
+ }finally{globalThis.fetch=previousFetch;}
+});
+
+test('IA: corregir proveedor o repetir su evento no borra la clave ya pegada',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;const {getAISettings,forgetAISettings}=await import('../dist/ai-settings.js');
+ const key='sk-proj-fake-provider-correction-test';let calls=0;
+ globalThis.fetch=async(url,init)=>{calls++;assert.equal(new URL(url).hostname,'api.openai.com');assert.equal(init.headers.Authorization,'Bearer '+key);return Response.json({data:[{id:'gpt-4.1-mini'}]});};
+ try{
+  $('[data-ai-settings]').click();$('#ai-provider').value='gemini';$('#ai-provider').dispatchEvent(new window.Event('change'));
+  $('#ai-key').value=key;$('#ai-key').dispatchEvent(new window.Event('input'));await $('#ai-connect').onclick();assert.equal(calls,0);
+  $('#ai-provider').value='openai';$('#ai-provider').dispatchEvent(new window.Event('change'));assert.equal($('#ai-key').value,key);
+  $('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gpt-4.1-mini';
+  $('#ai-provider').dispatchEvent(new window.Event('change'));assert.equal($('#ai-key').value,key);assert.equal($('#ai-model-choice').value,'manual');assert.equal($('#ai-model-id').value,'gpt-4.1-mini');assert.equal(calls,0);
+  $('#ai-model-choice').value='auto';$('#ai-model-choice').onchange();
+  await $('#ai-connect').onclick();assert.equal(calls,1);assert.equal(getAISettings().apiKey,key);
+  $('[data-ai-settings]').click();$('#ai-settings-dialog').dispatchEvent(new window.Event('close'));assert.equal($('#ai-key').value,key);
+ }finally{forgetAISettings();$('#ai-settings-close').click();globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+
+test('IA: distingue campo vacío, clave incompleta y rechazo, conservando el borrador para reintentar',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;const {getAISettings,forgetAISettings}=await import('../dist/ai-settings.js');let calls=0;
+ const key='sk-proj-fake-pasted-with-whitespace';
+ globalThis.fetch=async(url,init)=>{calls++;assert.equal(new URL(url).hostname,'api.openai.com');assert.equal(init.headers.Authorization,'Bearer '+key);return calls===1?Response.json({error:{code:'invalid_api_key'}},{status:401}):Response.json({data:[{id:'gpt-4.1-mini'}]});};
+ try{
+  $('[data-ai-settings]').click();$('#ai-provider').value='openai';$('#ai-provider').onchange();
+  await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/campo de clave está vacío/);assert.equal(calls,0);
+  $('#ai-key').value='sk-...';await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/AI_KEY_FORMAT.*incompleta/);assert.equal($('#ai-key').value,'sk-...');assert.equal(calls,0);
+  $('#ai-key').value='sk-proj-fake spaces';await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/AI_KEY_FORMAT.*espacios/);assert.equal(calls,0);
+  // Reading the DOM on Connect also supports paste/autofill without an input event.
+  $('#ai-key').value='  '+key+'  ';await $('#ai-connect').onclick();assert.match($('#ai-connect-status').textContent,/AI_AUTH/);assert.equal($('#ai-key').value.trim(),key);assert.equal(calls,1);assert.equal(getAISettings(),null);
+  await $('#ai-connect').onclick();assert.equal(calls,2);assert.equal(getAISettings().apiKey,key);assert.equal($('#ai-key').value,'');
+ }finally{forgetAISettings();$('#ai-settings-close').click();globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+
+test('IA: un cierre pendiente de la apertura anterior no borra una clave nueva',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;const {getAISettings,forgetAISettings}=await import('../dist/ai-settings.js');
+ const key='sk-proj-fake-dialog-close-event-test';let calls=0;
+ globalThis.fetch=async(url,init)=>{calls++;assert.equal(new URL(url).hostname,'api.openai.com');assert.equal(init.headers.Authorization,'Bearer '+key);return Response.json({data:[{id:'gpt-4.1-mini'}]});};
+ try{
+  $('[data-ai-settings]').click();$('#ai-settings-close').click();$('[data-ai-settings]').click();
+  $('#ai-provider').value='openai';$('#ai-provider').onchange();$('#ai-key').value=key;
+  // Native dialog.close() queues a close event; our DOM stub does not.
+  $('#ai-settings-dialog').dispatchEvent(new window.Event('close'));
+  assert.equal($('#ai-key').value,key);assert.equal($('#ai-settings-dialog').open,true);
+  await $('#ai-connect').onclick();assert.equal(calls,1);assert.equal(getAISettings().apiKey,key);
+ }finally{forgetAISettings();$('#ai-settings-close').click();globalThis.fetch=previousFetch;delete globalThis.location;}
 });

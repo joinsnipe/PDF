@@ -40,7 +40,7 @@
   </aside>
   <main id="main" tabindex="-1">
     <header class="topbar"><div>PDF Contigo <span>/</span> <strong>Documentos</strong></div><div class="topbar-actions"><div class="topbar-settings"><button class="install-button" type="button" data-ai-settings><span data-ai-settings-label>Configurar IA</span></button><span class="local-badge"><i></i> Procesamiento local</span><button id="install-app" class="install-button" type="button" aria-label="Instalar PDF Contigo" title="Instalar PDF Contigo">Instalar app</button></div><button id="share-app" class="share-app-button" type="button" aria-label="Compartir PDF Contigo" title="Compartir la app"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4 M8.6 13.5l6.8 4"/></svg>Compartir</button></div></header>
-    <section class="intro compact-intro"><div><h1>Tus PDF, más fáciles.</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.4 beta 6 · IA directa y lectura cómoda</span></section>
+    <section class="intro compact-intro"><div><h1>Tus PDF, más fáciles.</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.4 beta 7 · Conexión de IA mejorada</span></section>
     <details class="reading-tools" id="reading-tools">
       <summary>Accesibilidad · lectura cómoda</summary>
       <div class="reading-options">
@@ -101,14 +101,16 @@
     <header class="dialog-header"><div><h2 id="ai-settings-title">Configurar IA</h2><p>Conecta tu cuenta una vez para esta pestaña.</p></div><button id="ai-settings-close" class="icon-button" type="button" aria-label="Cerrar configuración de IA">✕</button></header>
     <div class="ai-settings-body">
       <p class="ai-status" data-ai-status role="status"></p>
-      <label class="field">1. Elige tu proveedor<select id="ai-provider"></select></label>
+      <label class="field">1. ¿De dónde es tu clave?<select id="ai-provider" aria-describedby="ai-provider-help"></select></label>
+      <p id="ai-provider-help" class="ai-settings-note"></p>
       <details id="ai-get-key-help" class="ai-help"><summary>No tengo API · cómo conseguir una clave</summary>
         <p>La clave de API conecta esta app con tu cuenta de IA. Es distinta de tu contraseña y de una suscripción al chat.</p>
         <p id="ai-free-help">Gemini ofrece cuota gratuita para ciertos modelos y cuentas. En Google AI Studio comprueba que tu proyecto figure en el plan gratuito antes de usarlo. La app no puede comprobar tu saldo ni garantizar que un modelo sea gratuito.</p>
-        <ol><li><a id="ai-key-link" target="_blank" rel="noopener noreferrer">Abrir el proveedor</a> e inicia sesión.</li><li>Crea una clave en su apartado de API y cópiala.</li><li>Vuelve aquí, pégala debajo y pulsa Conectar.</li></ol>
+        <ol id="ai-key-steps"><li><a id="ai-key-link" target="_blank" rel="noopener noreferrer">Abrir el proveedor</a> e inicia sesión.</li><li>Crea una clave en su apartado de API y cópiala.</li><li>Vuelve aquí, pégala debajo y pulsa Conectar.</li></ol>
         <button id="ai-use-local" class="text-button" type="button">Prefiero el resumen local sin cuenta ni API</button>
       </details>
-      <label class="field">2. Pega tu clave de API<input id="ai-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" placeholder="Tu clave del proveedor elegido"><small>Solo en la memoria de esta pestaña. Se olvida al desconectar, recargar o salir de ella.</small></label>
+      <label class="field"><span id="ai-key-label">2. Pega tu clave de API</span><input id="ai-key" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Tu clave del proveedor elegido" aria-describedby="ai-key-help ai-key-state ai-key-warning"><small id="ai-key-help">Solo en la memoria de esta pestaña. Se olvida al desconectar, recargar o salir de ella.</small><small id="ai-key-state" role="status"></small></label>
+      <p id="ai-key-warning" class="error" role="alert" hidden></p><button id="ai-key-provider-fix" class="install-button" type="button" hidden></button>
       <details class="ai-help"><summary>Si tu proveedor no permite conectar desde la web</summary><p>Algunos proveedores o cuentas bloquean el acceso desde el navegador. Puedes usar el <a href="https://github.com/joinsnipe/PDF/releases" target="_blank" rel="noopener noreferrer">paquete de escritorio actualizado</a>: su conector funciona en tu propio ordenador. En móvil también puedes seguir con el resumen local sin API. No utilizamos un servidor compartido para evitar ese bloqueo.</p></details><p id="ai-openai-help" class="ai-settings-note" hidden>OpenAI API se factura aparte de ChatGPT. Conectar consulta los modelos sin generar texto ni enviar documentos; no comprueba tu saldo. Para trabajar sin consumo de IA, elige el resumen local. <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">Revisar saldo de API</a>.</p>
       <details id="ai-advanced" class="ai-help"><summary>Opciones avanzadas · modelo y workspace</summary>
         <p id="ai-current-model"></p>

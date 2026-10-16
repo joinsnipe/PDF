@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {callAI} from '../dist/ai-provider.js';
 import {handleAI} from '../server/ai-service.mjs';
-import {validateReport} from '../dist/ai-contract.js';
+import {validateReport,AI_PROVIDERS,assertAIKey,keyProviderHint} from '../dist/ai-contract.js';
 const pages=[{page:3,text:'Se solicita aportar la factura del servicio. Fecha de emisión: 15 de octubre de 2026.'}];
 const report={items:[{group:'Lo que piden',text:'Aportar la factura del servicio.',page:3,quote:'Se solicita aportar la factura del servicio.'}],missing:[]};
 const input=provider=>({action:'summary',provider,apiKey:'test-key-not-a-real-secret',model:'test-model',mode:'explain',consent:true,pages});
@@ -52,4 +52,36 @@ test('errores de proveedor distinguen autenticación, permisos, saldo, ritmo y m
 test('errores HTML, cuerpos grandes y fallos de red no se atribuyen a una clave incorrecta',async()=>{
  for(const response of [new Response('<html>upstream problem</html>',{status:503}),new Response('x'.repeat(20000),{status:401})])await assert.rejects(()=>callAI(input('openai'),async()=>response),e=>['AI_AUTH','AI_PROVIDER_ERROR'].includes(e.code));
  await assert.rejects(()=>callAI(input('openai'),async()=>{throw new TypeError('private connection details');}),e=>e.code==='AI_NETWORK'&&e.message.includes('no confirma')&&!e.message.includes('private'));
+});
+
+test('claves reconocibles de otro proveedor se bloquean antes de toda petición',async()=>{
+ const cases={openai:'sk-proj-not-a-real-key',anthropic:'sk-ant-not-a-real-key',xai:'xai-not-a-real-key',gemini:'AIza-not-a-real-key'};
+ let calls=0;
+ for(const [owner,key] of Object.entries(cases)){
+  assert.equal(keyProviderHint(key),owner);assert.doesNotThrow(()=>assertAIKey(owner,key));
+  for(const provider of Object.keys(AI_PROVIDERS))if(provider!==owner)for(const action of ['models','summary'])await assert.rejects(()=>callAI({...input(provider),action,apiKey:key},async()=>{calls++;throw new Error('Never transmit mismatched keys');}),e=>e.code==='AI_KEY_PROVIDER'&&!e.message.includes(key));
+ }
+ assert.equal(calls,0);
+});
+test('prefijos desconocidos y sk- genéricos no se atribuyen automáticamente a OpenAI',()=>{
+ for(const key of ['sk-shared-prefix-test','test-new-unknown-format']){
+  assert.equal(keyProviderHint(key),'');assert.doesNotThrow(()=>assertAIKey('openai',key));assert.doesNotThrow(()=>assertAIKey('deepseek',key));
+ }
+ assert.throws(()=>assertAIKey('gemini','sk-shared-prefix-test'),{code:'AI_KEY_PROVIDER'});
+ assert.throws(()=>assertAIKey('','sk-proj-not-a-real-key'),{code:'AI_PROVIDER'});
+});
+test('clave vacía y formato incompleto o enmascarado dan errores distintos, sin red',async()=>{
+ let calls=0;
+ for(const [key,code] of [['','AI_KEY'],['sk-...','AI_KEY_FORMAT'],['sk-proj-abc defghi','AI_KEY_FORMAT'],['sk-proj-••••••••••••','AI_KEY_FORMAT'],['sk-proj-'+ 'x'.repeat(513),'AI_KEY_FORMAT']])await assert.rejects(()=>callAI({...input('openai'),action:'models',apiKey:key},async()=>{calls++;}),e=>e.code===code&&(!key||!e.message.includes(key)));
+ assert.equal(calls,0);
+});
+test('modelo de otro proveedor se rechaza antes de generar o enviar texto',async()=>{
+ let calls=0;
+ for(const [provider,model] of [['gemini','gpt-4.1-mini'],['openai','gemini-2.5-flash'],['mistral','claude-haiku-4'],['deepseek','grok-4']])await assert.rejects(()=>callAI({...input(provider),model},async()=>{calls++;throw new Error('Never send');}),{code:'AI_MODEL_PROVIDER'});
+ assert.equal(calls,0);
+});
+test('Gemini API_KEY_INVALID en HTTP 400 se explica como clave rechazada, sin mostrar cuerpo privado',async()=>{
+ const reply={error:{code:400,status:'INVALID_ARGUMENT',message:'private-key-and-document',details:[{'@type':'type.googleapis.com/google.rpc.ErrorInfo',reason:'API_KEY_INVALID',metadata:{secret:'private-key-and-document'}}]}};
+ await assert.rejects(()=>callAI({...input('gemini'),action:'models'},async()=>Response.json(reply,{status:400})),e=>e.code==='AI_AUTH'&&e.message.includes('OpenAI')&&!e.message.includes('private-key'));
+ await assert.rejects(()=>callAI(input('gemini'),async()=>Response.json({error:{code:400,status:'INVALID_ARGUMENT',details:{reason:'API_KEY_INVALID'}}},{status:400})),{code:'AI_PROVIDER_ERROR'});
 });

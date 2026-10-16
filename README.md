@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.6 · IA desde tu dispositivo y lectura cómoda.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
+> **PDF Contigo 2.4.0-beta.7 · Conexión de IA corregida.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -10,7 +10,7 @@
 
 Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opcional requiere una cuenta de API externa y puede generar consumo. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo.
 
-> **Web actualizada a 2.4 beta 6.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
+> **Web actualizada a 2.4 beta 7.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 
@@ -32,7 +32,7 @@ La web pública sí depende de su alojamiento, y el acceso instalado en Android/
 
 ## Configura la IA sin complicaciones
 
-Pulsa **Configurar IA** en la parte superior, elige proveedor, pega tu clave y pulsa **Conectar**. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después elige **Resumir con IA** o **Explicar documento**. Revisa y autoriza el texto de cada consulta.
+Pulsa **Configurar IA** en la parte superior, elige el proveedor donde creaste la clave, pégala y pulsa **Conectar con ese proveedor**. No hay proveedor preseleccionado. Si corriges la selección, la clave permanece en el campo: el aviso indica si su formato parece de otro proveedor, sin enviarla automáticamente. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después elige **Resumir con IA** o **Explicar documento**. Revisa y autoriza el texto de cada consulta.
 
 **¿No tienes API?** La configuración incluye enlaces y pasos para obtenerla. Gemini ofrece cuota gratuita para ciertos modelos y cuentas; comprueba tu plan en Google AI Studio. No se garantiza uso gratuito con cualquier clave o modelo. También puedes elegir **Resumen gratuito sin API**, que selecciona frases localmente y no utiliza IA.
 
