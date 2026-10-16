@@ -41,3 +41,14 @@ Referencias: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/rem
 ## Validación previa a publicar
 
 Construcción completa aprobada, 147 pruebas JavaScript y 25 Python aprobadas en Linux, sin omisiones. Incluye conversiones Office ficticias con LibreOffice, interacción de la configuración IA simulada, adaptador IA en workerd y rechazo de planes de limpieza con repositorio, ejecución o descarga incorrectos. No se ha probado una consulta autenticada con la cuenta de Rubén ni se presenta esa prueba como realizada.
+
+## Resultado ejecutado y verificado
+
+- Commit de código: `584309e1932d55e92dba4983f6cfeff090c6ae9e`.
+- [Limpieza completada](https://github.com/joinsnipe/PDF/actions/runs/38940727756): eliminados los 10 artefactos (1.941.340.802 bytes) y 9 cachés npm (1.785.988.024 bytes). Total temporal retirado: 3.727.328.826 bytes. Una consulta posterior confirmó 0 artefactos en cada una de las diez ejecuciones.
+- [Validación y distribución completadas](https://github.com/joinsnipe/PDF/actions/runs/38940727748): 147 pruebas JavaScript y 25 Python aprobadas también en GitHub. La nueva ejecución conserva **0 artefactos**.
+- [Release v2.4.0-beta.5](https://github.com/joinsnipe/PDF/releases/tag/v2.4.0-beta.5): cuatro ZIP y SHA256SUMS publicados, sin borrador, vinculados al commit de código. Las versiones previas se conservan.
+- Web PDF Contigo publicada correctamente como versión Sites 13, fuente `4213b32893dc68c4016fdc1279f44b894ff82e55`: https://snipe-pdf.snipex.chatgpt.site .
+- No se han usado claves reales, consultas de IA de pago ni presupuestos globales. No se han modificado otros repositorios. La prueba autenticada de la cuenta del usuario y la revisión visual/nativa de navegador no se han realizado desde este entorno.
+
+Esta anotación solo modifica Markdown: no necesita otra compilación ni otros paquetes.
