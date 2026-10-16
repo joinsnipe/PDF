@@ -6,7 +6,7 @@ import { openRenderedPdf, pageCanvas, canvasBlob, renderOperation } from './rend
 import {signatureInfo,assertCanEdit,readsOriginal,signatureNotice} from './signature-policy.js';
 import {createPageBrowser} from './page-browser.js';
 import {initAISettings} from './ai-settings.js';
-import {setAIIntent} from './ai-ui.js';
+import {setAIIntent,prepareAI,refreshAIAction} from './ai-ui.js';
 
 const paths={
   grid:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
@@ -98,7 +98,7 @@ zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drago
 dialog.addEventListener('dragover',e=>e.preventDefault());
 dialog.addEventListener('drop',e=>e.preventDefault());
 
-function setBusy(value,isLoading=false){busy=value&&!isLoading;loading=value&&isLoading;$('#editor-area').inert=value;$('#work-close').disabled=value;$('#process').disabled=value||!canProcess();$('#status').hidden=!value;}
+function setBusy(value,isLoading=false){busy=value&&!isLoading;loading=value&&isLoading;$('#editor-area').inert=value;$('#work-close').disabled=value;$('#process').disabled=value||!canProcess();$('#status').hidden=!value;if(!value&&active?.id==='summary')refreshAIAction();}
 function canProcess(){return files.length>0&&(active.id!=='merge'||files.length>1)&&(active.id!=='compare'||files.length===2);}
 function progress(fraction,label){$('#progress').value=fraction*100;$('#status-text').textContent=label;}
 async function addFiles(chosen){
@@ -204,8 +204,11 @@ async function normalizedImages(){
   }
   return output;
 }
-$('#process').onclick=async()=>{
+$('#process').onclick=async event=>{
   if(busy||loading||!canProcess())return;clearError();
+  // A double click on Review must not also confirm the newly shown Send action.
+  if(active.id==='summary'&&event?.detail>1)return;
+  if(active.id==='summary'&&!await prepareAI())return;
   try{if(active.id!=='digitalsign'&&active.id!=='images'&&!readsOriginal(active.id))for(const f of files)if(f.signatures)assertCanEdit(f.signatures);}catch(e){error('['+e.code+'] '+e.message);return;}
   const opts={};for(const key of ['range','mode','angle','size','orientation','format','scale','text','start']){const el=$('#opt-'+key);if(el)opts[key]=el.value;}
   if(active.id==='compress'&&opts.mode==='raster'&&!$('#opt-consent').checked){error('Confirma que aceptas la conversión a imágenes antes de usar el modo ligero.');return;}

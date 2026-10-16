@@ -22,7 +22,7 @@ Al confirmar una firma, el PDF pasa por una conexión WebSocket cifrada a AutoFi
 
 ## IA opcional con tu propia clave
 
-El modo local sigue disponible sin cuenta. Si seleccionas IA, configuras tu proveedor y clave (con selección automática de modelo por defecto) y revisas exactamente el texto extraído antes de autorizar **cada consulta**. PDF Contigo admite Gemini (Google), OpenAI, Claude (Anthropic), Grok (xAI), Mistral y DeepSeek. El archivo PDF, sus imágenes y los certificados no se incluyen en la petición.
+El modo local sigue disponible sin cuenta. Si seleccionas IA, configuras tu proveedor y clave (con selección automática de modelo por defecto) y revisas exactamente el texto extraído antes de confirmar **cada consulta** mediante el botón «Enviar a tu proveedor y resumir/explicar». Preparar la revisión no hace una petición de IA; el envío requiere un segundo clic explícito. No hay casilla de autorización. PDF Contigo admite Gemini (Google), OpenAI, Claude (Anthropic), Grok (xAI), Mistral y DeepSeek. El archivo PDF, sus imágenes y los certificados no se incluyen en la petición.
 
 Desde **2.4.0-beta.6**, el navegador conecta directamente con el proveedor elegido. En el paquete de escritorio, la petición pasa únicamente por el conector de **tu propio ordenador**, escuchando en `127.0.0.1`, antes de salir por HTTPS al proveedor. No se utiliza un servidor compartido de PDF Contigo. El antiguo endpoint público `/api/ai` está retirado y responde 410 sin leer ni reenviar el cuerpo. Actualiza los paquetes y recarga las pestañas antiguas: las versiones anteriores sí utilizaban ese intermediario.
 

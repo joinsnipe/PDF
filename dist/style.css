@@ -68,3 +68,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 [data-reading-motion] *,[data-reading-motion] *::before,[data-reading-motion] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:720px){[data-reading-large] body .tool-grid{grid-template-columns:1fr}.reading-tools{padding:10px 12px}.reading-options{gap:8px 16px}}
+
+/* Connection state uses a label as well as colour; no heartbeat or extra API calls. */
+[data-ai-settings]{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:normal;max-width:100%;min-width:0}
+[data-ai-settings]::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;background:#777;flex:0 0 9px}
+[data-ai-settings][data-ai-connection="connected"]::before{background:#197347;box-shadow:0 0 0 3px #e4f2e9}
+[data-ai-settings][data-ai-connection="manual"]::before{background:#986100;box-shadow:0 0 0 3px #fff1d6}
+[data-ai-settings-label]{overflow-wrap:anywhere;line-height:1.4}
+.ai-connection button{flex-shrink:1}
+.ai-steps{list-style:none;padding:0;margin:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ai-steps li{padding:14px;border:1px solid #ddd;border-radius:5px;background:#fafafa;font-size:14px;line-height:1.5}
+.ai-steps strong,.ai-steps span{display:block}.ai-steps span{margin-top:6px;color:#555}
+.ai-steps li[aria-current="step"]{border-color:#b3262c;background:#fff6f6}.ai-steps li[data-complete]{border-color:#197347}
+.ai-next-step{font-size:14px;line-height:1.6;font-weight:700;color:#333}
+.ai-send-notice{padding:16px;margin:14px 0;background:#fff6f6;border-left:3px solid #b3262c;font-size:14px;line-height:1.6}.ai-send-notice p{margin:8px 0}.ai-send-notice a{text-decoration:underline}
+#ai-review-box{margin:14px 0;border:1px solid #ccc;border-radius:5px;padding:12px;font-size:14px}
+#ai-review-box summary{cursor:pointer;min-height:32px;font-weight:700}#ai-review-text{max-height:240px;overflow:auto;padding:8px;font-size:14px}
+.dialog-footer #process{white-space:normal;line-height:1.4;max-width:100%;text-align:center}
+[data-reading-contrast] body :is(.ai-steps li,.ai-send-notice,#ai-review-box){border-color:#555}
+@media(max-width:720px){.ai-steps{grid-template-columns:1fr;gap:8px}.ai-steps li{padding:12px}.topbar-settings [data-ai-settings]{max-width:100%;text-align:left}.ai-connection{align-items:flex-start}.ai-connection button{justify-content:flex-start}#ai-review-text{max-height:200px}}

@@ -18,9 +18,13 @@ Proveedores incluidos: **Gemini, OpenAI, Claude, Grok, Mistral y DeepSeek**. No 
 2. Elige el proveedor donde creaste tu clave (por ejemplo, **OpenAI, creador de ChatGPT**) y pégala. Ningún proveedor viene preseleccionado. Pulsa **Conectar con ese proveedor**: la app consulta los modelos y selecciona uno de texto automáticamente, sin enviar documentos. Este paso no comprueba saldo, cuota, precio ni permiso de generación.
 3. Si lo necesitas, **Opciones avanzadas** permite indicar un modelo concreto y el workspace de Claude `wrkspc_…`. La configuración manual se comprueba en la primera consulta, sin validar previamente la clave o el modelo.
 4. Elige **Resumir con IA** o **Explicar documento** y selecciona el PDF. Puedes cambiar archivos sin volver a introducir la clave.
-5. Elige páginas y pulsa **Revisar el texto que se enviará**. Se lee localmente y muestra las páginas exactas. Hasta 100 páginas y 60.000 caracteres, sin recorte silencioso.
-6. Lee las condiciones de datos y posibles costes. Autoriza el envío y pulsa **Resumir con IA** o **Explicar con IA**.
+5. Elige páginas y pulsa **1. Revisar texto**, en el botón principal. La app lee el PDF en tu dispositivo y muestra el texto, sin consultar todavía la IA. Hasta 100 páginas y 60.000 caracteres, sin recorte silencioso.
+6. Revisa el texto y el destino que aparece debajo. Pulsa **Enviar a OpenAI y resumir** (o el proveedor y tarea que hayas elegido). Este clic confirma el envío de esa consulta. **No hay casilla de autorización.** El proveedor recibe el texto y puede cobrar el uso; la revisión del paso anterior solo era local.
 7. Contrasta el informe con el original desde el visor y los botones de página; descarga el TXT si lo necesitas.
+
+**Estado visible:** el punto verde y «IA conectada · proveedor» indican que se consultó el catálogo y la cuenta está configurada para esta pestaña. No son una comprobación continua de disponibilidad ni de saldo. Una configuración manual aparece en ámbar como «IA configurada», porque todavía no se ha comprobado. Desconectar o salir de la pestaña apaga el indicador.
+
+**Qué quieres obtener:** «Resumen» recoge las ideas principales en lenguaje sencillo. «Qué me piden» busca solicitudes, documentación y fechas mencionadas, sin calcular plazos. «Sin IA» selecciona frases literales y nunca envía el texto fuera del dispositivo.
 
 Si te equivocas de proveedor, puedes corregirlo sin volver a pegar la clave. **Clave introducida** confirma que el campo contiene datos; no significa que el proveedor ya la haya aceptado. La app reconoce algunos formatos de claves y modelos y avisa de incoherencias antes de enviar. No prueba la clave en varios proveedores ni cambia de cuenta automáticamente. Una clave genérica `sk-` no identifica por sí sola al proveedor.
 
@@ -63,6 +67,8 @@ Admite **DOCX, XLSX y PPTX** hasta 25 MB. No admite DOC/XLS/PPT antiguos, contra
 Se procesa en el ordenador, con temporales que se eliminan al finalizar normalmente. La web y Android/iOS no ejecutan LibreOffice: allí utiliza Exportar a PDF en tu aplicación de Office o realiza esta conversión en el ordenador. [Instalación](INSTALACION.md).
 
 ## Comprobación de esta beta
+
+En 2.4 beta 8 se verifica el recorrido desde el botón principal: primer clic muestra el texto sin petición de IA; segundo clic envía al proveedor elegido. Cambiar páginas, archivo, tarea o conexión invalida esa revisión. Se prueban también el indicador conectado/manual/desconectado, fallos de extracción, rechazo del proveedor y retorno al resumen local sin red. No se ha usado una clave real ni consumido una API en esta entrega.
 
 En 2.4 beta 7 se prueban la selección explícita del proveedor, corrección sin borrar la clave, cambios repetidos, eventos de cierre tardíos, pegado sin evento de entrada, reintentos y el recorrido OpenAI desde configuración hasta informe. Se comprueba que las incoherencias reconocibles y los errores de formato no producen ninguna petición. Estas pruebas de DOM usan respuestas simuladas; no equivalen a validación con una cuenta o un navegador real.
 

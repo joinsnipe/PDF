@@ -15,11 +15,17 @@ const listeners=new Set();
 export const getAISettings=()=>connection?{...connection,revision}:null;
 export const onAISettingsChange=callback=>{listeners.add(callback);return ()=>listeners.delete(callback);};
 export const providerTerms=id=>links[id]?.terms;
-function announce(){
- const status=connection?`${AI_PROVIDERS[connection.provider]} · configurado para esta pestaña`:'IA sin configurar · conecta tu cuenta cuando quieras';
+export function refreshAIIndicators(){
+ const name=connection?AI_PROVIDERS[connection.provider]:'';
+ const label=connection?(connection.manual?'IA configurada · ':'IA conectada · ')+name:'Configurar IA';
+ const status=connection?`${label}. ${connection.manual?'Modelo manual: se comprobará en la primera consulta.':'Cuenta conectada para esta pestaña; el saldo y los permisos de generación se comprueban al consultar.'}`:'IA sin conectar. El resumen local funciona sin cuenta.';
  document.querySelectorAll('[data-ai-status]').forEach(el=>el.textContent=status);
- document.querySelectorAll('[data-ai-settings-label]').forEach(el=>el.textContent=connection?'Mi conexión de IA':'Configurar IA');
+ document.querySelectorAll('[data-ai-settings-label]').forEach(el=>el.textContent=label);
+ document.querySelectorAll('[data-ai-settings]').forEach(el=>{el.dataset.aiConnection=connection?(connection.manual?'manual':'connected'):'off';el.setAttribute('aria-label',label+'. Abrir configuración de IA');el.title=status;});
  if($('ai-forget'))$('ai-forget').hidden=!connection;
+}
+function announce(){
+ refreshAIIndicators();
  for(const callback of listeners)callback();
 }
 function resetConnectButton(){const provider=$('ai-provider').value;$('ai-connect').disabled=!Object.hasOwn(AI_PROVIDERS,provider);$('ai-connect').textContent=AI_PROVIDERS[provider]?'Conectar con '+AI_PROVIDERS[provider]:'Elige un proveedor';}
