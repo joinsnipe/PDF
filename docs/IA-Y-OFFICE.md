@@ -52,6 +52,8 @@ Se procesa en el ordenador, con temporales que se eliminan al finalizar normalme
 
 ## Comprobación de esta beta
 
+En 2.4 beta 5 se corrige una incompatibilidad de redirecciones de fetch con workerd que impedía conectar. El flujo se verifica también en ese motor real con un proveedor ficticio. La configuración de OpenAI explica la separación entre API y ChatGPT; los errores diferencian autenticación, permisos, saldo/límite de gasto, ritmo/cuota y modelo. El código de diagnóstico aparece junto al mensaje de conexión, sin exponer detalles brutos del proveedor.
+
 Los adaptadores de IA se verifican con respuestas simuladas para los cinco proveedores, validación de citas, límites y consentimiento. No se ha realizado consumo con claves reales en esta entrega. Las conversiones Office se prueban con documentos ficticios y LibreOffice en Linux; Windows, Mac, navegadores y dispositivos reales siguen necesitando comprobación. No se presenta una prueba simulada como validación completa del servicio externo.
 
 Referencias de implementación: [Gemini](https://ai.google.dev/gemini-api/docs), [OpenAI](https://platform.openai.com/docs/api-reference/responses), [Claude](https://platform.claude.com/docs/en/api/overview), [Grok](https://docs.x.ai/developers/rest-api-reference/inference), [Mistral](https://docs.mistral.ai/api/endpoint/chat), [LibreOffice](https://help.libreoffice.org/latest/es/text/shared/guide/start_parameters.html).

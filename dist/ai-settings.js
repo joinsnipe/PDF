@@ -27,7 +27,7 @@ export function forgetAISettings(){connection=null;revision++;cleanDraft();annou
 // Prefer stable text families. Selection does not establish quota or price.
 export function chooseAIModel(provider,models){
  const rows=(Array.isArray(models)?models:[]).filter(m=>typeof m?.id==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,149}$/.test(m.id)&&!/(embedding|image|audio|tts|transcri|realtime|live|research|robotic|computer-use|moderation|rerank|vision-only|aqa)/i.test(m.id));
- const families={gemini:/^gemini-.*(flash|pro)/,openai:/^(gpt-(4|5)|o[1-9]|chatgpt-)/,anthropic:/^claude-/,xai:/^grok-/,mistral:/mistral|ministral|magistral|mixtral/};
+ const families={gemini:/^gemini-.*(flash|pro)/,openai:/^(gpt-([4-9]|\d{2,})|o[1-9]|chatgpt-)/,anthropic:/^claude-/,xai:/^grok-/,mistral:/mistral|ministral|magistral|mixtral/};
  const score=id=>{
   let n=/(preview|experimental|exp-|beta)/i.test(id)?-100:0;
   if(provider==='gemini')n+=id==='gemini-2.5-flash'?90:/flash-lite/.test(id)?70:/flash/.test(id)?60:0;
@@ -48,6 +48,7 @@ function providerChanged(){
  $('ai-key-link').href=links[id].key;$('ai-terms-link').href=links[id].terms;
  $('ai-key-link').textContent=`Conseguir una clave de ${AI_PROVIDERS[id]}`;
  $('ai-free-help').hidden=id!=='gemini';
+ $('ai-openai-help').hidden=id!=='openai';
  $('ai-connect-status').textContent='Pega tu clave y pulsa Conectar. El modelo se elige automáticamente.';
  $('ai-current-model').textContent='Selección automática. No necesitas saber qué modelo elegir.';
 }
@@ -74,7 +75,7 @@ async function connect(){
   if(!manual){const result=await requestAI({action:'models',provider,apiKey,workspace},{signal:controller.signal});model=chooseAIModel(provider,result.models);if(!model)throw new Error('Tu cuenta no devuelve un modelo de texto compatible. Puedes indicar uno en Opciones avanzadas.');}
   if(run!==requestRevision||controller.signal.aborted)return;
   connection={provider,apiKey,workspace,model,manual};revision++;announce();closeSettings();
- }catch(e){if(run===requestRevision)status.textContent=controller.signal.aborted?'La conexión ha tardado demasiado. Comprueba internet y vuelve a intentarlo.':e.message;}
+ }catch(e){if(run===requestRevision)status.textContent=controller.signal.aborted?'La conexión ha tardado demasiado. Comprueba internet y vuelve a intentarlo.':(e.code?.startsWith('AI_')?`[${e.code}] `:'')+e.message;}
  finally{clearTimeout(timeout);if(run===requestRevision){pending=null;$('ai-connect').disabled=false;$('ai-connect').textContent='Conectar';}}
 }
 export function initAISettings(){

@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.4 · Office e IA opcional.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok o Mistral. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
+> **PDF Contigo 2.4.0-beta.5 · Office e IA opcional.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok o Mistral. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -10,7 +10,7 @@
 
 Interfaz blanca y roja, texto claro y herramientas locales sin cuenta. La IA opcional requiere una cuenta de API externa y puede generar consumo. El código propio usa MIT; los componentes conservan sus licencias, incluido AutoScript bajo GPL-2.0. El proyecto nació para ayudar a una persona de la familia con sus documentos y se comparte para que cualquiera pueda utilizarlo y mejorarlo.
 
-> **Web actualizada a 2.4 beta 4.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
+> **Web actualizada a 2.4 beta 5.** El enlace «Abrir PDF en la web» sirve también para Android e iPhone. Si tienes una pestaña antigua, recárgala y comprueba la etiqueta de versión. AutoFirma se integra únicamente en Windows y Mac; las instalaciones locales se actualizan con el ZIP nuevo.
 
 ## Elige tu dispositivo
 

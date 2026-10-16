@@ -44,12 +44,28 @@ function outputText(provider,result){
  if(provider==='mistral'){const c=result.choices?.[0]?.message?.content;return typeof c==='string'?c:Array.isArray(c)?c.filter(p=>p.type==='text').map(p=>p.text).join(''):'';}
  return result.output?.filter(p=>p.type==='message').flatMap(p=>p.content||[]).filter(p=>p.type==='output_text').map(p=>p.text).join('');
 }
+async function providerError(response,input){
+ // Inspect only bounded error codes. Never forward raw messages (they may echo a key or document).
+ let detail;try{detail=await boundedJSON(response,16384);}catch{}
+ const code=String(detail?.error?.code||detail?.error?.type||'').toLowerCase();
+ const name=AI_PROVIDERS[input.provider];
+ if(response.status===402||/insufficient_quota|billing|credit_balance|spend_limit|usage_limit/.test(code))return aiError('AI_BILLING',`${name}: no hay saldo de API disponible o se ha alcanzado el límite de gasto. Revisa la facturación de esa cuenta. Una suscripción al chat no incluye saldo de API. Puedes usar el resumen local sin coste.`);
+ if(response.status===401)return aiError('AI_AUTH',`${name} no acepta esta clave. Comprueba que sea una clave de API de ese proveedor y que no esté revocada. No es la contraseña del chat.`);
+ if(response.status===403)return aiError('AI_PERMISSION',`${name} ha denegado el acceso. Revisa los permisos de la clave, el proyecto y las restricciones de tu cuenta.${input.action==='models'?' Si la clave no permite listar modelos, puedes indicar uno en Opciones avanzadas.':''}`);
+ if(response.status===429)return aiError(code==='rate_limit_exceeded'?'AI_RATE_LIMIT':'AI_QUOTA',`${name} ha limitado las solicitudes o la cuota disponible. Comprueba los límites de tu cuenta antes de repetir. No se ha reintentado automáticamente.`);
+ if(response.status===404&&input.action==='summary')return aiError('AI_MODEL',`${name}: el modelo no existe o tu cuenta no tiene acceso. Vuelve a Configurar IA y elige otro modelo.`);
+ if(response.status>=500)return aiError('AI_PROVIDER_ERROR',`${name} tiene un problema temporal. Inténtalo más tarde. La consulta no se ha repetido automáticamente.`);
+ return aiError('AI_PROVIDER_ERROR',`${name} ha rechazado la solicitud. Comprueba el modelo y los permisos de tu cuenta${input.provider==='anthropic'?', incluido el workspace si tu clave lo requiere':''}.`);
+}
 export async function callAI(input,fetcher=fetch){
  validate(input);const request=requestFor(input);let result;
- try{const response=await fetcher(request.url,{...request.init,redirect:'error',signal:AbortSignal.timeout(75000)});
-  if(!response.ok){await response.body?.cancel();throw aiError(response.status===429?'AI_QUOTA':response.status===401||response.status===403?'AI_AUTH':'AI_PROVIDER_ERROR',response.status===429?'El proveedor ha limitado la cuota. Revisa tu cuenta o espera antes de repetir.':response.status===401||response.status===403?'El proveedor no acepta esa clave o sus permisos.':'El proveedor no pudo completar la operación. Comprueba el modelo, su disponibilidad y, si usas Claude, el workspace de tu clave.');}
+ try{const response=await fetcher(request.url,{...request.init,redirect:'manual',signal:AbortSignal.timeout(75000)});
+  // workerd rejects redirect:'error' before making a request. Manual mode works
+  // in both Node and Workers and never forwards credentials to a redirect target.
+  if(response.status>=300&&response.status<400){await response.body?.cancel().catch(()=>{});throw aiError('AI_REDIRECT','El proveedor ha respondido con una redirección inesperada. No se ha seguido ni se ha enviado la clave a otra dirección.');}
+  if(!response.ok)throw await providerError(response,input);
   result=await boundedJSON(response);
- }catch(e){if(e.code?.startsWith('AI_'))throw e;throw aiError(e.name==='TimeoutError'?'AI_TIMEOUT':'AI_NETWORK',e.name==='TimeoutError'?'La consulta tardó demasiado. Puede haber consumo aunque no se reciba el resultado.':'No se pudo conectar con el proveedor. No se ha cambiado automáticamente a otro.');}
+ }catch(e){if(e.code?.startsWith('AI_'))throw e;throw aiError(e.name==='TimeoutError'?'AI_TIMEOUT':'AI_NETWORK',e.name==='TimeoutError'?'La consulta tardó demasiado. Puede haber consumo aunque no se reciba el resultado.':`El servidor de PDF Contigo no ha podido contactar con ${AI_PROVIDERS[input.provider]}. Esto no confirma que tu clave sea incorrecta. Inténtalo más tarde; no se ha repetido la consulta.`);}
  if(input.action==='models')return {models:modelList(input.provider,result)};
  const text=outputText(input.provider,result);if(typeof text!=='string'||!text.trim())throw aiError('AI_EMPTY','La IA no devolvió texto. Revisa el modelo o selecciona menos páginas.');
  let parsed;try{parsed=JSON.parse(text.trim().replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,''));}catch{throw aiError('AI_FORMAT','La IA no devolvió el formato esperado. Prueba otra vez o cambia de modelo.');}

@@ -40,7 +40,7 @@
   </aside>
   <main id="main">
     <header class="topbar"><div>PDF Contigo <span>/</span> <strong>Documentos</strong></div><div class="topbar-actions"><div class="topbar-settings"><button class="install-button" type="button" data-ai-settings><span data-ai-settings-label>Configurar IA</span></button><span class="local-badge"><i></i> Procesamiento local</span><button id="install-app" class="install-button" type="button" aria-label="Instalar PDF Contigo" title="Instalar PDF Contigo">Instalar app</button></div><button id="share-app" class="share-app-button" type="button" aria-label="Compartir PDF Contigo" title="Compartir la app"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4 M8.6 13.5l6.8 4"/></svg>Compartir</button></div></header>
-    <section class="intro compact-intro"><div><h1>Tus PDF, más fáciles.</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.4 beta 4 · Compartir app</span></section>
+    <section class="intro compact-intro"><div><h1>Tus PDF, más fáciles.</h1><p>Abre un documento y elige qué necesitas hacer.</p></div><span class="version-label">Versión 2.4 beta 5 · Conexión IA corregida</span></section>
     <section class="tools-section" aria-labelledby="tools-title">
       <div class="section-heading"><div><h2 id="tools-title">Todas las herramientas</h2><p>29 funciones · Trabajo local e IA opcional con tu API.</p></div><label class="search"><span data-icon="search"></span><input id="search" type="search" placeholder="Buscar herramienta" aria-label="Buscar herramienta"><kbd>/</kbd></label></div>
       <div class="filters" aria-label="Filtrar herramientas"><button class="filter active" data-filter="all">Todas <span>29</span></button><button class="filter" data-filter="organize">Organizar</button><button class="filter" data-filter="convert">Convertir</button><button class="filter" data-filter="edit">Editar</button><button class="filter" data-filter="security">Firma y seguridad</button><button class="filter" data-filter="analyze">Leer, analizar e IA</button></div>
@@ -98,6 +98,7 @@
         <button id="ai-use-local" class="text-button" type="button">Prefiero el resumen local sin cuenta ni API</button>
       </details>
       <label class="field">2. Pega tu clave de API<input id="ai-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" placeholder="Tu clave del proveedor elegido"><small>Solo en la memoria de esta pestaña. Se olvida al desconectar, recargar o salir de ella.</small></label>
+      <p id="ai-openai-help" class="ai-settings-note" hidden>OpenAI API se factura aparte de ChatGPT. Conectar consulta los modelos sin generar texto ni enviar documentos; no comprueba tu saldo. Para trabajar sin consumo de IA, elige el resumen local. <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">Revisar saldo de API</a>.</p>
       <details id="ai-advanced" class="ai-help"><summary>Opciones avanzadas · modelo y workspace</summary>
         <p id="ai-current-model"></p>
         <label class="field">Modelo de IA<select id="ai-model-choice"><option value="auto">Selección automática</option><option value="manual">Indicar un modelo concreto</option></select></label>

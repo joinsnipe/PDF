@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 2.4.0-beta.5
+
+Corrige la conexión de IA en Cloudflare Workers: usa redirección manual y rechaza destinos alternativos sin reenviar claves. Distingue errores de autenticación, permisos, saldo, cuota y modelo. Añade una prueba en workerd real con proveedor simulado. La configuración de OpenAI explica que su API se factura aparte de ChatGPT.
+
+Actions valida los cambios, pero solo empaqueta versiones nuevas y publica directamente en Releases. No sube artefactos intermedios ni genera cachés npm. Incluye una limpieza limitada al inventario de temporales de PDF del 16 de octubre, comprobando previamente las descargas publicadas. [Detalle técnico y mantenimiento](docs/MANTENIMIENTO-2026-10-16.md).
+
 ## 2.4.0-beta.4
 
 Botón Compartir visible arriba a la derecha, en móvil y escritorio. Menú nativo cuando está disponible y alternativa para copiar el enlace público de la app. No comparte documentos ni direcciones locales.

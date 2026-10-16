@@ -1,0 +1,28 @@
+name: Limpiar temporales de PDF
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-pdf.yml'
+      - 'scripts/actions-cleanup.py'
+      - 'scripts/actions-cleanup-20261016.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: pdf-artifact-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: github.repository == 'joinsnipe/PDF' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Eliminar solo los temporales auditados de PDF
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/actions-cleanup.py
