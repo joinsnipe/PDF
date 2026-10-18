@@ -34,7 +34,7 @@ python -B -m unittest discover -s tests -p 'test_*.py'
 python local/launcher.py
 ```
 
-Usa `python3` si así se llama el ejecutable. La batería completa se ejecuta en Linux y genera certificados RSA sintéticos temporales. Algunas comprobaciones usan rutas Linux: en Windows, utiliza WSL o GitHub Actions para ejecutar la batería completa.
+Usa `python3` si así se llama el ejecutable. La batería completa se ejecuta en Linux y genera certificados RSA sintéticos temporales. Algunas comprobaciones usan rutas Linux: en Windows, utiliza WSL para ejecutar la batería completa. GitHub Actions permanece pausado desde el 18 de octubre de 2026.
 
 `npm test` ejecuta primero el generador Python de cinco PDF ficticios cifrados. Solo se publica su código fuente: los documentos generados se excluyen de Git y no se distribuyen con la app. Las dependencias Python de `tests/requirements.txt` solo son necesarias para las pruebas.
 
@@ -61,24 +61,27 @@ Salida: `artifacts/*.zip` y `SHA256SUMS.txt`. Cada ZIP incluye `FILES-SHA256.txt
 
 ## GitHub Actions y Releases
 
-`Validar y distribuir PDF` se ejecuta en pushes a main, pull requests y ejecución manual. Instala desde el lockfile, construye, prueba y empaqueta. Las pull requests solo validan y generan artifacts temporales.
+**Automatización pausada desde el 18 de octubre de 2026 por instrucción expresa de no generar más gasto.** No reactivar Actions, reejecutar trabajos históricos ni publicar nuevas versiones sin autorización del propietario después de verificar los límites de facturación. [Auditoría y alcance](MANTENIMIENTO-2026-10-18.md).
 
-En main, un segundo job publica la Release indicada en `release.json` si no existe. `contents: write` se limita a ese job y utiliza el `GITHUB_TOKEN` del repositorio, sin secretos personales. No sobrescribe versiones existentes.
+Los dos workflows conservan el procedimiento para referencia, pero solo admiten `workflow_dispatch` y todos sus jobs tienen `if: ${{ false }}`. Los pushes y pull requests ya no disparan estas automatizaciones. Incluso una ejecución manual de estas definiciones omite los jobs antes de asignar un runner. Esta pausa del código no cambia los presupuestos globales ni impide que alguien reejecute una definición histórica: el propietario debe comprobar el límite de gasto de Actions en Billing.
 
-Para actualizar:
+No se han borrado Releases, paquetes públicos, etiquetas ni código de la aplicación. La web se aloja por separado y sigue con la versión publicada; no se requiere un nuevo despliegue para esta pausa. Las pruebas y el empaquetado se pueden realizar localmente cuando corresponda, sin GitHub Actions.
 
-1. Cambia `package.json`, lockfile, `release.json`, versión visible y `CHANGELOG.md`.
-2. Añade `docs/releases/vVERSION.md` con cambios y límites.
-3. Comprueba la matriz manual en `docs/VALIDACION.md`.
-4. Integra en main y revisa Actions y Releases.
+El procedimiento conservado publica paquetes directamente en GitHub Releases solo cuando hay una versión nueva y completa. No utiliza artefactos temporales de Actions ni caché npm. Antes de una futura entrega autorizada:
 
-La primera versión es prerelease hasta comprobar los dispositivos reales. Mantén `prerelease: true` mientras corresponda. Si Actions está desactivado, el propietario debe activarlo; los comandos de empaquetado también funcionan localmente.
+1. Verifica el presupuesto y la política de ejecución con el propietario.
+2. Cambia `package.json`, lockfile, `release.json`, versión visible y `CHANGELOG.md`.
+3. Añade `docs/releases/vVERSION.md` con cambios y límites.
+4. Comprueba localmente las pruebas y la matriz de `docs/VALIDACION.md`.
+5. Acuerda la vía de publicación; no retires la pausa como parte incidental de otra corrección.
+
+Mantén `prerelease: true` mientras no estén comprobados los dispositivos reales.
 
 ## Publicar la web
 
 Aloja todo `dist/` en un servicio estático con HTTPS, con index.html en su raíz y MIME correctos para JS/MJS/WASM. Las herramientas locales no requieren claves ni variables de entorno. Desde beta 6 la IA directa también funciona en un alojamiento estático si el proveedor admite CORS; no requiere `/api/ai`. Las rutas relativas permiten alojar en subdirectorios como `/PDF/`.
 
-GitHub Pages es una opción: activa Pages en los ajustes del repo y usa su workflow oficial para construir y publicar dist. El workflow incluido distribuye Releases: **no configura Pages**. La web enlazada en el README se aloja por separado; una Release no actualiza ese alojamiento automáticamente.
+GitHub Pages sería una opción futura, previa autorización para activar sus automatismos. No lo actives durante la pausa de gasto. El workflow incluido distribuye Releases: **no configura Pages**. La web enlazada en el README se aloja por separado; una Release no actualiza ese alojamiento automáticamente.
 
 No hay service worker ni caché offline garantizada de la web. Los paquetes locales sí contienen todos los recursos.
 
@@ -92,4 +95,4 @@ Para añadir un proveedor, incorpora su etiqueta, endpoint y adaptadores de aute
 
 `npm run build:client` basta para los ZIP locales o el cliente estático. `npm run build` prepara también `dist/client` y `dist/server`, que no se incluyen en los ZIP de escritorio. `scripts/build-hosting.mjs` copia el cliente a `hosting/public`, ejecuta el build de Vinext conservando la integración `sites()` y recoge el Worker. No añadas un relay compartido al alojar una copia: la IA del cliente utiliza los destinos HTTPS declarados en la CSP. Las políticas CORS externas pueden bloquear web/móvil; los conectores de escritorio operan desde el equipo del usuario. El servicio retirado se mantiene solo para indicar que los clientes antiguos deben actualizarse.
 
-Para pruebas de conversión real instala LibreOffice (Writer, Calc e Impress). CI lo instala, genera DOCX/XLSX/PPTX ficticios y convierte con ambos adaptadores; no distribuye esos archivos. Las pruebas de IA usan respuestas simuladas, no consumen APIs reales. Ver `docs/VALIDACION.md`.
+Para pruebas de conversión real instala LibreOffice (Writer, Calc e Impress). El procedimiento de CI conservado (actualmente pausado) lo instala, genera DOCX/XLSX/PPTX ficticios y convierte con ambos adaptadores; no distribuye esos archivos. Las pruebas de IA usan respuestas simuladas, no consumen APIs reales. Ver `docs/VALIDACION.md`.

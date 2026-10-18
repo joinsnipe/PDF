@@ -1,11 +1,7 @@
-name: Validar y distribuir PDF
+name: Validar y distribuir PDF (pausado)
+# Pausa de gasto solicitada el 18-10-2026. No reactivar sin autorización.
+# Se conserva el procedimiento, pero no hay disparadores automáticos ni jobs ejecutables.
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/images/**'
-  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +10,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -35,7 +32,7 @@ jobs:
       - run: python -B -m unittest discover -s tests -p 'test_*.py'
   release:
     needs: build
-    if: github.repository == 'joinsnipe/PDF' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

@@ -1,11 +1,7 @@
-name: Limpiar temporales de PDF
+name: Limpiar temporales de PDF (pausado)
+# Limpieza del 16-10 completada. Pausado por instrucción de no generar gasto.
+# No reejecutar versiones históricas para repetir una limpieza ya verificada.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/cleanup-pdf.yml'
-      - 'scripts/actions-cleanup.py'
-      - 'scripts/actions-cleanup-20261016.json'
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   cleanup:
-    if: github.repository == 'joinsnipe/PDF' && github.ref == 'refs/heads/main'
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
