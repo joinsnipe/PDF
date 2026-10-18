@@ -31,7 +31,7 @@ Revisión de las 29 herramientas en **2.4.0-beta.4**. La selección del archivo 
 | Quitar metadatos | Páginas del original y alcance de la limpieza | PDF resultante; el aspecto puede ser idéntico |
 | Reparar estructura | Miniaturas si el original es legible | Visor del documento recuperado, si se pudo reparar |
 | Comparar texto | Miniaturas de ambos originales, A y B | Frases añadidas/eliminadas y TXT |
-| Resumir y entender | Modo local o IA, conexión independiente, texto revisado y consentimiento | Informe descargable, citas y visor del original |
+| Entender mi PDF | Modo local o IA, conexión independiente, texto revisado y consentimiento | Informe descargable, citas y visor del original |
 | PDF a Word | Selección de páginas y modo editable/visual | Texto extraído o visor del original, identificado como tal; DOCX descargable |
 | Office a PDF | Archivo Office y comprobación de LibreOffice en escritorio | PDF generado en el visor |
 | Escala de grises | Miniaturas en gris de forma orientativa | PDF rasterizado en el visor |
@@ -59,3 +59,7 @@ Pruebas de selección y descargas con JSDOM; miniaturas reales con PDF.js y Canv
 En 2.4 beta 3 se elimina el acceso lateral con estrella en todos los tamaños de pantalla. La cabecera conserva el botón de configuración con borde rojo.
 
 En 2.4 beta 4, «Compartir» ocupa el extremo derecho de la cabecera, con icono y texto visible. Ofrece el menú nativo cuando existe, o un diálogo para copiar el enlace público. La instalación y la conexión de IA siguen accesibles sin duplicar botones en móvil.
+
+## Lectura unificada en 2.4 beta 9
+
+Se elimina la duplicidad Resumir/Explicar: una sola entrada, «Entender mi PDF», y ningún selector entre las dos tareas. El mismo informe reúne las ideas principales y las peticiones, documentos y fechas que consten. Se mantiene el método sin IA como alternativa local. Los informes parciales se identifican en el título, aviso y descarga; una respuesta sin referencias no recibe una marca de éxito. La configuración y el estado de conexión explican que cerrar o recargar elimina la clave, incluso en escritorio.

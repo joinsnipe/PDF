@@ -7,8 +7,8 @@
 | Editar texto y tablas sencillas de un PDF | PDF a Word → editable | Líneas, tamaños de letra, tablas de columnas alineadas | Texto seleccionable; OCR previo si procede |
 | Llevar un PDF a Word con su aspecto | PDF a Word → aspecto | Imagen de cada página | El texto y las tablas no serán editables |
 | Convertir Word, Excel o PowerPoint a PDF | Office a PDF | Conversión con LibreOffice | Paquete Windows/Mac y LibreOffice instalado |
-| Obtener frases representativas sin enviar datos | Resumir y entender → local | Frases literales y páginas | Sin API ni cuenta |
-| Sintetizar o explicar un documento | Resumir y entender → IA | Informe en español, citas y páginas | Internet, cuenta y clave propia de API |
+| Obtener frases representativas sin enviar datos | Entender mi PDF → local | Frases literales y páginas | Sin API ni cuenta |
+| Sintetizar o explicar un documento | Entender mi PDF → IA | Informe en español, citas y páginas | Internet, cuenta y clave propia de API |
 
 ## IA con tu proveedor
 
@@ -17,22 +17,28 @@ Proveedores incluidos: **Gemini, OpenAI, Claude, Grok, Mistral y DeepSeek**. No 
 1. Pulsa **Configurar IA** en la barra superior o la sección **Leer, analizar e IA**. No necesitas seleccionar un PDF primero.
 2. Elige el proveedor donde creaste tu clave (por ejemplo, **OpenAI, creador de ChatGPT**) y pégala. Ningún proveedor viene preseleccionado. Pulsa **Conectar con ese proveedor**: la app consulta los modelos y selecciona uno de texto automáticamente, sin enviar documentos. Este paso no comprueba saldo, cuota, precio ni permiso de generación.
 3. Si lo necesitas, **Opciones avanzadas** permite indicar un modelo concreto y el workspace de Claude `wrkspc_…`. La configuración manual se comprueba en la primera consulta, sin validar previamente la clave o el modelo.
-4. Elige **Resumir con IA** o **Explicar documento** y selecciona el PDF. Puedes cambiar archivos sin volver a introducir la clave.
+4. Pulsa **Entender mi PDF** y selecciona el PDF. Puedes cambiar archivos sin volver a introducir la clave.
 5. Elige páginas y pulsa **1. Revisar texto**, en el botón principal. La app lee el PDF en tu dispositivo y muestra el texto, sin consultar todavía la IA. Hasta 100 páginas y 60.000 caracteres, sin recorte silencioso.
-6. Revisa el texto y el destino que aparece debajo. Pulsa **Enviar a OpenAI y resumir** (o el proveedor y tarea que hayas elegido). Este clic confirma el envío de esa consulta. **No hay casilla de autorización.** El proveedor recibe el texto y puede cobrar el uso; la revisión del paso anterior solo era local.
+6. Revisa el texto y el destino que aparece debajo. Pulsa **Enviar a OpenAI y analizar** (o el proveedor que hayas elegido). Este clic confirma el envío de esa consulta. **No hay casilla de autorización.** El proveedor recibe el texto y puede cobrar el uso; la revisión del paso anterior solo era local.
 7. Contrasta el informe con el original desde el visor y los botones de página; descarga el TXT si lo necesitas.
 
 **Estado visible:** el punto verde y «IA conectada · proveedor» indican que se consultó el catálogo y la cuenta está configurada para esta pestaña. No son una comprobación continua de disponibilidad ni de saldo. Una configuración manual aparece en ámbar como «IA configurada», porque todavía no se ha comprobado. Desconectar o salir de la pestaña apaga el indicador.
 
-**Qué quieres obtener:** «Resumen» recoge las ideas principales en lenguaje sencillo. «Qué me piden» busca solicitudes, documentación y fechas mencionadas, sin calcular plazos. «Sin IA» selecciona frases literales y nunca envía el texto fuera del dispositivo.
+**Una sola herramienta:** «Entender mi PDF» recoge las ideas principales y explica solicitudes, documentación y fechas cuando constan en el texto, sin calcular plazos. No hay dos pestañas ni selector Resumir/Explicar. «Sin IA» selecciona frases literales y nunca envía el texto fuera del dispositivo.
 
 Si te equivocas de proveedor, puedes corregirlo sin volver a pegar la clave. **Clave introducida** confirma que el campo contiene datos; no significa que el proveedor ya la haya aceptado. La app reconoce algunos formatos de claves y modelos y avisa de incoherencias antes de enviar. No prueba la clave en varios proveedores ni cambia de cuenta automáticamente. Una clave genérica `sk-` no identifica por sí sola al proveedor.
 
 Un campo vacío, una clave incompleta o con caracteres adicionales y un rechazo de autenticación muestran mensajes diferentes. Tras un error de conexión, la clave sigue en el formulario para corregir o reintentar. Cerrar sin conectar descarta el borrador.
 
-Cambiar páginas, conexión o tipo de informe invalida la revisión anterior. La clave se conserva **solo en la memoria de esta pestaña**, para no repetirla en cada documento; no se escribe en localStorage, sessionStorage, cookies ni archivos. Se olvida al pulsar **Desconectar y olvidar clave**, recargar o salir de la pestaña. Al cerrar la configuración se vacía su campo, pero la conexión sigue disponible en memoria. No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
+Cambiar páginas, conexión o método (con/sin IA) invalida la revisión anterior. La clave se conserva **solo en la memoria de esta pestaña**, para no repetirla en cada documento; no se escribe en localStorage, sessionStorage, cookies ni archivos. Se olvida al pulsar **Desconectar y olvidar clave**, recargar o salir de la pestaña, también en el paquete de escritorio. Reabrir o actualizar la app puede requerir pegarla de nuevo: no es una clave que se haya guardado en disco y después perdido. Al cerrar la configuración se vacía su campo, pero la conexión sigue disponible en memoria. No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
 
 **El texto y la clave van de tu dispositivo al proveedor elegido por HTTPS.** En web/móvil el navegador hace la petición directamente. El paquete Windows/Mac utiliza el conector de tu propio ordenador (`127.0.0.1`), sin intermediario compartido de PDF Contigo. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus condiciones. **Conectar** en modo automático envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
+
+### Referencias e informes parciales (beta 9)
+
+La aplicación divide el texto seleccionado en fragmentos identificados. La IA devuelve sus identificadores; PDF Contigo recupera el número de página y la cita directamente del texto extraído, sin pedir al modelo que los copie. Las respuestas del formato anterior siguen admitiéndose con coincidencia literal y normalización tipográfica limitada.
+
+Una referencia incorrecta descarta solo su punto y produce un **informe parcial**, con aviso en pantalla y en el TXT. Si no hay ninguna referencia localizable, no se muestran afirmaciones de la IA ni un mensaje de éxito: se permite consultar el original y se explica cómo continuar sin IA. No hay reintentos ni cambio de proveedor automáticos. Localizar una cita no demuestra que la interpretación sea correcta. La consulta original puede tener consumo aunque sus referencias no se acepten.
 
 ### Conexión directa y errores
 

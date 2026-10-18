@@ -23,7 +23,7 @@ export const ADVANCED_TOOLS=[
  ['metadata','Quitar metadatos','Elimina título, autor y metadatos generales del PDF.','security','shield'],
  ['repair','Reparar estructura','Intenta reconstruir un PDF con errores estructurales.','edit','spark'],
  ['compare','Comparar texto','Encuentra frases añadidas y eliminadas entre dos PDF.','analyze','arrows'],
- ['summary','Resumir y entender','Frases locales o una explicación con IA y tu propia API.','analyze','text'],
+ ['summary','Entender mi PDF','Resumen, peticiones y fechas en un único informe. IA opcional.','analyze','text'],
  ['word','PDF a Word','Texto y tablas sencillas editables, o páginas como imágenes.','convert','text'],
  ['office','Office a PDF','Convierte Word, Excel y PowerPoint con LibreOffice en escritorio.','convert','text'],
  ['gray','Escala de grises','Genera una copia de imágenes en blanco, negro y grises.','edit','image']

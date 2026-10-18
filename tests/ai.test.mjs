@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {callAI} from '../dist/ai-provider.js';
 import {handleAI} from '../server/ai-service.mjs';
-import {validateReport,AI_PROVIDERS,assertAIKey,keyProviderHint} from '../dist/ai-contract.js';
+import {validateReport,AI_PROVIDERS,assertAIKey,keyProviderHint,evidenceSources,reportText} from '../dist/ai-contract.js';
 const pages=[{page:3,text:'Se solicita aportar la factura del servicio. Fecha de emisión: 15 de octubre de 2026.'}];
 const report={items:[{group:'Lo que piden',text:'Aportar la factura del servicio.',page:3,quote:'Se solicita aportar la factura del servicio.'}],missing:[]};
 const input=provider=>({action:'summary',provider,apiKey:'test-key-not-a-real-secret',model:'test-model',mode:'explain',consent:true,pages});
@@ -21,8 +21,45 @@ test('consentimiento, cuotas y límites: no reintenta ni cambia de proveedor',as
  await assert.rejects(()=>callAI({...input('mistral'),provider:'https://evil.example'},fetcher),{code:'AI_PROVIDER'});assert.equal(calls,1);
 });
 test('no muestra referencias inventadas o páginas fuera de selección',()=>{
- assert.throws(()=>validateReport({...report,items:[{...report.items[0],page:4}]},pages),{code:'AI_EVIDENCE'});
- assert.throws(()=>validateReport({...report,items:[{...report.items[0],quote:'Texto que no aparece en el documento'}]},pages),{code:'AI_EVIDENCE'});
+ assert.deepEqual(validateReport({...report,items:[{...report.items[0],page:4}]},pages),{items:[],missing:[],omittedCount:1});
+ assert.deepEqual(validateReport({...report,items:[{...report.items[0],quote:'Texto que no aparece en el documento'}]},pages),{items:[],missing:[],omittedCount:1});
+});
+test('una cita incorrecta no descarta el resto ni se presenta como localizada',()=>{
+ const result=validateReport({items:[report.items[0],{...report.items[0],text:'INVENTADO',quote:'Cita inexistente'}],missing:[]},pages);
+ assert.deepEqual(result.items,report.items);assert.equal(result.omittedCount,1);
+ const text=reportText(result,'openai','test-model');assert.match(text,/Informe parcial/);assert.doesNotMatch(text,/INVENTADO|Cita inexistente/);
+});
+test('solo tolera diferencias tipográficas; mantiene negaciones, cifras y página',()=>{
+ const originals=[{page:9,text:'No se exige docu-\nmentación adicional. Importe: 1.000 €. “Plazo voluntario”.'}];
+ const valid={group:'Resumen',text:'Prueba.',page:9,quote:'No se exige documentación adicional.'};
+ assert.equal(validateReport({items:[valid]},originals).items.length,1);
+ for(const quote of ['Se exige documentación adicional.','Importe: 10.000 €.', 'No se exige documentación adicional. Importe: 1000 €.'])assert.equal(validateReport({items:[{...valid,quote}]},originals).items.length,0);
+ assert.equal(validateReport({items:[{...valid,page:1}]},originals).items.length,0);
+});
+test('referencias por id recuperan las citas y páginas del original, sin confiar en la IA',()=>{
+ const sources=evidenceSources(pages);assert.equal(sources[0].id,'p3s1');
+ const result=validateReport({items:[{group:'Resumen',text:'Solicita aportar una factura.',source_id:sources[0].id,page:999,quote:'INVENTADO'}]},pages);
+ assert.equal(result.items[0].quote,pages[0].text);assert.equal(result.items[0].page,3);
+ assert.equal(validateReport({items:[{...report.items[0],source_id:'p1s1'}]},pages).items.length,0);
+ const long=[{page:7,text:('Texto largo con acentos y obligaciones. ').repeat(80)},{page:12,text:'Segundo documento: se solicita una factura.'}];
+ const chunks=evidenceSources(long);assert.ok(chunks.length>2);assert.ok(chunks.every(c=>c.text.length<=500&&long.find(p=>p.page===c.page).text.includes(c.text)));
+ assert.equal(new Set(chunks.map(c=>c.id)).size,chunks.length);
+ assert.equal(chunks.filter(c=>c.page===7).map(c=>c.text).join('').replace(/\s/g,''),long[0].text.replace(/\s/g,''));
+});
+test('sin referencias válidas no fabrica un resumen ni muestra ausencias sin respaldo',()=>{
+ const result=validateReport({items:[{...report.items[0],source_id:'desconocido'}],missing:['INVENTADO']},pages);
+ const text=reportText(result,'openai','test-model');assert.match(text,/no se pudo localizar ninguna referencia/);assert.doesNotMatch(text,/INVENTADO/);assert.match(text,/no se ha repetido/);
+});
+for(const provider of Object.keys(AI_PROVIDERS))test(provider+': IDs de fragmentos y tarea unificada en una sola consulta',async()=>{
+ let calls=0;
+ const result=await callAI({...input(provider),mode:'understand'},async(_url,init)=>{
+  calls++;const body=JSON.parse(init.body);
+  const user=JSON.parse(provider==='gemini'?body.contents[0].parts[0].text:provider==='anthropic'?body.messages[0].content:['mistral','deepseek'].includes(provider)?body.messages[1].content:body.input);
+  assert.match(user.tarea,/Resume y explica/);assert.equal(user.fragmentos[0].page,3);assert.equal(user.fragmentos[0].text,pages[0].text);
+  const text=JSON.stringify({items:[{group:'Resumen',text:'Se solicita una factura.',source_id:user.fragmentos[0].id}]});
+  return Response.json(provider==='gemini'?{candidates:[{content:{parts:[{text}]}}]}:provider==='anthropic'?{content:[{type:'text',text}]}:['mistral','deepseek'].includes(provider)?{choices:[{message:{content:text}}]}:{output:[{type:'message',content:[{type:'output_text',text}]}]});
+ });
+ assert.equal(calls,1);assert.equal(result.report.items[0].page,3);assert.equal(result.report.items[0].quote,pages[0].text);
 });
 test('el antiguo servidor público rechaza sin leer el cuerpo ni contactar con proveedores',async()=>{
  let reads=0;const request={get body(){reads++;throw new Error('No debe leer claves');}};

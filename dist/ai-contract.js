@@ -27,20 +27,54 @@ export function assertAIModel(provider,model){
  const inferred=Object.entries(families).find(([,pattern])=>pattern.test(model))?.[0];
  if(inferred&&inferred!==provider)throw aiError('AI_MODEL_PROVIDER',`El modelo indicado parece de ${AI_PROVIDERS[inferred]}, pero has elegido ${AI_PROVIDERS[provider]}. Cambia el modelo o el proveedor. No se ha enviado ninguna consulta.`);
 }
-const normalized=s=>s.normalize('NFKC').replace(/\s+/gu,' ').trim();
+// Compare typography, never remove negations, signs, digits or accents.
+const normalized=s=>s.normalize('NFKC').replace(/\u00ad/gu,'').replace(/(\p{L})-\r?\n(?=\p{Ll})/gu,'$1').replace(/[“”]/gu,'"').replace(/[‘’]/gu,"'").replace(/\s+/gu,' ').trim();
+// The app owns the page numbers and literal excerpts. The model only cites IDs.
+// Slices preserve the original text, including spaces and line breaks.
+export function evidenceSources(pages){
+ const sources=[];
+ for(const page of pages){
+  let start=0,index=0;
+  while(start<page.text.length){
+   let end=Math.min(start+500,page.text.length);
+   if(end<page.text.length){const split=page.text.slice(start,end).search(/\s+\S*$/u);if(split>250)end=start+split;}
+   const quote=page.text.slice(start,end).trim();
+   if(quote)sources.push({id:`p${page.page}s${++index}`,page:page.page,text:quote});
+   start=end;
+  }
+ }
+ return sources;
+}
 export function validateReport(value,pages){
- if(!value||!Array.isArray(value.items)||!value.items.length||value.items.length>30)throw aiError('AI_EVIDENCE','La IA no devolvió un informe con referencias comprobables. Prueba con menos páginas.');
+ if(!value||!Array.isArray(value.items)||value.items.length>30)throw aiError('AI_FORMAT','La IA no devolvió un informe legible. No se ha repetido la consulta ni se ha cambiado de proveedor.');
  const source=new Map(pages.map(p=>[p.page,normalized(p.text)])),groups=new Set(['Resumen','Lo que piden','Documentación','Fechas mencionadas','Otros']);
- const items=value.items.map(item=>{
-  if(!item||!groups.has(item.group)||typeof item.text!=='string'||!item.text.trim()||item.text.length>1500||!Number.isInteger(item.page)||typeof item.quote!=='string'||item.quote.length>600||normalized(item.quote).length<10||!source.get(item.page)?.includes(normalized(item.quote)))throw aiError('AI_EVIDENCE','Una referencia de la IA no coincide con el documento. No se muestra como verificada; prueba otra vez o selecciona menos páginas.');
-  return {group:item.group,text:item.text.trim(),page:item.page,quote:item.quote.trim()};
- });
+ const excerpts=new Map(evidenceSources(pages).map(s=>[s.id,s]));
+ const items=[];let omittedCount=0;
+ for(const item of value.items){
+  if(!item||!groups.has(item.group)||typeof item.text!=='string'||!item.text.trim()||item.text.length>1500){omittedCount++;continue;}
+  let page,quote;
+  if(Object.hasOwn(item,'source_id')){
+   const excerpt=typeof item.source_id==='string'?excerpts.get(item.source_id):null;
+   if(!excerpt){omittedCount++;continue;}
+   page=excerpt.page;quote=excerpt.text;
+  }else{
+   // Compatibility for models returning the previous literal-quote format.
+   if(!Number.isInteger(item.page)||typeof item.quote!=='string'||item.quote.length>600||normalized(item.quote).length<10||!source.get(item.page)?.includes(normalized(item.quote))){omittedCount++;continue;}
+   page=item.page;quote=item.quote.trim();
+  }
+  items.push({group:item.group,text:item.text.trim(),page,quote});
+ }
  const missing=Array.isArray(value.missing)?value.missing.filter(x=>typeof x==='string'&&x.length<=500).slice(0,6):[];
- return {items,missing};
+ return {items,missing,...(omittedCount?{omittedCount}:{})};
+}
+export function reportNotice(report){
+ if(!report.items.length)return 'La IA respondió, pero no se pudo localizar ninguna referencia válida. No se muestran sus afirmaciones. Puedes consultar el PDF original aquí o usar el resumen sin IA. La consulta no se ha repetido; el proveedor puede haberla cobrado.';
+ const partial=report.omittedCount?`Informe parcial: ${report.omittedCount===1?'se ha omitido 1 punto cuya referencia no se pudo comprobar.':`se han omitido ${report.omittedCount} puntos cuyas referencias no se pudieron comprobar.`} `:'';
+ return partial+'Las citas se han localizado en el texto extraído; eso no verifica la interpretación de la IA. Contrasta fechas, cifras y obligaciones con el original. No se ha repetido la consulta.';
 }
 export function reportText(report,provider,model){
- const parts=[`PDF Contigo · Informe con IA\nProveedor: ${AI_PROVIDERS[provider]}\nModelo: ${model}\n\nLas citas se han localizado en el texto extraído. Revisa su interpretación en el original.`];
+ const parts=[`PDF Contigo · Entender mi PDF\nProveedor: ${AI_PROVIDERS[provider]}\nModelo: ${model}\n\n${reportNotice(report)}`];
  let group='';for(const item of report.items){if(item.group!==group){group=item.group;parts.push('\n'+group.toUpperCase());}parts.push(`${item.text} [p. ${item.page}]\nCita: «${item.quote}»`);}
- if(report.missing.length)parts.push('\nLA IA INDICA QUE NO ENCUENTRA\n'+report.missing.map(x=>'• '+x).join('\n'));
+ if(report.items.length&&report.missing.length)parts.push('\nLA IA INDICA QUE NO ENCUENTRA (COMPRUÉBALO EN EL ORIGINAL)\n'+report.missing.map(x=>'• '+x).join('\n'));
  return parts.join('\n\n');
 }

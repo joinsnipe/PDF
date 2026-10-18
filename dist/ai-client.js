@@ -1,4 +1,4 @@
-import {AI_PROVIDERS,AI_TEXT_LIMIT,aiError,validateReport,reportText} from './ai-contract.js';
+import {AI_PROVIDERS,AI_TEXT_LIMIT,aiError,reportNotice,reportText} from './ai-contract.js';
 import {callAI,boundedJSON} from './ai-provider.js';
 export function desktopAIEndpoint(location=globalThis.location){
  if(location?.protocol!=='http:'||location.hostname!=='127.0.0.1'||!/^\/[A-Za-z0-9_-]{32}\/(?:index\.html)?$/.test(location.pathname))return null;
@@ -24,7 +24,7 @@ export async function aiSummary(file,pages,opts,progress=()=>{}){
   if(pages.length>100||pages.reduce((n,p)=>n+p.text.length,0)>AI_TEXT_LIMIT)throw aiError('AI_SIZE','Selecciona hasta 100 páginas y 60.000 caracteres.');
   progress(.6,'Consultando '+AI_PROVIDERS[opts.provider]+'…');
   const result=await requestAI({action:'summary',provider:opts.provider,apiKey:opts.apiKey,workspace:opts.workspace,model:opts.model,mode:opts.aimode,consent:true,pages});
-  const report=validateReport(result.report,pages),text=reportText(report,opts.provider,opts.model);
-  return [{bytes:new TextEncoder().encode(text),name:file.name.replace(/\.pdf$/i,'')+'-informe-ia.txt',type:'text/plain;charset=utf-8',preview:text,sourcePdf:file,references:[...new Set(report.items.map(i=>i.page))],note:'Informe generado por IA. Las citas coinciden con el texto extraído; esto no verifica que la interpretación sea correcta. Contrasta fechas, cifras y obligaciones con el documento original.'}];
+  const report=result.report,text=reportText(report,opts.provider,opts.model);
+  return [{bytes:new TextEncoder().encode(text),name:file.name.replace(/\.pdf$/i,'')+'-informe-ia.txt',type:'text/plain;charset=utf-8',preview:text,sourcePdf:file,references:[...new Set(report.items.map(i=>i.page))],title:!report.items.length?'Respuesta sin referencias comprobables':report.omittedCount?'Informe parcial':'Tu documento explicado',reviewRequired:!report.items.length||!!report.omittedCount,note:reportNotice(report)}];
  }finally{opts.apiKey='';opts.reviewedPages=null;}
 }

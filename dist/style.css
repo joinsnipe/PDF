@@ -87,3 +87,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .dialog-footer #process{white-space:normal;line-height:1.4;max-width:100%;text-align:center}
 [data-reading-contrast] body :is(.ai-steps li,.ai-send-notice,#ai-review-box){border-color:#555}
 @media(max-width:720px){.ai-steps{grid-template-columns:1fr;gap:8px}.ai-steps li{padding:12px}.topbar-settings [data-ai-settings]{max-width:100%;text-align:left}.ai-connection{align-items:flex-start}.ai-connection button{justify-content:flex-start}#ai-review-text{max-height:200px}}
+
+.result.needs-review .success-mark{background:#fff3cd;color:#705000}.result.needs-review #result-note{color:#705000}

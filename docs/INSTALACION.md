@@ -4,10 +4,10 @@ La forma más rápida es [abrir la web](https://snipe-pdf.snipex.chatgpt.site). 
 
 ## Windows
 
-**Versión actual: 2.4.0-beta.4.** Descarga el paquete Windows de esta versión para actualizar también los accesos directos.
+**Paquete de esta revisión: 2.4.0-beta.9.** Usa el ZIP entregado con esta revisión. Mientras Actions está pausado, la lista de Releases puede conservar una versión anterior; comprueba el nombre del archivo.
 
-1. Descarga `PDF-2.4.0-beta.4-windows-x64.zip`.
-2. Botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
+1. Descarga `PDF-2.4.0-beta.9-windows-x64.zip`.
+2. Si PDF está abierto, guarda tus resultados y pulsa **Salir de PDF**. Después, botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
 3. Abre la carpeta `PDF` y haz doble clic en **Instalar_PDF.cmd**, una sola vez.
 4. Abre **PDF** desde el icono del escritorio o desde **Inicio → PDF Herramientas → PDF**.
 
@@ -26,6 +26,10 @@ Windows 10/11 de 64 bits y navegador actualizado. Instalación para el usuario a
 La revisión 2.4 beta 2 incluye el icono blanco y rojo en siete tamaños (16–256 px), con formatos compatibles con el lector de iconos de Windows. El instalador vuelve a asignarlo desde la carpeta instalada y notifica a Windows que actualice los accesos directos. No depende de la carpeta de Descargas.
 
 Guarda tus documentos, usa **Salir de PDF**, extrae el ZIP actualizado y ejecuta **Instalar_PDF.cmd**. Usa el acceso **PDF** que crea el instalador; un acceso web antiguo del navegador es independiente. Si todavía aparece en blanco, cierra y vuelve a iniciar tu sesión de Windows. No hace falta borrar la caché del sistema ni tocar tus PDF. El resultado visual necesita comprobarse en Windows real.
+
+### Al actualizar
+
+Actualizar la web no sustituye los archivos de una instalación local. Para Windows, extrae el nuevo ZIP y ejecuta **Instalar_PDF.cmd**: vuelve a asignar el acceso directo a esa revisión y conserva los documentos. Verifica **2.4 beta 9** en la pantalla inicial. Un acceso instalado desde Chrome/Edge que abre la dirección pública es la web: en ese caso recarga esa ventana. La clave de IA se guarda solo en memoria y debe volver a introducirse tras cerrar o recargar.
 
 ## Mac
 

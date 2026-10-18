@@ -1,11 +1,11 @@
 import {AI_PROVIDERS,AI_TEXT_LIMIT} from './ai-contract.js';
 import {getAISettings,onAISettingsChange,providerTerms,openAISettings,refreshAIIndicators} from './ai-settings.js';
 const $=id=>document.getElementById(id);
-let active=null,intent={mode:'local',task:'summary'};
-export function setAIIntent(mode,task='summary'){intent={mode,task};}
-export function aiOptions(){return `<label class="field">Cómo quieres hacer el resumen<select id="opt-summarymode" aria-describedby="ai-method-help"><option value="local" ${intent.mode==='local'?'selected':''}>Sin IA · extraer frases del PDF</option><option value="ai" ${intent.mode==='ai'?'selected':''}>Con IA · resumir o explicar</option></select></label><p id="ai-method-help" class="hint"></p>
+let active=null,intent={mode:'local'};
+export function setAIIntent(mode){intent={mode};}
+export function aiOptions(){return `<label class="field">Cómo quieres leer el documento<select id="opt-summarymode" aria-describedby="ai-method-help"><option value="local" ${intent.mode==='local'?'selected':''}>Sin IA · extraer frases del PDF</option><option value="ai" ${intent.mode==='ai'?'selected':''}>Con IA · entender el documento</option></select></label><p id="ai-method-help" class="hint"></p>
 <div id="ai-options" ${intent.mode==='ai'?'':'hidden'}><div class="ai-connection"><p id="ai-tool-connection" role="status"></p><button type="button" class="text-button" data-ai-settings><span data-ai-settings-label>Configurar IA</span></button></div>
-<label class="field">Qué quieres obtener<select id="opt-aimode" aria-describedby="ai-task-help"><option value="summary" ${intent.task==='summary'?'selected':''}>Resumen · las ideas principales</option><option value="explain" ${intent.task==='explain'?'selected':''}>Qué me piden · acciones y fechas</option></select></label><p id="ai-task-help" class="hint"></p>
+<p id="ai-task-help" class="hint">Recibirás un resumen en lenguaje sencillo y, cuando consten, las peticiones, la documentación solicitada y las fechas mencionadas. Todo en un único informe, con referencias al PDF para contrastarlo.</p>
 <ol class="ai-steps" role="list" aria-label="Dos pasos para consultar la IA"><li id="ai-step-review"><strong>1. Revisa el texto</strong><span>Se prepara en tu dispositivo. Todavía no se envía nada.</span></li><li id="ai-step-send"><strong>2. Envía y obtén el informe</strong><span>El proveedor de IA recibirá el texto cuando pulses el botón de envío.</span></li></ol>
 <p id="ai-next-step" class="ai-next-step" role="status"></p>
 <p id="ai-review-status" role="status" class="hint"></p><details id="ai-review-box" hidden><summary>Texto que recibirá la IA, por páginas</summary><pre id="ai-review-text" class="viewer-text" tabindex="0" aria-label="Texto que se enviará al proveedor de IA"></pre></details>
@@ -26,7 +26,7 @@ export function collectAI(){
  const config=getAISettings();if(!config)throw new Error('Conecta tu cuenta desde Configurar IA antes de continuar.');
  if(!active?.pages||active.connectionRevision!==config.revision)throw new Error('Pulsa «Revisar texto» para ver qué recibirá la IA. Todavía no se ha enviado nada.');
  if(!active.approved)throw new Error('Después de revisar el texto, pulsa el botón «Enviar» para confirmar esta consulta.');
- const result={summarymode:mode,...config,aimode:$('opt-aimode').value,aiConsent:true,reviewedPages:active.pages};
+ const result={summarymode:mode,...config,aimode:'understand',aiConsent:true,reviewedPages:active.pages};
  active.approved=false;active.pages=null;return result;
 }
 export function bindAI(files,extract){
@@ -34,23 +34,24 @@ export function bindAI(files,extract){
  const refresh=()=>{
   if(state.disposed)return;
   const ai=$('opt-summarymode').value==='ai',config=getAISettings(),ready=!!state.pages&&state.connectionRevision===config?.revision;
-  $('ai-method-help').textContent=ai?'La IA redacta un resumen o una explicación. Envía el texto al proveedor que elijas y puede tener coste.':'Selecciona frases literales del documento, sin reescribirlas. Funciona en tu dispositivo, gratis y sin enviar datos.';
-  $('ai-task-help').textContent=$('opt-aimode').value==='explain'?'Útil para cartas y requerimientos: indica qué solicitan, qué documentos mencionan y qué fechas aparecen. Si algo no consta, lo señalará; no calcula plazos.':'Útil para entender un texto largo: recoge sus ideas principales en lenguaje sencillo, con citas y páginas para comprobarlas.';
+  $('ai-method-help').textContent=ai?'La IA resume y explica el documento en un único informe. Envía el texto al proveedor que elijas y puede tener coste.':'Selecciona frases literales del documento, sin reescribirlas. Funciona en tu dispositivo, gratis y sin enviar datos.';
+  $('work-title').textContent=ai?'Entender mi PDF':'Resumen sin IA';
+  $('work-description').textContent=ai?'Entiende las ideas principales y lo que pide el documento en un solo informe. Primero revisas el texto; después decides si lo envías a tu IA.':'Extrae frases del documento en tu dispositivo, sin una cuenta de IA ni envío de datos.';
   $('ai-review').hidden=!ready;$('ai-review').disabled=state.reviewing;
   $('ai-send-notice').hidden=!ready;$('ai-review-box').hidden=!ready;
   $('ai-step-review').toggleAttribute('data-complete',ready);$('ai-step-review').setAttribute('aria-current',ready?'false':'step');$('ai-step-send').setAttribute('aria-current',ready?'step':'false');
   if(config){$('ai-provider-link').href=providerTerms(config.provider);$('ai-send-title').textContent='Destino del texto: '+AI_PROVIDERS[config.provider];}
   const next=!config?'Conecta tu cuenta de IA para continuar.':!files.length?'Añade un PDF para preparar el texto.':state.reviewing?'Preparando el texto en tu dispositivo…':ready?'Texto preparado. Léelo y pulsa «Enviar» si quieres generar el informe.':'Pulsa «Revisar texto». Podrás verlo antes de decidir si lo envías.';
   $('ai-next-step').textContent=next;
-  if(ai){$('process').textContent=!config?'Conectar IA':state.reviewing?'Preparando texto…':!ready?'1. Revisar texto':'Enviar a '+AI_PROVIDERS[config.provider]+($('opt-aimode').value==='explain'?' y explicar':' y resumir');$('process').setAttribute('aria-describedby','ai-next-step'+(ready?' ai-send-title':''));}
+  if(ai){$('process').textContent=!config?'Conectar IA':state.reviewing?'Preparando texto…':!ready?'1. Revisar texto':'Enviar a '+AI_PROVIDERS[config.provider]+' y analizar';$('process').setAttribute('aria-describedby','ai-next-step'+(ready?' ai-send-title':''));}
   else{$('process').textContent='Extraer frases del PDF';$('process').removeAttribute('aria-describedby');}
   $('process').disabled=state.reviewing||!files.length;
  };
  state.refresh=refresh;
  const invalidate=()=>{state.revision++;state.pages=null;state.approved=false;state.connectionRevision=null;state.reviewing=false;$('ai-review-text').textContent='';$('ai-review-status').textContent='Hasta 100 páginas y 60.000 caracteres. Si el PDF es un escaneado, utiliza OCR primero.';refresh();};
  const connectionChanged=()=>{invalidate();const config=getAISettings();$('ai-tool-connection').textContent=config?'Proveedor elegido: '+AI_PROVIDERS[config.provider]+'. El texto se envía solo cuando tú lo confirmas.':'Conecta tu cuenta para usar IA o elige «Sin IA» para trabajar solo en tu dispositivo.';refreshAIIndicators();};
- const modeChanged=()=>{intent.mode=$('opt-summarymode').value;intent.task=$('opt-aimode').value;const ai=intent.mode==='ai';$('ai-options').hidden=!ai;document.querySelector('#opt-count').closest('label').hidden=ai;invalidate();$('processing-location').textContent=ai?'Revisión local · envío posterior a tu proveedor de IA':'Procesado en tu navegador';};
- $('opt-summarymode').onchange=modeChanged;$('opt-aimode').onchange=modeChanged;
+ const modeChanged=()=>{intent.mode=$('opt-summarymode').value;const ai=intent.mode==='ai';$('ai-options').hidden=!ai;document.querySelector('#opt-count').closest('label').hidden=ai;invalidate();$('processing-location').textContent=ai?'Revisión local · envío posterior a tu proveedor de IA':'Procesado en tu navegador';};
+ $('opt-summarymode').onchange=modeChanged;
  $('opt-range')?.addEventListener('input',invalidate);
  state.unsubscribe=onAISettingsChange(connectionChanged);connectionChanged();modeChanged();
  state.review=$('ai-review').onclick=async()=>{

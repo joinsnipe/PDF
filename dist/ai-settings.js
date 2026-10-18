@@ -18,7 +18,7 @@ export const providerTerms=id=>links[id]?.terms;
 export function refreshAIIndicators(){
  const name=connection?AI_PROVIDERS[connection.provider]:'';
  const label=connection?(connection.manual?'IA configurada · ':'IA conectada · ')+name:'Configurar IA';
- const status=connection?`${label}. ${connection.manual?'Modelo manual: se comprobará en la primera consulta.':'Cuenta conectada para esta pestaña; el saldo y los permisos de generación se comprueban al consultar.'}`:'IA sin conectar. El resumen local funciona sin cuenta.';
+ const status=connection?`${label}. ${connection.manual?'Modelo manual: se comprobará en la primera consulta.':'El saldo y los permisos de generación se comprueban al consultar.'} La clave se olvida al cerrar o recargar PDF.`:'IA sin conectar. Si has cerrado o recargado PDF, vuelve a introducir tu clave. El resumen sin IA no la necesita.';
  document.querySelectorAll('[data-ai-status]').forEach(el=>el.textContent=status);
  document.querySelectorAll('[data-ai-settings-label]').forEach(el=>el.textContent=label);
  document.querySelectorAll('[data-ai-settings]').forEach(el=>{el.dataset.aiConnection=connection?(connection.manual?'manual':'connected'):'off';el.setAttribute('aria-label',label+'. Abrir configuración de IA');el.title=status;});

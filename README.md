@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.8 · IA conectada y resumen paso a paso.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta.
+> **PDF Contigo 2.4.0-beta.9 · Entender mi PDF en un único informe.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta. Actions permanece pausado; las correcciones se preparan localmente, sin compilaciones de GitHub.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -32,11 +32,11 @@ La web pública sí depende de su alojamiento, y el acceso instalado en Android/
 
 ## Configura la IA sin complicaciones
 
-Pulsa **Configurar IA** en la parte superior, elige el proveedor donde creaste la clave, pégala y pulsa **Conectar con ese proveedor**. No hay proveedor preseleccionado. Si corriges la selección, la clave permanece en el campo: el aviso indica si su formato parece de otro proveedor, sin enviarla automáticamente. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después elige **Resumir con IA** o **Explicar documento**. El indicador verde **IA conectada** muestra el proveedor de esta pestaña. Para cada documento, pulsa **Revisar texto** y después **Enviar a tu proveedor y resumir**. Este segundo clic confirma el envío; ya no hay una casilla de autorización. La configuración manual aparece en ámbar porque aún no se ha comprobado.
+Pulsa **Configurar IA** en la parte superior, elige el proveedor donde creaste la clave, pégala y pulsa **Conectar con ese proveedor**. No hay proveedor preseleccionado. Si corriges la selección, la clave permanece en el campo: el aviso indica si su formato parece de otro proveedor, sin enviarla automáticamente. La app elige un modelo de texto automáticamente; el cambio manual está en **Opciones avanzadas**. Después pulsa **Entender mi PDF**: recibirás un resumen y, cuando consten, peticiones, documentación y fechas en un único informe. El indicador verde **IA conectada** muestra el proveedor de esta pestaña. Para cada documento, pulsa **Revisar texto** y después **Enviar a tu proveedor y analizar**. Este segundo clic confirma el envío; ya no hay una casilla de autorización. La configuración manual aparece en ámbar porque aún no se ha comprobado.
 
 **¿No tienes API?** La configuración incluye enlaces y pasos para obtenerla. Gemini ofrece cuota gratuita para ciertos modelos y cuentas; comprueba tu plan en Google AI Studio. No se garantiza uso gratuito con cualquier clave o modelo. También puedes elegir **Resumen gratuito sin API**, que selecciona frases localmente y no utiliza IA.
 
-La clave se conserva solo en la memoria de la pestaña hasta desconectar, recargar o salir de ella. No se guarda para próximas visitas. [Guía y condiciones](docs/IA-Y-OFFICE.md).
+La clave se conserva solo en la memoria de la pestaña hasta desconectar, recargar o salir de ella. No se guarda para próximas visitas, tampoco en la app de escritorio. Cambiar de herramienta o documento dentro de la misma ventana conserva la conexión. [Guía y condiciones](docs/IA-Y-OFFICE.md).
 
 **Tu dispositivo → tu proveedor.** La web conecta directamente con la API elegida. En Windows/Mac, el conector se ejecuta en tu propio ordenador y contacta con ese proveedor por HTTPS. Las consultas no pasan por un servidor compartido de PDF Contigo. En web/móvil, la conexión depende de que el proveedor permita acceso desde el navegador; si lo bloquea, utiliza el paquete de escritorio. No se recurre a un proxy externo automáticamente.
 

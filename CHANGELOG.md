@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 2.4.0-beta.9
+
+Una sola herramienta «Entender mi PDF» reúne resumen, explicación, peticiones y fechas, sin opciones duplicadas. Referencias por identificadores de fragmentos: las citas y páginas se recuperan del texto original. Una referencia incorrecta no descarta los puntos válidos; el informe se señala como parcial. Si no hay referencias localizables, se indica expresamente y no se muestran afirmaciones sin respaldo. No hay reintentos automáticos. Se aclara la duración de la clave en memoria, también en escritorio. [Detalle y límites](docs/releases/v2.4.0-beta.9.md).
+
+Actions sigue pausado. Compilación, pruebas simuladas y empaquetado locales, sin API real ni artefactos de Actions.
+
 ## 2.4.0-beta.8
 
 Indicador visible de IA conectada con punto verde y nombre del proveedor; configuración manual en ámbar. El botón principal guía el resumen: primero prepara y muestra el texto en local, después ofrece enviarlo al proveedor elegido. Se elimina la casilla desactivada que bloqueaba el flujo. El clic explícito de envío confirma una única consulta. Se explican «Resumen», «Qué me piden» y el modo sin IA. [Detalle](docs/releases/v2.4.0-beta.8.md).

@@ -63,9 +63,9 @@ $('#search').addEventListener('input',renderTools);
 initAISettings();
 initReadingPreferences();
 document.querySelectorAll('[data-ai-action]').forEach(button=>button.addEventListener('click',()=>{
- const action=button.dataset.aiAction,mode=action==='local'?'local':'ai',task=action==='explain'?'explain':'summary';
- setAIIntent(mode,task);
- if(dialog.open&&active?.id==='summary'){$('#opt-summarymode').value=mode;$('#opt-aimode').value=task;$('#opt-aimode').onchange();}
+ const action=button.dataset.aiAction,mode=action==='local'?'local':'ai';
+ setAIIntent(mode);
+ if(dialog.open&&active?.id==='summary'){$('#opt-summarymode').value=mode;$('#opt-summarymode').onchange();}
  else openTool('summary');
 }));
 $('#tool-grid').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b)openTool(b.dataset.tool);});
@@ -231,6 +231,9 @@ async function showResults(outputs){
   const url=o=>{const u=URL.createObjectURL(new Blob([o.bytes],{type:o.type}));outputUrls.push(u);return u;};
   lastDownload=download;try{$('#share-result').hidden=!(typeof window.navigator.share==='function'&&window.navigator.canShare?.({files:[new File([download.bytes],download.name,{type:download.type})]}));}catch{$('#share-result').hidden=true;}const downloadUrl=url(download);$('#download').href=downloadUrl;$('#open-result').href=downloadUrl;$('#open-result').hidden=outputs.length>1;$('#download').download=download.name;$('#download').target='_blank';$('#download').rel='noopener';$('#download').innerHTML=`Descargar ${outputs.length>1?'ZIP':download.name.split('.').pop().toUpperCase()} <span>↓</span>`;
   const textOutput=outputs.find(o=>o.type.startsWith('text/plain'));$('#result-preview').textContent=outputs.find(o=>o.preview)?.preview||(textOutput?new TextDecoder().decode(textOutput.bytes).slice(0,22000):'');$('#result-preview').hidden=!$('#result-preview').textContent;
+  $('#result-title').textContent=outputs[0].title||'Archivo preparado';
+  $('#result .success-mark').textContent=outputs[0].reviewRequired?'!':'✓';
+  $('#result').classList.toggle('needs-review',!!outputs[0].reviewRequired);
   $('#result-summary').textContent=`${outputs.length} ${outputs.length===1?'archivo preparado':'archivos preparados'} · ${niceSize(total)}${outputs.length>1?' antes de empaquetar':''}`;
   $('#result-note').textContent=outputs[0].note||'Tu nueva copia está lista. Los originales permanecen intactos.';
   if(outputs.length>1&&outputs.length<=30)outputs.forEach(o=>{const a=document.createElement('a');a.href=url(o);a.download=o.name;a.target='_blank';a.rel='noopener';a.textContent=o.name;$('#individual-downloads').append(a);});
