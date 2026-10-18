@@ -1,3 +1,11 @@
+# 2.4.0-beta.10 — 18 de octubre de 2026
+
+- API recordada por dispositivo, cifrada con contraseña, con desbloqueo local y borrado explícito. Persistencia de escritorio independiente del puerto y carpeta de versión.
+- Informe adaptado al tipo de documento, citas breves plegadas, varias referencias por punto, cobertura y eliminación de vacíos/duplicados exactos.
+- Omisión de puntos con cifras no respaldadas por sus citas. Detección de respuestas truncadas, sin reintentos de pago.
+- Selección automática de OpenAI prioriza la familia GPT mini frente al antiguo empate con o-mini; no cambia un modelo ya guardado.
+- Documentación de almacenamiento, límites y actualización. GitHub Actions continúa pausado.
+
 # Historial de cambios
 
 ## 2.4.0-beta.9

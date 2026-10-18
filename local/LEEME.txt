@@ -26,7 +26,7 @@ Abre Visor de PDF o Desbloquear PDF, selecciona el documento e introduce
 su contrasena una vez. Podras verlo y descargar una copia sin contrasena.
 Si la contrasena es de una web de la administracion, primero descarga
 el archivo desde esa web: PDF trabaja con el documento ya descargado.
-La aplicacion no guarda contrasenas ni certificados.
+No se guardan contrasenas de PDF ni certificados. La conexion IA puede recordarse cifrada con una contrasena local elegida por el usuario.
 Conserva el original si contiene firmas digitales.
 
 FUNCIONES

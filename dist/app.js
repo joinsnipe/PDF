@@ -1,3 +1,4 @@
+import {renderAIReport} from './ai-report.js';
 import {initReadingPreferences} from './accessibility.js';
 import { ADVANCED_TOOLS, advancedOperation, formFields } from './advanced.js';
 import { advancedOptions, bindAdvanced, collectAdvanced, clearAdvanced } from './advanced-ui.js';
@@ -231,6 +232,9 @@ async function showResults(outputs){
   const url=o=>{const u=URL.createObjectURL(new Blob([o.bytes],{type:o.type}));outputUrls.push(u);return u;};
   lastDownload=download;try{$('#share-result').hidden=!(typeof window.navigator.share==='function'&&window.navigator.canShare?.({files:[new File([download.bytes],download.name,{type:download.type})]}));}catch{$('#share-result').hidden=true;}const downloadUrl=url(download);$('#download').href=downloadUrl;$('#open-result').href=downloadUrl;$('#open-result').hidden=outputs.length>1;$('#download').download=download.name;$('#download').target='_blank';$('#download').rel='noopener';$('#download').innerHTML=`Descargar ${outputs.length>1?'ZIP':download.name.split('.').pop().toUpperCase()} <span>↓</span>`;
   const textOutput=outputs.find(o=>o.type.startsWith('text/plain'));$('#result-preview').textContent=outputs.find(o=>o.preview)?.preview||(textOutput?new TextDecoder().decode(textOutput.bytes).slice(0,22000):'');$('#result-preview').hidden=!$('#result-preview').textContent;
+  $('#result-ai-report')?.remove();
+  const aiReport=outputs.find(o=>o.aiReport)?.aiReport;
+  if(aiReport){const panel=document.createElement('div');panel.id='result-ai-report';$('#result-preview').hidden=true;$('#result-preview').after(panel);renderAIReport(panel,aiReport,page=>{const field=$('#view-page');if(field){field.value=page;field.dispatchEvent(new Event('change'));$('#result-viewer').scrollIntoView({block:'nearest'});}});}
   $('#result-title').textContent=outputs[0].title||'Archivo preparado';
   $('#result .success-mark').textContent=outputs[0].reviewRequired?'!':'✓';
   $('#result').classList.toggle('needs-review',!!outputs[0].reviewRequired);

@@ -23,6 +23,9 @@ _spec.loader.exec_module(office)
 _ai_spec = importlib.util.spec_from_file_location('pdf_ai', Path(__file__).with_name('ai.py'))
 ai = importlib.util.module_from_spec(_ai_spec)
 _ai_spec.loader.exec_module(ai)
+_vault_spec = importlib.util.spec_from_file_location('pdf_vault', Path(__file__).with_name('vault.py'))
+vault = importlib.util.module_from_spec(_vault_spec)
+_vault_spec.loader.exec_module(vault)
 
 
 def pdf_bytes(data):
@@ -96,6 +99,13 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
         decoded = self.local_path()
         if decoded is None:
             return None
+        if decoded == '_desktop/ai-vault':
+            if self.vault_allowed():
+                try:
+                    self.office_reply(vault.read_vault())
+                except (ValueError, OSError):
+                    self.send_error(400)
+            return None
         if decoded == '_desktop/office/status':
             if self.headers.get('X-PDF-Local') != '1' or self.headers.get('Sec-Fetch-Site', 'same-origin') != 'same-origin':
                 self.send_error(403)
@@ -138,6 +148,53 @@ class PDFHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404)
             return None
         return super().send_head()
+
+    def vault_allowed(self):
+        origin = f'http://127.0.0.1:{self.server.server_port}'
+        if (self.headers.get('X-PDF-Local') != '1' or
+                self.headers.get('Sec-Fetch-Site', 'same-origin') != 'same-origin' or
+                self.headers.get('Origin', origin) != origin or
+                (self.command not in ('GET', 'HEAD') and self.headers.get('Origin') != origin)):
+            self.send_error(403)
+            return False
+        return True
+
+    def do_PUT(self):
+        self.vault_change()
+
+    def do_DELETE(self):
+        self.vault_change()
+
+    def vault_change(self):
+        decoded = self.local_path()
+        if decoded is None:
+            return
+        if decoded != '_desktop/ai-vault':
+            self.send_error(405)
+            return
+        if not self.vault_allowed():
+            return
+        try:
+            length = self.headers.get('Content-Length', '0')
+            if not re.fullmatch(r'[0-9]{1,5}', length) or self.headers.get('Transfer-Encoding'):
+                raise ValueError()
+            if self.command == 'DELETE':
+                if int(length) != 0:
+                    raise ValueError()
+                vault.delete_vault()
+            else:
+                if not 0 < int(length) <= 5000 or self.headers.get('Content-Type') != 'application/json':
+                    raise ValueError()
+                self.connection.settimeout(15)
+                raw = self.rfile.read(int(length))
+                if len(raw) != int(length):
+                    raise ValueError()
+                vault.write_vault(json.loads(raw))
+            self.send_response(204)
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+        except (ValueError, OSError):
+            self.send_error(400)
 
     def do_POST(self):
         decoded = self.local_path()

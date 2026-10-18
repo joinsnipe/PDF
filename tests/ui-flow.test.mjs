@@ -216,7 +216,7 @@ test('IA: configurar sin PDF, modelo automático, revisar, autorizar, reutilizar
   $('#ai-provider').value='mistral';$('#ai-provider').onchange();$('#ai-key').value='test-api-key-example';await $('#ai-connect').onclick();
   assert.equal($('#ai-settings-dialog').open,false);assert.equal($('#ai-key').value,'');assert.equal(calls.length,1);assert.equal(getAISettings().model,'mistral-small-latest');
   $('[data-ai-action="understand"]').click();await add([await sample()]);assert.equal($('#opt-summarymode').value,'ai');assert.equal($('#opt-aimode'),null);assert.equal($('#work-title').textContent,'Entender mi PDF');assert.equal($('#ai-options').hidden,false);
-  assert.match($('.topbar [data-ai-settings-label]').textContent,/IA conectada.*Mistral/);assert.equal($('.topbar [data-ai-settings]').dataset.aiConnection,'connected');
+  assert.match($('.topbar [data-ai-settings-label]').textContent,/IA configurada.*Mistral/);assert.equal($('.topbar [data-ai-settings]').dataset.aiConnection,'connected');
   assert.match($('#process').textContent,/Revisar texto/);await $('#process').onclick();assert.equal(calls.length,1);assert.equal($('#error').hidden,true);assert.equal($('#ai-review-box').hidden,false);
   assert.match($('#ai-review-text').textContent,/Documento de prueba/);assert.equal($('#ai-consent'),null);assert.match($('#process').textContent,/Enviar a Mistral y analizar/);assert.equal($('#ai-send-notice').hidden,false);
   await $('#process').onclick();assert.equal($('#error').hidden,true,$('#error').textContent);assert.equal(calls.length,2);assert.match(calls[1].body.messages[1].content,/Resume y explica/);assert.ok($('#download').download.endsWith('-informe-ia.txt'));assert.match($('#result-viewer').textContent,/Documento original para contrastar/);assert.match($('#result-preview').textContent,/Cita/);assert.equal(getAISettings().apiKey,'test-api-key-example');
@@ -355,6 +355,7 @@ test('IA: una sola entrada y un informe parcial de OpenAI se pueden leer y desca
  const key='sk-proj-fake-partial-desktop-test';
  globalThis.fetch=async(url,init)=>{
   if(String(url).startsWith('blob:'))return previousFetch(url,init);
+  if(String(url).endsWith('/_desktop/ai-vault'))return new Response(null,{status:204});
   assert.equal(String(url),globalThis.location.href+'_desktop/ai');
   const envelope=JSON.parse(init.body);assert.equal(envelope.headers.Authorization,'Bearer '+key);
   let body;
@@ -382,4 +383,26 @@ test('IA: una sola entrada y un informe parcial de OpenAI se pueden leer y desca
   assert.equal($('#error').hidden,true);assert.equal($('#result-title').textContent,'Respuesta sin referencias comprobables');assert.equal($('#result .success-mark').textContent,'!');assert.match($('#result-note').textContent,/no se pudo localizar ninguna/);assert.doesNotMatch($('#result-preview').textContent,/AFIRMACION_INVENTADA|Solicita una factura/);assert.equal(generations,2);
   window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);assert.equal(window.localStorage.length,0);assert.equal(window.sessionStorage.length,0);
  }finally{$('#work-close').click();forgetAISettings();globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+
+test('IA: recordar, bloquear, recargar y desbloquear sin enviar claves o documentos a la red',async()=>{
+ const previousFetch=globalThis.fetch;globalThis.location=window.location;const {getAISettings,forgetAISettings,restoreAISettings}=await import('../dist/ai-settings.js');let calls=0;
+ globalThis.fetch=async()=>{calls++;throw new Error('No debe consultar al proveedor en modo manual ni al desbloquear');};
+ try{
+  await forgetAISettings();$('[data-ai-settings]').click();$('#ai-provider').value='openai';$('#ai-provider').onchange();$('#ai-key').value='sk-proj-fake-vault-ui-only';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gpt-4.1-mini';
+  $('#ai-remember').checked=true;$('#ai-remember').onchange();$('#ai-save-password').value='Local passphrase 123!';$('#ai-save-confirm').value='Not the same';
+  await $('#ai-connect').onclick();assert.equal(calls,0);assert.equal(getAISettings(),null);assert.match($('#ai-connect-status').textContent,/no coinciden/);
+  $('#ai-save-confirm').value='Local passphrase 123!';await $('#ai-connect').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal($('#ai-save-password').value,'');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');
+  const saved=window.localStorage.getItem('pdf-contigo-ai-vault-v1');assert.ok(saved);assert.doesNotMatch(saved,/sk-proj|Local passphrase/);assert.match($('[data-ai-status]').textContent,/guardada cifrada/);
+  window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);assert.equal(window.localStorage.getItem('pdf-contigo-ai-vault-v1'),saved);
+  await restoreAISettings();$('[data-ai-settings]').click();assert.equal($('#ai-unlock-panel').hidden,false);assert.equal($('#ai-settings-fields').hidden,true);assert.match($('[data-ai-settings-label]').textContent,/Desbloquear/);
+  $('#ai-unlock-password').value='Wrong passphrase 123!';await $('#ai-unlock').onclick();assert.equal(getAISettings(),null);assert.match($('#ai-unlock-status').textContent,/No se pudo desbloquear/);assert.equal($('#ai-unlock-password').value,'');
+  $('#ai-unlock-password').value='Local passphrase 123!';await $('#ai-unlock').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal(getAISettings().model,'gpt-4.1-mini');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');assert.equal(calls,0);
+  await forgetAISettings();assert.equal(window.localStorage.getItem('pdf-contigo-ai-vault-v1'),null);assert.equal(getAISettings(),null);
+ }finally{await forgetAISettings();$('#ai-settings-close').click();globalThis.fetch=previousFetch;delete globalThis.location;}
+});
+test('IA: informe legible con citas plegadas, cobertura y datos como texto, nunca HTML',async()=>{
+ const {renderAIReport}=await import('../dist/ai-report.js');const panel=document.createElement('div');let page;
+ renderAIReport(panel,{items:[{group:'Resumen',text:'<img src=x onerror=alert(1)>',page:9,quote:'Un texto literal del PDF.'}],missing:[],coverage:{pages:[1,9],emptyPages:[1],characters:25}},n=>{page=n;});
+ assert.equal(panel.querySelector('img'),null);assert.match(panel.textContent,/<img/);assert.equal(panel.querySelector('details').open,false);assert.match(panel.textContent,/Páginas sin texto legible: 1/);panel.querySelector('button').click();assert.equal(page,9);assert.equal(panel.querySelectorAll('section').length,1);
 });

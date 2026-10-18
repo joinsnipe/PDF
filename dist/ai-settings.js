@@ -1,3 +1,4 @@
+import {sealVault,openVault,vaultStorage,validateVaultPassword} from './ai-vault.js';
 import {AI_PROVIDERS,assertAIKey,assertAIModel,keyProviderHint} from './ai-contract.js';
 import {requestAI,desktopAIEndpoint} from './ai-client.js';
 const $=id=>document.getElementById(id);
@@ -10,19 +11,20 @@ const links={
  mistral:{key:'https://console.mistral.ai',terms:'https://mistral.ai/pricing'}
 };
 let connection=null,revision=0,pending=null,requestRevision=0,draftProvider=null;
+let savedVault=null,storageIssue='';
 const listeners=new Set();
-// Only tab memory: no key in storage, cookies, URLs or data attributes.
+// Plaintext credentials stay in memory; persistence is an optional password-encrypted vault.
 export const getAISettings=()=>connection?{...connection,revision}:null;
 export const onAISettingsChange=callback=>{listeners.add(callback);return ()=>listeners.delete(callback);};
 export const providerTerms=id=>links[id]?.terms;
 export function refreshAIIndicators(){
  const name=connection?AI_PROVIDERS[connection.provider]:'';
- const label=connection?(connection.manual?'IA configurada · ':'IA conectada · ')+name:'Configurar IA';
- const status=connection?`${label}. ${connection.manual?'Modelo manual: se comprobará en la primera consulta.':'El saldo y los permisos de generación se comprueban al consultar.'} La clave se olvida al cerrar o recargar PDF.`:'IA sin conectar. Si has cerrado o recargado PDF, vuelve a introducir tu clave. El resumen sin IA no la necesita.';
+ const label=connection?'IA configurada · '+name:savedVault?'Desbloquear IA':'Configurar IA';
+ const status=connection?`${label}. ${connection.manual?'Modelo manual: se comprobará en la primera consulta.':'El catálogo respondió al conectar; el saldo y los permisos de generación se comprueban al consultar.'} ${savedVault?'Conexión guardada cifrada en este dispositivo.':'Solo esta sesión: al cerrar o recargar se olvida la clave.'}`:savedVault?'IA guardada en este dispositivo. Desbloquéala con tu contraseña de PDF Contigo; no hace falta pegar la API.':storageIssue||'IA sin configurar. Puedes recordar tu conexión en este dispositivo o usar el resumen sin IA.';
  document.querySelectorAll('[data-ai-status]').forEach(el=>el.textContent=status);
  document.querySelectorAll('[data-ai-settings-label]').forEach(el=>el.textContent=label);
- document.querySelectorAll('[data-ai-settings]').forEach(el=>{el.dataset.aiConnection=connection?(connection.manual?'manual':'connected'):'off';el.setAttribute('aria-label',label+'. Abrir configuración de IA');el.title=status;});
- if($('ai-forget'))$('ai-forget').hidden=!connection;
+ document.querySelectorAll('[data-ai-settings]').forEach(el=>{el.dataset.aiConnection=connection?(connection.manual?'manual':'connected'):savedVault?'locked':'off';el.setAttribute('aria-label',label+'. Abrir configuración de IA');el.title=status;});
+ if($('ai-forget'))$('ai-forget').hidden=!connection&&!savedVault&&!storageIssue;
 }
 function announce(){
  refreshAIIndicators();
@@ -38,8 +40,26 @@ function updateKeyWarning(){
   const hint=keyProviderHint(key);if(e.code==='AI_KEY_PROVIDER'&&hint){$('ai-key-provider-fix').hidden=false;$('ai-key-provider-fix').dataset.provider=hint;$('ai-key-provider-fix').textContent='Elegir '+AI_PROVIDERS[hint];}
  }
 }
-function cleanDraft(){cancelPending();draftProvider=null;$('ai-key').value='';$('ai-key-state').textContent='';$('ai-model-id').value='';$('ai-workspace').value='';clearKeyWarning();}
-export function forgetAISettings(){connection=null;revision++;cleanDraft();announce();}
+function cleanDraft(){cancelPending();for(const id of ['ai-unlock-password','ai-save-password','ai-save-confirm'])$(id).value='';draftProvider=null;$('ai-key').value='';$('ai-key-state').textContent='';$('ai-model-id').value='';$('ai-workspace').value='';clearKeyWarning();}
+export function lockAISettings(){connection=null;revision++;cleanDraft();announce();}
+export async function forgetAISettings(){
+ lockAISettings();
+ try{await vaultStorage('delete');savedVault=null;storageIssue='';$('ai-unlock-panel').hidden=true;$('ai-settings-fields').hidden=false;$('ai-remember').checked=false;$('ai-save-password-fields').hidden=true;$('ai-connect-status').textContent='Conexión borrada de este dispositivo.';}
+ catch(e){storageIssue=e.message;$('ai-unlock-status').textContent=e.message;$('ai-connect-status').textContent=e.message;}
+ announce();
+}
+export async function restoreAISettings(){
+ const before=revision;
+ try{const record=await vaultStorage('load');if(before!==revision)return;savedVault=record;storageIssue='';if(record&&!connection&&$('ai-settings-dialog').open&&!$('ai-provider').value&&!$('ai-key').value){$('ai-unlock-panel').hidden=false;$('ai-settings-fields').hidden=true;}}
+ catch(e){if(before!==revision)return;storageIssue=e.message;}
+ announce();
+}
+async function unlock(){
+ cancelPending();const run=requestRevision,password=$('ai-unlock-password').value;$('ai-unlock-password').value='';$('ai-unlock').disabled=true;$('ai-unlock-status').textContent='Desbloqueando en este dispositivo…';
+ try{const config=await openVault(savedVault,password);if(run!==requestRevision)return;connection=config;revision++;announce();closeSettings();}
+ catch(e){if(run===requestRevision)$('ai-unlock-status').textContent=e.message;}
+ finally{$('ai-unlock').disabled=false;}
+}
 // Prefer stable text families. Selection does not establish quota or price.
 export function chooseAIModel(provider,models){
  const rows=(Array.isArray(models)?models:[]).filter(m=>typeof m?.id==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,149}$/.test(m.id)&&!/(embedding|image|audio|tts|transcri|realtime|live|research|robotic|computer-use|moderation|rerank|vision-only|aqa)/i.test(m.id));
@@ -47,7 +67,7 @@ export function chooseAIModel(provider,models){
  const score=id=>{
   let n=/(preview|experimental|exp-|beta)/i.test(id)?-100:0;
   if(provider==='gemini')n+=id==='gemini-2.5-flash'?90:/flash-lite/.test(id)?70:/flash/.test(id)?60:0;
-  if(provider==='openai')n+=/mini/.test(id)?60:/nano/.test(id)?40:0;
+  if(provider==='openai')n+=/^gpt-.*mini/.test(id)?80:/^gpt-.*nano/.test(id)?60:/mini/.test(id)?40:0;
   if(provider==='anthropic')n+=/haiku/.test(id)?60:/sonnet/.test(id)?30:0;
   if(provider==='xai')n+=/fast/.test(id)?60:/mini/.test(id)?40:0;
   if(provider==='deepseek')n+=/flash/.test(id)?90:/chat/.test(id)?60:0;
@@ -77,18 +97,19 @@ function providerChanged(){
 }
 export function openAISettings(){
  const dialog=$('ai-settings-dialog');if(dialog.open)return;
- cleanDraft();$('ai-provider').value=connection?.provider||'';providerChanged();
+ cleanDraft();$('ai-unlock-panel').hidden=!savedVault||!!connection;$('ai-settings-fields').hidden=!!savedVault&&!connection;$('ai-unlock-status').textContent='';$('ai-remember').checked=!!savedVault;$('ai-save-password-fields').hidden=!savedVault;$('ai-provider').value=connection?.provider||'';providerChanged();
  if(connection){$('ai-key').value=connection.apiKey;$('ai-workspace').value=connection.workspace;$('ai-current-model').textContent=`Modelo actual: ${connection.model}. La cuota y el precio dependen de tu cuenta.`;
   if(connection.manual){$('ai-model-choice').value='manual';$('ai-manual-model').hidden=false;$('ai-model-id').value=connection.model;}}
  $('ai-connection-route').textContent=desktopAIEndpoint()?'Conexión: tu navegador → conector en tu ordenador → proveedor elegido.':'Conexión: tu navegador → proveedor elegido. Sin servidor intermedio de PDF Contigo.';
  updateKeyWarning();$('ai-advanced').open=false;$('ai-get-key-help').open=!connection;
- if($('ai-forget'))$('ai-forget').hidden=!connection;
+ if($('ai-forget'))$('ai-forget').hidden=!connection&&!savedVault&&!storageIssue;
  dialog.showModal();
 }
 function closeSettings(){cleanDraft();$('ai-settings-dialog').close();}
 async function connect(){
  cancelPending();const provider=$('ai-provider').value,apiKey=$('ai-key').value.trim(),workspace=$('ai-workspace').value.trim(),manual=$('ai-model-choice').value==='manual';
- let model=$('ai-model-id').value.trim();const status=$('ai-connect-status');
+ let model=$('ai-model-id').value.trim();const status=$('ai-connect-status'),remember=$('ai-remember').checked,password=$('ai-save-password').value;
+ if(remember){try{validateVaultPassword(password);if(password!==$('ai-save-confirm').value)throw new Error('Las contraseñas para guardar tu conexión no coinciden.');}catch(e){status.textContent=e.message;$('ai-save-password').focus();return;}}
  try{assertAIKey(provider,apiKey);}catch(e){status.textContent=`[${e.code}] ${e.message}`;updateKeyWarning();$(provider?'ai-key':'ai-provider').focus();return;}
  if(workspace&&!/^wrkspc_[a-zA-Z0-9]{10,80}$/.test(workspace)){status.textContent='Revisa el identificador del workspace de Claude.';return;}
  if(manual&&!/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,149}$/.test(model)){status.textContent='Escribe un identificador de modelo válido o vuelve a Selección automática.';return;}
@@ -99,7 +120,11 @@ async function connect(){
  try{
   if(!manual){const result=await requestAI({action:'models',provider,apiKey,workspace},{signal:controller.signal});model=chooseAIModel(provider,result.models);if(!model)throw new Error('Tu cuenta no devuelve un modelo de texto compatible. Puedes indicar uno en Opciones avanzadas.');}
   if(run!==requestRevision||controller.signal.aborted)return;
-  connection={provider,apiKey,workspace,model,manual};revision++;announce();closeSettings();
+  const config={provider,apiKey,workspace,model,manual};
+  if(remember){status.textContent='Guardando la conexión cifrada en tu dispositivo…';const record=await sealVault(config,password);if(run!==requestRevision)return;await vaultStorage('save',record);savedVault=record;storageIssue='';}
+  else if(savedVault||storageIssue){await vaultStorage('delete');savedVault=null;storageIssue='';}
+  if(run!==requestRevision){announce();return;}
+  connection=config;revision++;announce();closeSettings();
  }catch(e){if(run===requestRevision)status.textContent=controller.signal.aborted?'La conexión ha tardado demasiado. Comprueba internet y vuelve a intentarlo.':(typeof e.code==='string'&&e.code.startsWith('AI_')?`[${e.code}] `:'')+e.message;}
  finally{clearTimeout(timeout);if(run===requestRevision){pending=null;resetConnectButton();}}
 }
@@ -114,8 +139,12 @@ export function initAISettings(){
  $('ai-settings-dialog').addEventListener('cancel',e=>{e.preventDefault();closeSettings();});
  // Native close events are queued. An old event must not wipe a reopened form.
  $('ai-settings-dialog').addEventListener('close',()=>{if(!$('ai-settings-dialog').open)cleanDraft();});
- $('ai-forget').onclick=()=>{forgetAISettings();$('ai-connect-status').textContent='Conexión olvidada. Puedes seguir usando las herramientas locales.';};
+ $('ai-forget').onclick=forgetAISettings;
+ $('ai-remember').onchange=()=>{cancelPending();$('ai-save-password-fields').hidden=!$('ai-remember').checked;};
+ $('ai-unlock').onclick=unlock;
+ $('ai-unlock-password').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!$('ai-unlock').disabled)unlock();}});
+ $('ai-new-connection').onclick=()=>{cancelPending();$('ai-unlock-panel').hidden=true;$('ai-settings-fields').hidden=false;$('ai-remember').checked=false;$('ai-save-password-fields').hidden=true;$('ai-connect-status').textContent='Pega tu API de nuevo. La conexión anterior se sustituirá cuando conectes; también puedes borrarla con «Desconectar y olvidar clave».';};
  $('ai-use-local').onclick=()=>{closeSettings();document.querySelector('[data-ai-action="local"]').click();};
- window.addEventListener('pagehide',()=>{forgetAISettings();if($('ai-settings-dialog').open)$('ai-settings-dialog').close();});
- announce();
+ window.addEventListener('pagehide',()=>{lockAISettings();if($('ai-settings-dialog').open)$('ai-settings-dialog').close();});
+ announce();void restoreAISettings();
 }

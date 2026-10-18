@@ -113,3 +113,11 @@ El propietario autorizó expresamente el acceso público; Sites devolvió access
 - El endpoint público retirado responde 410 en workerd real sin ninguna petición saliente. La UI ya no tiene una URL de relay público; la CSP permite solo los seis destinos de IA, además del propio origen para recursos locales.
 - UI simulada en JSDOM: configuración, selección automática, revisión/consentimiento, informe, olvido de clave, cancelaciones y cambios tardíos. Preferencias visuales restauradas y eliminadas; funcionamiento cuando se bloquea localStorage; nombres accesibles y salto al contenido.
 - No equivale a comprobar CORS, credenciales, disponibilidad o cuotas reales de cada cuenta. Tampoco a una auditoría de accesibilidad: pendientes lectores de pantalla, zoom/reflujo y dispositivos Windows/Mac/Android/iOS reales. Consulta [el alcance](ACCESIBILIDAD.md).
+
+## 2.4 beta 10 — conexión recordada e informe
+
+- 53 pruebas Node de contratos IA, transportes, cifrado/almacenamiento, conector local, escritorio y accesibilidad; 13 de recorrido DOM (incluida apertura de las 29 herramientas); 16 del manejador Python.
+- Cifrado y derivación reales, claves de prueba y proveedores simulados: no se realizaron consultas pagadas. Se comprueban claves no legibles en almacenamiento, contraseña incorrecta/manipulación, persistencia al cambiar puerto y token, aislamiento por perfil, borrado y rechazo de sobres inválidos/orígenes ajenos.
+- Regresión sintética del pago del 50% citado sobre un texto que no lo respalda; citas múltiples, monedas y cifras, duplicados/vacíos, informe parcial, descarga y respuesta truncada. No se prueba el PDF privado original ni se demuestra corrección semántica universal.
+- DOM verifica guardar/desbloquear y citas plegadas sin HTML del modelo. No hay comprobación visual en navegador real ni ejecución nativa en Windows/Mac en este entorno.
+- Actions sigue pausado. Paquetes construidos localmente, con CRC y manifiesto SHA-256.

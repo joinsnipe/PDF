@@ -1,3 +1,4 @@
+import {readVault,writeVault,deleteVault,vaultPath} from './vault.mjs';
 import {forwardAI,AI_MAX_INPUT} from './ai.mjs';
 import {findOffice,convertOffice,MAX_INPUT} from './office.mjs';
 import http from 'node:http';
@@ -7,7 +8,7 @@ import {spawn} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png','.ico':'image/vnd.microsoft.icon','.gz':'application/gzip','.bcmap':'application/octet-stream','.pfb':'application/octet-stream','.ttf':'font/ttf'};
-export function makeHandler(directory,token,getPort,aiFetcher=fetch){
+export function makeHandler(directory,token,getPort,aiFetcher=fetch,savedVaultPath=vaultPath()){
   return async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Cache-Control','no-store');
     const fail=code=>{res.statusCode=code;res.end();};
@@ -17,6 +18,17 @@ export function makeHandler(directory,token,getPort,aiFetcher=fetch){
       if(!raw.startsWith(prefix))return fail(404);
       const relative=decodeURIComponent(raw.slice(prefix.length));
       if(relative.includes('\\')||relative.includes('\0')||relative.split('/').some(p=>p==='.'||p==='..'))return fail(404);
+      if(relative==='_desktop/ai-vault'){
+        if(req.headers['x-pdf-local']!=='1'||!['same-origin',undefined].includes(req.headers['sec-fetch-site'])||(req.headers.origin&&req.headers.origin!==`http://127.0.0.1:${getPort()}`)||(req.method!=='GET'&&req.headers.origin!==`http://127.0.0.1:${getPort()}`))return fail(403);
+        try{
+          if(req.method==='GET'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(await readVault(savedVaultPath)));}
+          if(req.method==='DELETE'){if(Number(req.headers['content-length']||0)!==0||req.headers['transfer-encoding'])return fail(400);await deleteVault(savedVaultPath);res.statusCode=204;return res.end();}
+          if(req.method!=='PUT')return fail(405);
+          const length=Number(req.headers['content-length']);if(!Number.isInteger(length)||length<1||length>5000||req.headers['transfer-encoding']||req.headers['content-type']!=='application/json')return fail(400);
+          let size=0;const chunks=[];req.setTimeout(15000,()=>req.destroy());for await(const chunk of req){size+=chunk.length;if(size>length)throw new Error();chunks.push(chunk);}if(size!==length)throw new Error();req.setTimeout(0);
+          await writeVault(JSON.parse(Buffer.concat(chunks).toString('utf8')),savedVaultPath);res.statusCode=204;return res.end();
+        }catch{return fail(400);}
+      }
       if(relative==='_desktop/ai'&&req.method==='POST'){
         if(req.headers.origin!==`http://127.0.0.1:${getPort()}`||req.headers['x-pdf-local']!=='1'||!['same-origin',undefined].includes(req.headers['sec-fetch-site']))return fail(403);
         const length=Number(req.headers['content-length']);if(!Number.isInteger(length)||length<1||length>AI_MAX_INPUT||req.headers['transfer-encoding']||req.headers['content-type']!=='application/json')return fail(400);

@@ -66,7 +66,7 @@ def build(target, version):
     shutil.copytree(ROOT / 'docs', package / 'docs', ignore=shutil.ignore_patterns('rea-attempt.json'))
     if target != 'web':
         runtime(target, package / 'runtime')
-        names = ['PDF.cmd', 'launcher.py', 'ai.py', 'ai-policy.json', 'office.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs', 'ai.mjs', 'ai-policy.json', 'office.mjs']
+        names = ['PDF.cmd', 'launcher.py', 'vault.py', 'ai.py', 'ai-policy.json', 'office.py', 'install.py', 'Instalar_PDF.cmd', 'Cerrar_PDF.cmd', 'Quitar_integracion_Windows.cmd'] if target.startswith('windows') else ['PDF.command', 'server.mjs', 'vault.mjs', 'ai.mjs', 'ai-policy.json', 'office.mjs']
         for name in names:
             shutil.copy2(ROOT / 'local' / name, package / name)
         launcher = names[0]

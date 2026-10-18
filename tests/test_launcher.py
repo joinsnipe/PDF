@@ -57,6 +57,23 @@ class LocalHandlerTests(unittest.TestCase):
             launcher.PDFHandler(sock, ('127.0.0.1', 1), server, token='test-token', directory=temp)
             return bytes(sock.response)
 
+    def test_encrypted_vault_persists_and_rejects_cross_origin_or_plaintext(self):
+        record = {'v': 1, 'salt': 'a'*22+'==', 'iv': 'b'*16, 'data': 'c'*64}
+        endpoint = '/test-token/_desktop/ai-vault'
+        body = json.dumps(record).encode()
+        headers = {'Origin': 'http://127.0.0.1:12345', 'X-PDF-Local': '1',
+                   'Content-Type': 'application/json', 'Content-Length': str(len(body))}
+        with tempfile.TemporaryDirectory() as directory, patch.object(launcher.vault, 'vault_path', return_value=pathlib.Path(directory)/'vault.json'):
+            for method in ['GET', 'PUT', 'DELETE']:
+                self.assertIn(b'403', self.request(endpoint, method=method, headers={**headers, 'Origin':'https://evil.example'}, body=body))
+            self.assertIn(b'204', self.request(endpoint, method='PUT', headers=headers, body=body))
+            loaded = self.request(endpoint, headers={'X-PDF-Local': '1'}).split(b'\r\n\r\n', 1)[1]
+            self.assertEqual(json.loads(loaded), record)
+            invalid = b'{"apiKey":"not-allowed-to-store-plaintext"}'
+            self.assertIn(b'400', self.request(endpoint, method='PUT', headers={**headers, 'Content-Length':str(len(invalid))}, body=invalid))
+            self.assertIn(b'204', self.request(endpoint, method='DELETE', headers={**headers, 'Content-Length':'0'}))
+            self.assertEqual(self.request(endpoint, headers={'X-PDF-Local':'1'}).split(b'\r\n\r\n',1)[1], b'null')
+
     def test_assets_and_wasm_type(self):
         self.assertIn(b'200 OK', self.request('/test-token/'))
         self.assertIn(b'PDF APP', self.request('/test-token/'))

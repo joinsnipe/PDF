@@ -4,9 +4,9 @@ La forma más rápida es [abrir la web](https://snipe-pdf.snipex.chatgpt.site). 
 
 ## Windows
 
-**Paquete de esta revisión: 2.4.0-beta.9.** Usa el ZIP entregado con esta revisión. Mientras Actions está pausado, la lista de Releases puede conservar una versión anterior; comprueba el nombre del archivo.
+**Paquete de esta revisión: 2.4.0-beta.10.** Usa el ZIP entregado con esta revisión. Mientras Actions está pausado, la lista de Releases puede conservar una versión anterior; comprueba el nombre del archivo.
 
-1. Descarga `PDF-2.4.0-beta.9-windows-x64.zip`.
+1. Descarga `PDF-2.4.0-beta.10-windows-x64.zip`.
 2. Si PDF está abierto, guarda tus resultados y pulsa **Salir de PDF**. Después, botón derecho en el ZIP → **Extraer todo**. Conserva juntos todos los archivos.
 3. Abre la carpeta `PDF` y haz doble clic en **Instalar_PDF.cmd**, una sola vez.
 4. Abre **PDF** desde el icono del escritorio o desde **Inicio → PDF Herramientas → PDF**.
@@ -29,7 +29,7 @@ Guarda tus documentos, usa **Salir de PDF**, extrae el ZIP actualizado y ejecuta
 
 ### Al actualizar
 
-Actualizar la web no sustituye los archivos de una instalación local. Para Windows, extrae el nuevo ZIP y ejecuta **Instalar_PDF.cmd**: vuelve a asignar el acceso directo a esa revisión y conserva los documentos. Verifica **2.4 beta 9** en la pantalla inicial. Un acceso instalado desde Chrome/Edge que abre la dirección pública es la web: en ese caso recarga esa ventana. La clave de IA se guarda solo en memoria y debe volver a introducirse tras cerrar o recargar.
+Actualizar la web no sustituye los archivos de una instalación local. Para Windows, extrae el nuevo ZIP y ejecuta **Instalar_PDF.cmd**: vuelve a asignar el acceso directo a esa revisión y conserva los documentos. Verifica **2.4 beta 10** en la pantalla inicial. Un acceso instalado desde Chrome/Edge que abre la dirección pública es la web: en ese caso recarga esa ventana. Desde beta 10 puedes activar **Recordar mi conexión en este dispositivo** y elegir una contraseña. Las versiones anteriores no guardaban la API: tendrás que pegarla una vez para activar el nuevo guardado. En adelante, al cerrar o recargar, se pide esa contraseña de desbloqueo. En escritorio el archivo cifrado está fuera de la carpeta de la versión; una actualización normal no lo elimina. En móvil conserva el mismo navegador/app y dirección web: borrar sus datos, desinstalar o cambiar de origen puede eliminar o separar el guardado.
 
 ## Mac
 

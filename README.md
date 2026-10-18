@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.9 · Entender mi PDF en un único informe.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta. Actions permanece pausado; las correcciones se preparan localmente, sin compilaciones de GitHub.
+> **PDF Contigo 2.4.0-beta.10 · API recordada en tu dispositivo e informes más útiles.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta. Actions permanece pausado; las correcciones se preparan localmente, sin compilaciones de GitHub.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 
@@ -36,7 +36,7 @@ Pulsa **Configurar IA** en la parte superior, elige el proveedor donde creaste l
 
 **¿No tienes API?** La configuración incluye enlaces y pasos para obtenerla. Gemini ofrece cuota gratuita para ciertos modelos y cuentas; comprueba tu plan en Google AI Studio. No se garantiza uso gratuito con cualquier clave o modelo. También puedes elegir **Resumen gratuito sin API**, que selecciona frases localmente y no utiliza IA.
 
-La clave se conserva solo en la memoria de la pestaña hasta desconectar, recargar o salir de ella. No se guarda para próximas visitas, tampoco en la app de escritorio. Cambiar de herramienta o documento dentro de la misma ventana conserva la conexión. [Guía y condiciones](docs/IA-Y-OFFICE.md).
+Puedes elegir **Recordar mi conexión en este dispositivo**. La API y el modelo se guardan cifrados y se desbloquean con una contraseña de PDF Contigo, sin volver a copiar la clave. Cada perfil conserva su propia conexión; no hay sincronización ni servidor de claves. En escritorio la copia sobrevive al cambio de puerto y a la actualización del paquete. Si no lo activas, la clave se conserva solo durante la sesión. [Guía y condiciones](docs/IA-Y-OFFICE.md).
 
 **Tu dispositivo → tu proveedor.** La web conecta directamente con la API elegida. En Windows/Mac, el conector se ejecuta en tu propio ordenador y contacta con ese proveedor por HTTPS. Las consultas no pasan por un servidor compartido de PDF Contigo. En web/móvil, la conexión depende de que el proveedor permita acceso desde el navegador; si lo bloquea, utiliza el paquete de escritorio. No se recurre a un proxy externo automáticamente.
 

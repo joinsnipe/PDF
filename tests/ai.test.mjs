@@ -122,3 +122,29 @@ test('Gemini API_KEY_INVALID en HTTP 400 se explica como clave rechazada, sin mo
  await assert.rejects(()=>callAI({...input('gemini'),action:'models'},async()=>Response.json(reply,{status:400})),e=>e.code==='AI_AUTH'&&e.message.includes('OpenAI')&&!e.message.includes('private-key'));
  await assert.rejects(()=>callAI(input('gemini'),async()=>Response.json({error:{code:400,status:'INVALID_ARGUMENT',details:{reason:'API_KEY_INVALID'}}},{status:400})),{code:'AI_PROVIDER_ERROR'});
 });
+
+test('regresión: el 50% no puede citar trabajos adicionales sin esos porcentajes',()=>{
+ const p=[{page:9,text:'Los trabajos adicionales se valoran y acuerdan antes de ejecutarlos.'}];
+ for(const ref of [{source_id:'p9s1'},{evidence:[{source_id:'p9s1',quote:p[0].text}]}]){
+  const result=validateReport({items:[{group:'Importes y condiciones',text:'Pagar 50% al reservar y 50% al finalizar.',...ref}],missing:['','   ']},p);
+  assert.equal(result.items.length,0);assert.equal(result.omittedCount,1);assert.deepEqual(result.missing,[]);
+ }
+});
+test('informe usa citas breves, conserva condiciones, agrupa y elimina duplicados y vacíos',()=>{
+ const p=[{page:3,text:'CABECERA · Propuesta. El tono y el brillo se confirman con carta y muestra física. Teléfono 123.'},{page:9,text:'Forma de pago: 50 % al reservar y 50 % al finalizar. Los adicionales se acuerdan antes.'}];
+ const color={group:'Decisiones y próximos pasos',text:'Confirmar tono y brillo con una muestra física.',evidence:[{source_id:'p3s1',quote:'El tono y el brillo se confirman con carta y muestra física.'}]};
+ const payment={group:'Importes y condiciones',text:'Pago del 50% al reservar y del 50% al finalizar.',evidence:[{source_id:'p9s1',quote:'Forma de pago: 50 % al reservar y 50 % al finalizar.'}]};
+ const result=validateReport({document_type:'Propuesta o presupuesto',items:[color,payment,color],missing:['',' ',null]},p);
+ assert.equal(result.items.length,2);assert.equal(result.items[0].group,'Importes y condiciones');assert.deepEqual(result.missing,[]);
+ const text=reportText(result,'openai','gpt-test');assert.doesNotMatch(text,/CABECERA|Teléfono|LA IA NO HA/);assert.match(text,/50 % al finalizar/);
+ const forged=validateReport({items:[{...payment,evidence:[{source_id:'p9s1',quote:'Forma de pago: 10 % al reservar y 90 % al finalizar.'}]}]},p);assert.equal(forged.items.length,0);
+});
+test('cifras de dos fragmentos se conservan y una moneda o cifra no citada se omite',()=>{
+ const p=[{page:1,text:'Precio base: 1.000 €. No incluye impuestos.'},{page:2,text:'Los trabajos duran 2 días si no llueve.'}];
+ const item={group:'Resumen',text:'Precio base de 1.000 € sin impuestos y duración de 2 días si no llueve.',evidence:[{source_id:'p1s1',quote:p[0].text},{source_id:'p2s1',quote:p[1].text}]};
+ const result=validateReport({items:[item]},p);assert.equal(result.items[0].citations.length,2);
+ for(const text of ['Precio base de 1.000 USD.','Precio base de 10.000 €.','Duración de 3 días.'])assert.equal(validateReport({items:[{...item,text}]},p).items.length,0);
+});
+test('respuesta truncada no se presenta como un informe completo ni provoca reintento',async()=>{
+ let calls=0;await assert.rejects(()=>callAI(input('openai'),async()=>{calls++;return Response.json({...providerReply('openai'),status:'incomplete'});}),{code:'AI_TRUNCATED'});assert.equal(calls,1);
+});

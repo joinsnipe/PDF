@@ -45,36 +45,61 @@ export function evidenceSources(pages){
  }
  return sources;
 }
+export const REPORT_GROUPS=['Resumen','Alcance y trabajos','Materiales y procedimiento','Importes y condiciones','Plazos y fechas','Decisiones y próximos pasos','Documentación','Puntos a revisar','Lo que piden','Fechas mencionadas','Otros'];
+const documentTypes=new Set(['Propuesta o presupuesto','Factura','Contrato','Comunicación administrativa','Informe','Documento informativo','Otro documento']);
+// Conservative check: preserves signs, decimals and units, never guesses a conversion.
+export function unsupportedNumbers(claim,quotes){
+ const numbers=s=>(normalized(s).match(/[+−-]?\d+(?:[.,]\d+)*(?:\s*(?:%|€|EUR|USD|euros?|dólares?))?/gu)||[]).map(n=>n.replace(/\s/g,'').replace(/EUR|euros?/g,'€').replace(/USD|dólares?/g,'$'));
+ const found=new Set(numbers(quotes.join(' ')));
+ return numbers(claim).some(n=>!found.has(n));
+}
+export const itemCitations=item=>item.citations||[{page:item.page,quote:item.quote}];
 export function validateReport(value,pages){
  if(!value||!Array.isArray(value.items)||value.items.length>30)throw aiError('AI_FORMAT','La IA no devolvió un informe legible. No se ha repetido la consulta ni se ha cambiado de proveedor.');
- const source=new Map(pages.map(p=>[p.page,normalized(p.text)])),groups=new Set(['Resumen','Lo que piden','Documentación','Fechas mencionadas','Otros']);
+ const source=new Map(pages.map(p=>[p.page,normalized(p.text)])),groups=new Set(REPORT_GROUPS);
  const excerpts=new Map(evidenceSources(pages).map(s=>[s.id,s]));
- const items=[];let omittedCount=0;
+ const items=[],seen=new Set();let omittedCount=0;
  for(const item of value.items){
   if(!item||!groups.has(item.group)||typeof item.text!=='string'||!item.text.trim()||item.text.length>1500){omittedCount++;continue;}
-  let page,quote;
-  if(Object.hasOwn(item,'source_id')){
+  let citations=[];
+  if(Object.hasOwn(item,'evidence')){
+   if(!Array.isArray(item.evidence)||!item.evidence.length||item.evidence.length>3){omittedCount++;continue;}
+   for(const ref of item.evidence){
+    const excerpt=excerpts.get(ref?.source_id),quote=typeof ref?.quote==='string'?normalized(ref.quote):'';
+    if(!excerpt||quote.length<10||quote.length>500||!normalized(excerpt.text).includes(quote)){citations=[];break;}
+    citations.push({page:excerpt.page,quote});
+   }
+   if(!citations.length){omittedCount++;continue;}
+  }else if(Object.hasOwn(item,'source_id')){
+   // Backward-compatible source-ID responses still undergo the number check.
    const excerpt=typeof item.source_id==='string'?excerpts.get(item.source_id):null;
-   if(!excerpt){omittedCount++;continue;}
-   page=excerpt.page;quote=excerpt.text;
+   if(!excerpt){omittedCount++;continue;}citations=[{page:excerpt.page,quote:excerpt.text}];
   }else{
-   // Compatibility for models returning the previous literal-quote format.
    if(!Number.isInteger(item.page)||typeof item.quote!=='string'||item.quote.length>600||normalized(item.quote).length<10||!source.get(item.page)?.includes(normalized(item.quote))){omittedCount++;continue;}
-   page=item.page;quote=item.quote.trim();
+   citations=[{page:item.page,quote:item.quote.trim()}];
   }
-  items.push({group:item.group,text:item.text.trim(),page,quote});
+  const text=item.text.trim();
+  if(unsupportedNumbers(text,citations.map(c=>c.quote))){omittedCount++;continue;}
+  const duplicate=normalized(text).toLocaleLowerCase('es');if(seen.has(duplicate))continue;seen.add(duplicate);
+  items.push({group:item.group,text,...citations[0],...(citations.length>1?{citations}:{})});
  }
- const missing=Array.isArray(value.missing)?value.missing.filter(x=>typeof x==='string'&&x.length<=500).slice(0,6):[];
- return {items,missing,...(omittedCount?{omittedCount}:{})};
+ items.sort((a,b)=>REPORT_GROUPS.indexOf(a.group)-REPORT_GROUPS.indexOf(b.group));
+ const missing=Array.isArray(value.missing)?[...new Set(value.missing.filter(x=>typeof x==='string'&&x.length<=500).map(x=>x.trim()).filter(Boolean))].slice(0,6):[];
+ return {items,missing,...(omittedCount?{omittedCount}:{}),...(documentTypes.has(value.document_type)?{documentType:value.document_type}:{})};
 }
 export function reportNotice(report){
- if(!report.items.length)return 'La IA respondió, pero no se pudo localizar ninguna referencia válida. No se muestran sus afirmaciones. Puedes consultar el PDF original aquí o usar el resumen sin IA. La consulta no se ha repetido; el proveedor puede haberla cobrado.';
- const partial=report.omittedCount?`Informe parcial: ${report.omittedCount===1?'se ha omitido 1 punto cuya referencia no se pudo comprobar.':`se han omitido ${report.omittedCount} puntos cuyas referencias no se pudieron comprobar.`} `:'';
- return partial+'Las citas se han localizado en el texto extraído; eso no verifica la interpretación de la IA. Contrasta fechas, cifras y obligaciones con el original. No se ha repetido la consulta.';
+ if(!report.items.length)return 'La IA respondió, pero no se pudo localizar ninguna referencia suficiente para mostrar sus afirmaciones. Puedes consultar el PDF original aquí o usar el resumen sin IA. La consulta no se ha repetido; el proveedor puede haberla cobrado.';
+ const partial=report.omittedCount?`Informe parcial: se han omitido ${report.omittedCount} puntos por referencias o cifras sin respaldo suficiente. `:'';
+ return partial+'Las citas están en el texto extraído y se han contrastado las cifras escritas con dígitos. Esto no verifica toda la interpretación de la IA. Revisa condiciones, fechas e importes en el original. No se ha repetido la consulta.';
+}
+export function coverageText(coverage){
+ if(!coverage)return '';
+ const numbers=coverage.pages.join(', '),empty=coverage.emptyPages;
+ return `Texto enviado: ${coverage.pages.length} páginas (p. ${numbers}). ${coverage.characters.toLocaleString('es-ES')} caracteres. Solo texto extraído; las imágenes y tablas sin texto seleccionable no se interpretan.${empty.length?' Páginas sin texto legible: '+empty.join(', ')+'. Utiliza OCR para incluir su contenido.':''}`;
 }
 export function reportText(report,provider,model){
- const parts=[`PDF Contigo · Entender mi PDF\nProveedor: ${AI_PROVIDERS[provider]}\nModelo: ${model}\n\n${reportNotice(report)}`];
- let group='';for(const item of report.items){if(item.group!==group){group=item.group;parts.push('\n'+group.toUpperCase());}parts.push(`${item.text} [p. ${item.page}]\nCita: «${item.quote}»`);}
- if(report.items.length&&report.missing.length)parts.push('\nLA IA INDICA QUE NO ENCUENTRA (COMPRUÉBALO EN EL ORIGINAL)\n'+report.missing.map(x=>'• '+x).join('\n'));
+ const parts=[`PDF Contigo · Entender mi PDF\nProveedor: ${AI_PROVIDERS[provider]}\nModelo: ${model}${report.documentType?'\nTipo de documento según la IA: '+report.documentType:''}\n\n${coverageText(report.coverage)}\n\n${reportNotice(report)}`];
+ let group='';for(const item of report.items){if(item.group!==group){group=item.group;parts.push('\n'+group.toUpperCase());}parts.push(`${item.text}\n`+itemCitations(item).map(c=>`[p. ${c.page}] Cita: «${c.quote}»`).join('\n'));}
+ if(report.items.length&&report.missing.length)parts.push('\nLA IA NO HA IDENTIFICADO ESTOS DATOS (COMPRUÉBALO EN EL ORIGINAL)\n'+report.missing.map(x=>'• '+x).join('\n'));
  return parts.join('\n\n');
 }

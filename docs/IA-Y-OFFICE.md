@@ -16,13 +16,13 @@ Proveedores incluidos: **Gemini, OpenAI, Claude, Grok, Mistral y DeepSeek**. No 
 
 1. Pulsa **Configurar IA** en la barra superior o la sección **Leer, analizar e IA**. No necesitas seleccionar un PDF primero.
 2. Elige el proveedor donde creaste tu clave (por ejemplo, **OpenAI, creador de ChatGPT**) y pégala. Ningún proveedor viene preseleccionado. Pulsa **Conectar con ese proveedor**: la app consulta los modelos y selecciona uno de texto automáticamente, sin enviar documentos. Este paso no comprueba saldo, cuota, precio ni permiso de generación.
-3. Si lo necesitas, **Opciones avanzadas** permite indicar un modelo concreto y el workspace de Claude `wrkspc_…`. La configuración manual se comprueba en la primera consulta, sin validar previamente la clave o el modelo.
+3. Opcionalmente activa **Recordar mi conexión en este dispositivo**, elige una contraseña de al menos 10 caracteres y repítela. Al volver a abrir PDF podrás **Desbloquear IA** con esa contraseña, sin pegar la API. Esto no contacta con ningún proveedor ni consume IA. Si lo necesitas, **Opciones avanzadas** permite indicar un modelo concreto y el workspace de Claude `wrkspc_…`. La configuración manual se comprueba en la primera consulta, sin validar previamente la clave o el modelo.
 4. Pulsa **Entender mi PDF** y selecciona el PDF. Puedes cambiar archivos sin volver a introducir la clave.
 5. Elige páginas y pulsa **1. Revisar texto**, en el botón principal. La app lee el PDF en tu dispositivo y muestra el texto, sin consultar todavía la IA. Hasta 100 páginas y 60.000 caracteres, sin recorte silencioso.
 6. Revisa el texto y el destino que aparece debajo. Pulsa **Enviar a OpenAI y analizar** (o el proveedor que hayas elegido). Este clic confirma el envío de esa consulta. **No hay casilla de autorización.** El proveedor recibe el texto y puede cobrar el uso; la revisión del paso anterior solo era local.
 7. Contrasta el informe con el original desde el visor y los botones de página; descarga el TXT si lo necesitas.
 
-**Estado visible:** el punto verde y «IA conectada · proveedor» indican que se consultó el catálogo y la cuenta está configurada para esta pestaña. No son una comprobación continua de disponibilidad ni de saldo. Una configuración manual aparece en ámbar como «IA configurada», porque todavía no se ha comprobado. Desconectar o salir de la pestaña apaga el indicador.
+**Estado visible:** «IA configurada · proveedor» indica que hay una conexión disponible en esta sesión. El punto verde significa que se consultó su catálogo al configurar; no comprueba saldo, disponibilidad actual ni generación. El modo manual se indica en ámbar. «Desbloquear IA» indica que hay una conexión guardada y bloqueada.
 
 **Una sola herramienta:** «Entender mi PDF» recoge las ideas principales y explica solicitudes, documentación y fechas cuando constan en el texto, sin calcular plazos. No hay dos pestañas ni selector Resumir/Explicar. «Sin IA» selecciona frases literales y nunca envía el texto fuera del dispositivo.
 
@@ -30,15 +30,25 @@ Si te equivocas de proveedor, puedes corregirlo sin volver a pegar la clave. **C
 
 Un campo vacío, una clave incompleta o con caracteres adicionales y un rechazo de autenticación muestran mensajes diferentes. Tras un error de conexión, la clave sigue en el formulario para corregir o reintentar. Cerrar sin conectar descarta el borrador.
 
-Cambiar páginas, conexión o método (con/sin IA) invalida la revisión anterior. La clave se conserva **solo en la memoria de esta pestaña**, para no repetirla en cada documento; no se escribe en localStorage, sessionStorage, cookies ni archivos. Se olvida al pulsar **Desconectar y olvidar clave**, recargar o salir de la pestaña, también en el paquete de escritorio. Reabrir o actualizar la app puede requerir pegarla de nuevo: no es una clave que se haya guardado en disco y después perdido. Al cerrar la configuración se vacía su campo, pero la conexión sigue disponible en memoria. No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
+Cambiar páginas, conexión o método (con/sin IA) invalida la revisión anterior. Sin «Recordar», la clave solo dura esta sesión. Con «Recordar», se guarda cifrada y se vuelve a desbloquear al abrir o recargar. La contraseña es de PDF Contigo, **no la contraseña de OpenAI ni la API**. No podemos recuperarla; si la olvidas, configura la API de nuevo. La conexión es de cada perfil del dispositivo, no una cuenta sincronizada. «Desconectar y olvidar clave» borra la copia guardada. [Cifrado, ubicación y límites](PRIVACIDAD.md).
+
+Las versiones anteriores no guardaban la API; no hay una clave antigua que recuperar automáticamente. Para activar la persistencia, pégala una vez en beta 10. Las actualizaciones posteriores del paquete conservan el archivo cifrado fuera de la carpeta de versión. En web/móvil, conserva el mismo origen y perfil y evita borrar sus datos.
+
+No se cambia de proveedor ni se reintenta automáticamente. Un error o cancelación no garantiza que no haya consumo.
 
 **El texto y la clave van de tu dispositivo al proveedor elegido por HTTPS.** En web/móvil el navegador hace la petición directamente. El paquete Windows/Mac utiliza el conector de tu propio ordenador (`127.0.0.1`), sin intermediario compartido de PDF Contigo. No se envían el archivo PDF, sus imágenes ni certificados. El código de la aplicación no almacena ni registra el contenido; los proveedores aplican sus condiciones. **Conectar** en modo automático envía la clave, sin texto. [Privacidad completa](PRIVACIDAD.md).
 
-### Referencias e informes parciales (beta 9)
+### Informe adaptado y referencias (beta 10)
 
-La aplicación divide el texto seleccionado en fragmentos identificados. La IA devuelve sus identificadores; PDF Contigo recupera el número de página y la cita directamente del texto extraído, sin pedir al modelo que los copie. Las respuestas del formato anterior siguen admitiéndose con coincidencia literal y normalización tipográfica limitada.
+Una sola herramienta: resumen y detalles útiles en función del documento. En una propuesta puede recoger alcance, trabajos, materiales, importes, condiciones, plazos y decisiones. En una comunicación administrativa, peticiones y documentación. La fecha del documento no debe presentarse como vencimiento y una propuesta no debe presentarse como obligación ya aceptada. No se exige rellenar apartados sin información.
 
-Una referencia incorrecta descarta solo su punto y produce un **informe parcial**, con aviso en pantalla y en el TXT. Si no hay ninguna referencia localizable, no se muestran afirmaciones de la IA ni un mensaje de éxito: se permite consultar el original y se explica cómo continuar sin IA. No hay reintentos ni cambio de proveedor automáticos. Localizar una cita no demuestra que la interpretación sea correcta. La consulta original puede tener consumo aunque sus referencias no se acepten.
+La IA devuelve fragmentos identificados y citas breves. La aplicación contrasta las citas con el texto extraído y recupera las páginas de los identificadores, no de números inventados por el modelo. Un punto puede citar hasta tres fragmentos. Se muestran **citas plegadas** y botones para abrir las páginas; el TXT incluye el texto y todas las referencias. Se eliminan puntos idénticos y entradas vacías de «datos no identificados».
+
+Antes de mostrar un punto, se comparan sus cifras escritas con dígitos, signos, decimales, porcentajes y monedas con sus citas. Por ejemplo, «50% al reservar» no se acepta con una cita sobre trabajos adicionales que no contenga ese porcentaje. Es una comprobación conservadora, no un verificador semántico: puede omitir reformulaciones válidas, no cubre cantidades escritas con palabras ni demuestra la relación entre una cifra y su concepto, ni que se hayan conservado todas las condiciones. La coincidencia literal tampoco garantiza que la interpretación sea correcta.
+
+Si un punto falla, se omite y el informe se identifica como parcial. Si todos fallan, se muestra el aviso sin afirmaciones. Las respuestas explícitamente truncadas por el proveedor no se muestran como informes completos. **No hay una segunda llamada automática ni una segunda IA de pago para validar.** La solicitud original puede tener consumo.
+
+La cobertura se calcula localmente: páginas seleccionadas, páginas sin texto y caracteres enviados. No es una certificación de que la IA haya comprendido o resumido todo. Solo se analiza texto extraído; imágenes, diagramas y tablas escaneadas necesitan OCR y pueden perder significado. No se recorta silenciosamente: máximo 100 páginas y 60.000 caracteres. Revisa el resultado con el original.
 
 ### Conexión directa y errores
 
@@ -52,7 +62,7 @@ DeepSeek consulta su catálogo y prefiere un modelo de texto Flash cuando está 
 
 **Resumen gratuito sin API** funciona sin cuenta ni enviar datos: extrae frases literales, no genera un resumen con IA. En **Configurar IA → No tengo API** hay enlaces al proveedor y tres pasos para crear una clave.
 
-Gemini ofrece un plan gratuito para ciertos modelos y cuentas. [Crea tu clave en Google AI Studio](https://aistudio.google.com/apikey) y comprueba que el proyecto figure en el plan gratuito. Consulta [cuotas y facturación](https://ai.google.dev/gemini-api/docs/billing) y [precios por modelo](https://ai.google.dev/gemini-api/docs/pricing). La selección automática no garantiza gratuidad: la app no conoce la facturación ni el saldo de tu cuenta. No activa facturación ni cambia de proveedor por su cuenta.
+Gemini ofrece cuotas gratuitas limitadas, pero sus [condiciones](https://ai.google.dev/gemini-api/terms) exigen servicios de pago al ofrecer aplicaciones a usuarios del Espacio Económico Europeo, Suiza o Reino Unido. Consulta [precios](https://ai.google.dev/gemini-api/docs/pricing) y condiciones actuales; PDF Contigo no promete IA gratuita. DeepSeek factura su API por uso. No se activa facturación ni se cambia de proveedor por cuenta del usuario.
 
 No se incluye una clave pública compartida ni se promete IA anónima gratuita. La revisión de proveedores del 15 de octubre de 2026 no encontró una opción sin credenciales que se incorporase como servicio estable: incluso [Pollinations requiere clave para generar](https://gen.pollinations.ai/docs). Las condiciones de servicios externos pueden cambiar.
 
@@ -73,6 +83,8 @@ Admite **DOCX, XLSX y PPTX** hasta 25 MB. No admite DOC/XLS/PPT antiguos, contra
 Se procesa en el ordenador, con temporales que se eliminan al finalizar normalmente. La web y Android/iOS no ejecutan LibreOffice: allí utiliza Exportar a PDF en tu aplicación de Office o realiza esta conversión en el ordenador. [Instalación](INSTALACION.md).
 
 ## Comprobación de esta beta
+
+Beta 10: pruebas con cifrado real y credenciales ficticias cubren recuperación web y escritorio con otro puerto, contraseña incorrecta, manipulación, rechazo de claves sin cifrar, borrado y aislamiento por perfil. Pruebas DOM cubren guardar, bloquear y desbloquear, sin consultas de IA. Los informes se prueban con respuestas simuladas, incluida la regresión del pago del 50%, citas múltiples, cifras sin respaldo, secciones vacías y truncado. No se ha usado una cuenta de API real ni el PDF privado original; no equivale a validar su análisis completo. No se ha realizado una prueba visual en un navegador real ni ejecución nativa en Windows/macOS en este entorno.
 
 En 2.4 beta 8 se verifica el recorrido desde el botón principal: primer clic muestra el texto sin petición de IA; segundo clic envía al proveedor elegido. Cambiar páginas, archivo, tarea o conexión invalida esa revisión. Se prueban también el indicador conectado/manual/desconectado, fallos de extracción, rechazo del proveedor y retorno al resumen local sin red. No se ha usado una clave real ni consumido una API en esta entrega.
 

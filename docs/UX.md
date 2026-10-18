@@ -54,7 +54,7 @@ Pruebas de selección y descargas con JSDOM; miniaturas reales con PDF.js y Canv
 
 ## Configuración de IA en 2.4 beta 2
 
-«Configurar IA» está visible en la barra superior (también en móvil) y sección «Leer, analizar e IA». La conexión es proveedor → clave → Conectar. El modelo se elige automáticamente y la selección manual queda en opciones avanzadas. «No tengo API» explica cómo conseguirla, la posibilidad de cuota gratuita de Gemini y la alternativa local sin IA. La conexión se conserva solo en memoria de la pestaña entre documentos y se puede olvidar explícitamente. Cambiarla invalida el texto autorizado; cerrar o cambiar proveedor descarta respuestas de conexión tardías.
+«Configurar IA» está visible en la barra superior (también en móvil) y sección «Leer, analizar e IA». La conexión es proveedor → clave → Conectar. El modelo se elige automáticamente y la selección manual queda en opciones avanzadas. «No tengo API» explica cómo conseguirla, la posibilidad de cuota gratuita de Gemini y la alternativa local sin IA. La conexión se conserva en memoria entre documentos; desde beta 10 también puede recordarse cifrada, con desbloqueo local, y se puede borrar explícitamente. Cambiarla invalida el texto autorizado; cerrar o cambiar proveedor descarta respuestas de conexión tardías.
 
 En 2.4 beta 3 se elimina el acceso lateral con estrella en todos los tamaños de pantalla. La cabecera conserva el botón de configuración con borde rojo.
 
@@ -63,3 +63,7 @@ En 2.4 beta 4, «Compartir» ocupa el extremo derecho de la cabecera, con icono 
 ## Lectura unificada en 2.4 beta 9
 
 Se elimina la duplicidad Resumir/Explicar: una sola entrada, «Entender mi PDF», y ningún selector entre las dos tareas. El mismo informe reúne las ideas principales y las peticiones, documentos y fechas que consten. Se mantiene el método sin IA como alternativa local. Los informes parciales se identifican en el título, aviso y descarga; una respuesta sin referencias no recibe una marca de éxito. La configuración y el estado de conexión explican que cerrar o recargar elimina la clave, incluso en escritorio.
+
+## Conexión e informe en beta 10
+
+Guardado opcional por dispositivo con contraseña local de desbloqueo; explicación junto a la casilla, campos con autocomplete y estados visibles. Las citas del informe se pueden desplegar y sus botones abren el original. El texto de proveedor se inserta como texto, nunca HTML. Se muestran cobertura, omisiones y límites; no se reintenta una consulta automáticamente.
