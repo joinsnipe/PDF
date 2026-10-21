@@ -1,4 +1,4 @@
-> **PDF Contigo 2.4.0-beta.10 · API recordada en tu dispositivo e informes más útiles.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta. Actions permanece pausado; las correcciones se preparan localmente, sin compilaciones de GitHub.
+> **PDF Contigo 2.4.0-beta.11 · API recordada en tu dispositivo e informes más útiles.** Word editable con tablas sencillas, modo visual, Office a PDF con LibreOffice en escritorio y resúmenes con tu API de Gemini, OpenAI, Claude, Grok, Mistral o DeepSeek. [Guía de IA y conversiones](docs/IA-Y-OFFICE.md). Continúa siendo beta. Actions permanece pausado; las correcciones se preparan localmente, sin compilaciones de GitHub.
 
 <p align="center"><img src="docs/images/portada.svg" alt="PDF Contigo. Tus documentos, en tu dispositivo. Windows, Mac, Android e iPhone." width="100%"></p>
 

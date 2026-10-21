@@ -1,3 +1,9 @@
+# 2.4.0-beta.11 — 21 de octubre de 2026
+
+- La contraseña para recordar la conexión de IA admite desde 4 caracteres. Se actualizan la ayuda y la validación.
+- Las conexiones ya guardadas y sus contraseñas siguen funcionando; no cambia el formato de cifrado.
+- Compilación local. GitHub Actions continúa pausado.
+
 # 2.4.0-beta.10 — 18 de octubre de 2026
 
 - API recordada por dispositivo, cifrada con contraseña, con desbloqueo local y borrado explícito. Persistencia de escritorio independiente del puerto y carpeta de versión.

@@ -18,7 +18,10 @@ test('vault cifra API y proveedor; contraseña incorrecta y manipulación no des
  assert.notDeepEqual(await sealVault(config,password),record);
  await assert.rejects(()=>openVault(record,'Wrong unlock phrase'),{code:'AI_VAULT_UNLOCK'});
  await assert.rejects(()=>openVault({...record,data:(record.data[0]==='A'?'B':'A')+record.data.slice(1)},password),{code:'AI_VAULT_UNLOCK'});
- await assert.rejects(()=>sealVault(config,'short'),{code:'AI_VAULT_PASSWORD'});
+ const shortRecord=await sealVault(config,'Ab7!');
+ assert.deepEqual(await openVault(shortRecord,'Ab7!'),config);
+ await assert.rejects(()=>openVault(shortRecord,'Ab8!'),{code:'AI_VAULT_UNLOCK'});
+ await assert.rejects(()=>sealVault(config,'Ab7'),{code:'AI_VAULT_PASSWORD'});
  assert.throws(()=>validateVault({...record,apiKey:config.apiKey}),{code:'AI_STORAGE'});
 });
 test('web recuerda por perfil, sobrevive a recarga, borra y no contacta con la red',async()=>{

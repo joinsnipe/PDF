@@ -12,7 +12,7 @@ export function validateVault(record){
  return record;
 }
 export function validateVaultPassword(password){
- if(typeof password!=='string'||password.length<10||password.length>256)throw aiError('AI_VAULT_PASSWORD','Elige una contraseña de entre 10 y 256 caracteres para proteger tu conexión guardada.');
+ if(typeof password!=='string'||password.length<4||password.length>256)throw aiError('AI_VAULT_PASSWORD','Elige una contraseña de entre 4 y 256 caracteres para proteger tu conexión guardada.');
 }
 function settings(value){
  assertAIKey(value?.provider,value?.apiKey);assertAIModel(value.provider,value.model||'');

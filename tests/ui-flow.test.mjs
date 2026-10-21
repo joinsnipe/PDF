@@ -390,14 +390,14 @@ test('IA: recordar, bloquear, recargar y desbloquear sin enviar claves o documen
  globalThis.fetch=async()=>{calls++;throw new Error('No debe consultar al proveedor en modo manual ni al desbloquear');};
  try{
   await forgetAISettings();$('[data-ai-settings]').click();$('#ai-provider').value='openai';$('#ai-provider').onchange();$('#ai-key').value='sk-proj-fake-vault-ui-only';$('#ai-model-choice').value='manual';$('#ai-model-choice').onchange();$('#ai-model-id').value='gpt-4.1-mini';
-  $('#ai-remember').checked=true;$('#ai-remember').onchange();$('#ai-save-password').value='Local passphrase 123!';$('#ai-save-confirm').value='Not the same';
+  $('#ai-remember').checked=true;$('#ai-remember').onchange();$('#ai-save-password').value='Ab7!';$('#ai-save-confirm').value='Not the same';
   await $('#ai-connect').onclick();assert.equal(calls,0);assert.equal(getAISettings(),null);assert.match($('#ai-connect-status').textContent,/no coinciden/);
-  $('#ai-save-confirm').value='Local passphrase 123!';await $('#ai-connect').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal($('#ai-save-password').value,'');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');
-  const saved=window.localStorage.getItem('pdf-contigo-ai-vault-v1');assert.ok(saved);assert.doesNotMatch(saved,/sk-proj|Local passphrase/);assert.match($('[data-ai-status]').textContent,/guardada cifrada/);
+  $('#ai-save-confirm').value='Ab7!';await $('#ai-connect').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal($('#ai-save-password').value,'');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');
+  const saved=window.localStorage.getItem('pdf-contigo-ai-vault-v1');assert.ok(saved);assert.doesNotMatch(saved,/sk-proj/);assert.match($('[data-ai-status]').textContent,/guardada cifrada/);
   window.dispatchEvent(new window.Event('pagehide'));assert.equal(getAISettings(),null);assert.equal(window.localStorage.getItem('pdf-contigo-ai-vault-v1'),saved);
   await restoreAISettings();$('[data-ai-settings]').click();assert.equal($('#ai-unlock-panel').hidden,false);assert.equal($('#ai-settings-fields').hidden,true);assert.match($('[data-ai-settings-label]').textContent,/Desbloquear/);
   $('#ai-unlock-password').value='Wrong passphrase 123!';await $('#ai-unlock').onclick();assert.equal(getAISettings(),null);assert.match($('#ai-unlock-status').textContent,/No se pudo desbloquear/);assert.equal($('#ai-unlock-password').value,'');
-  $('#ai-unlock-password').value='Local passphrase 123!';await $('#ai-unlock').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal(getAISettings().model,'gpt-4.1-mini');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');assert.equal(calls,0);
+  $('#ai-unlock-password').value='Ab7!';await $('#ai-unlock').onclick();assert.equal($('#ai-settings-dialog').open,false);assert.equal(getAISettings().model,'gpt-4.1-mini');assert.equal(getAISettings().apiKey,'sk-proj-fake-vault-ui-only');assert.equal(calls,0);
   await forgetAISettings();assert.equal(window.localStorage.getItem('pdf-contigo-ai-vault-v1'),null);assert.equal(getAISettings(),null);
  }finally{await forgetAISettings();$('#ai-settings-close').click();globalThis.fetch=previousFetch;delete globalThis.location;}
 });

@@ -121,3 +121,9 @@ El propietario autorizó expresamente el acceso público; Sites devolvió access
 - Regresión sintética del pago del 50% citado sobre un texto que no lo respalda; citas múltiples, monedas y cifras, duplicados/vacíos, informe parcial, descarga y respuesta truncada. No se prueba el PDF privado original ni se demuestra corrección semántica universal.
 - DOM verifica guardar/desbloquear y citas plegadas sin HTML del modelo. No hay comprobación visual en navegador real ni ejecución nativa en Windows/Mac en este entorno.
 - Actions sigue pausado. Paquetes construidos localmente, con CRC y manifiesto SHA-256.
+
+## 2.4 beta 11 — contraseña de desbloqueo desde 4 caracteres
+
+- `node --test tests/ai-vault.test.mjs`: 3/3. Guardado y apertura con 4 caracteres, rechazo de 3, contraseña incorrecta, cifrado, persistencia en web/escritorio y separación por perfil.
+- `node --test --test-name-pattern="IA: recordar" tests/ui-flow.test.mjs`: 1/1. Conexión manual con clave ficticia, guardado, recarga, desbloqueo y borrado en DOM simulado.
+- La prueba conserva también una contraseña larga; no cambia la derivación ni el formato de las conexiones existentes. Sin llamadas de pago a proveedores ni ejecuciones de GitHub Actions. No se ha probado esta revisión en dispositivos Windows/Mac reales.
